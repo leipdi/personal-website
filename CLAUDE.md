@@ -37,6 +37,8 @@ Palette was picked and validated with the `dataviz` skill's `scripts/validate_pa
 
 Fonts: Big Shoulders Display (display/labels), Source Serif 4 (body), JetBrains Mono (technical annotations) — loaded via a Google Fonts `<link>` in `Layout.astro`, **not** `@fontsource` packages: those hit a subpath-export resolution bug in this environment (likely the space in `personal website`), so avoid re-adding them without testing first.
 
+Text-only design research (2026-09-18, no browser tool available — see Process note) cross-checked the concept against `ui-ux-pro-max`'s offline archetype data: the site deliberately fits neither the "Portfolio/Personal" archetype (motion-driven, storytelling-led) nor the "Resume/CV Builder" archetype (template-picker, ATS-focused, professional-navy) on its own — it's CV-builder *content* rendered in dashboard/data-viz *form* with portfolio-style narrative prose. That hybrid is the actual differentiator; don't pull the design toward either pure archetype (e.g. don't add a template picker, don't drop the case-study prose for scannable bullet lists).
+
 ### Architecture
 
 - `src/data/cv.ts` — all CV/LinkedIn content as typed data, written as short original prose (not copied CV lines): `profile`, `revisions` (career history, each with a `story` paragraph), `projects` (case studies: context/approach/result), `ratedSkills` (only self-rated skills, with numeric `level`), `competencies` (unrated fields), `certifications`, `notes`. Edit content here, not in components.
