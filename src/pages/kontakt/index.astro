@@ -1,0 +1,68 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { profile, notes } from "../../data/cv";
+---
+
+<Layout
+  title="Kontakt — Daniel Lenski"
+  description="Kontaktmöglichkeiten und Lebenslauf von Daniel Lenski."
+  active="kontakt"
+  pageLabel="Kontakt"
+>
+  <section>
+    <h1 class="font-display text-4xl tracking-tight text-ink sm:text-5xl">Kontakt</h1>
+    <p class="mt-2 max-w-[60ch] text-ink-secondary">Direkt erreichbar per E-Mail oder LinkedIn.</p>
+  </section>
+
+  <section class="mt-8 grid gap-10 sm:grid-cols-2">
+    <div class="border-t border-line pt-5">
+      <dl class="space-y-4 text-sm">
+        <div>
+          <dt class="font-ui text-xs text-ink-muted">E-Mail</dt>
+          <dd class="mt-1">
+            <a class="border-b border-teal text-teal-ink hover:text-ink hover:border-ink" href={`mailto:${profile.email}`}>
+              {profile.email}
+            </a>
+          </dd>
+        </div>
+        <div>
+          <dt class="font-ui text-xs text-ink-muted">Telefon</dt>
+          <dd class="mt-1 text-ink">{profile.phone}</dd>
+        </div>
+        <div>
+          <dt class="font-ui text-xs text-ink-muted">LinkedIn</dt>
+          <dd class="mt-1">
+            <a
+              class="border-b border-line-strong text-ink hover:text-teal hover:border-teal"
+              href={profile.linkedinUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {profile.linkedin}
+            </a>
+          </dd>
+        </div>
+        <div>
+          <dt class="font-ui text-xs text-ink-muted">Ort</dt>
+          <dd class="mt-1 text-ink">{profile.location}</dd>
+        </div>
+      </dl>
+
+      <a
+        href="/cv/Lebenslauf_Daniel_Lenski.pdf"
+        target="_blank"
+        rel="noreferrer"
+        class="font-ui mt-6 inline-block border border-line-strong px-3 py-2 text-xs text-ink-secondary hover:border-teal hover:text-teal-ink"
+      >
+        Lebenslauf als PDF herunterladen
+      </a>
+    </div>
+
+    <div class="border-t border-line pt-5">
+      <h2 class="font-display text-lg text-ink">Neben dem Job</h2>
+      <ul class="mt-4 space-y-3 text-sm leading-relaxed text-ink-secondary">
+        {notes.map((n) => <li class="border-l-2 border-teal/50 pl-3">{n}</li>)}
+      </ul>
+    </div>
+  </section>
+</Layout>

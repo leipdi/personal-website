@@ -1,0 +1,27 @@
+---
+interface Props {
+  name: string;
+  level: 1 | 2 | 3 | 4 | 5;
+  levelLabel: string;
+}
+
+const { name, level, levelLabel } = Astro.props;
+const ticks = [1, 2, 3, 4, 5] as const;
+---
+
+<div>
+  <div class="mb-1.5 flex items-baseline justify-between text-sm">
+    <span class="text-ink">{name}</span>
+    <span class="font-ui text-[11px] text-ink-muted">{levelLabel}</span>
+  </div>
+  <div class="flex gap-1" role="img" aria-label={`${name}: ${levelLabel}`}>
+    {
+      ticks.map((t) => (
+        <span
+          class:list={["h-1.5 flex-1 rounded-[1px]", t <= level ? "bg-teal-ink" : "bg-surface-sunken"]}
+          aria-hidden="true"
+        />
+      ))
+    }
+  </div>
+</div>

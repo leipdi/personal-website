@@ -1,0 +1,57 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import SkillBar from "../../components/SkillBar.astro";
+import { ratedSkills, competencies, certifications } from "../../data/cv";
+
+const software = ratedSkills.filter((s) => s.group === "Software & BI");
+const sprachen = ratedSkills.filter((s) => s.group === "Sprachen");
+---
+
+<Layout
+  title="Kenntnisse — Daniel Lenski"
+  description="Selbst eingeschätzte Software- und Sprachkenntnisse, Methoden und Zertifikate."
+  active="kenntnisse"
+  pageLabel="Kenntnisse"
+>
+  <section>
+    <h1 class="font-display text-4xl tracking-tight text-ink sm:text-5xl">Kenntnisse</h1>
+    <p class="mt-2 max-w-[60ch] text-ink-secondary">
+      Werkzeuge und Sprachen mit eigener Einschätzung, plus Methodenfelder ohne feste Skala.
+    </p>
+  </section>
+
+  <section class="mt-8 grid gap-8 sm:grid-cols-2">
+    <div class="border-t border-line pt-5">
+      <h2 class="font-display text-lg text-ink">Software &amp; BI</h2>
+      <div class="mt-4 space-y-4">
+        {software.map((s) => <SkillBar name={s.name} level={s.level} levelLabel={s.levelLabel} />)}
+      </div>
+    </div>
+    <div class="border-t border-line pt-5">
+      <h2 class="font-display text-lg text-ink">Sprachen</h2>
+      <div class="mt-4 space-y-4">
+        {sprachen.map((s) => <SkillBar name={s.name} level={s.level} levelLabel={s.levelLabel} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="mt-10 border-t border-line pt-5">
+    <h2 class="font-display text-lg text-ink">Methoden &amp; Fachgebiete</h2>
+    <p class="mt-1 max-w-[60ch] text-sm text-ink-muted">Ohne Selbsteinschätzung im Lebenslauf, deshalb hier ohne Skala.</p>
+    <p class="mt-3 max-w-[60ch] leading-relaxed text-ink">{competencies.join(", ")}.</p>
+  </section>
+
+  <section class="mt-10 border-t border-line pt-5">
+    <h2 class="font-display text-lg text-ink">Zertifikate</h2>
+    <ul class="mt-3 flex flex-wrap gap-x-8 gap-y-2 text-sm text-ink">
+      {
+        certifications.map((c) => (
+          <li>
+            <span>{c.name}</span>
+            <span class="text-ink-muted"> ({c.authority}, {c.date})</span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Layout>

@@ -1,0 +1,46 @@
+---
+import TabBar from "../components/TabBar.astro";
+import { profile } from "../data/cv";
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description: string;
+  active: string;
+  pageLabel: string;
+}
+
+const { title, description, active, pageLabel } = Astro.props;
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;0,900;1,400;1,500;1,600&family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap"
+    />
+  </head>
+  <body class="min-h-screen bg-page text-ink antialiased">
+    <div class="sticky top-0 z-40 border-b border-line bg-page/90 backdrop-blur">
+      <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-2.5 sm:px-6">
+        <a href="/" class="font-display text-base italic text-ink hover:text-teal-ink">{profile.name}</a>
+        <span class="font-ui text-xs tracking-wide text-ink-muted">{pageLabel}</span>
+      </div>
+    </div>
+
+    <main class="mx-auto max-w-5xl px-4 pb-28 pt-8 sm:px-6 sm:pt-10">
+      <slot />
+    </main>
+
+    <TabBar active={active} />
+  </body>
+</html>

@@ -1,0 +1,23 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import ProjectCard from "../../components/ProjectCard.astro";
+import { projects } from "../../data/cv";
+---
+
+<Layout
+  title="Projekte — Daniel Lenski"
+  description="Ausgewählte Projekte aus Abschlussarbeiten und Praxisstationen."
+  active="projekte"
+  pageLabel="Projekte"
+>
+  <section>
+    <h1 class="font-display text-4xl tracking-tight text-ink sm:text-5xl">Projekte</h1>
+    <p class="mt-2 max-w-[60ch] text-ink-secondary">
+      Vier Stationen, an denen sich zeigt, wie aus einer Fragestellung ein belastbares Ergebnis wird.
+    </p>
+  </section>
+
+  <section class="mt-8 grid gap-6 sm:grid-cols-2">
+    {projects.map((p) => <ProjectCard project={p} />)}
+  </section>
+</Layout>
