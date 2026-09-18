@@ -1,0 +1,45 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Gantt from "../../components/Gantt.astro";
+import { revisions } from "../../data/cv";
+
+const rows = [...revisions].reverse();
+---
+
+<Layout
+  title="Werdegang — Daniel Lenski"
+  description="Ausbildung und Berufserfahrung von Daniel Lenski im Überblick."
+  active="werdegang"
+  pageLabel="Werdegang"
+>
+  <section>
+    <h1 class="font-display text-4xl tracking-tight text-ink sm:text-5xl">Werdegang</h1>
+    <p class="mt-2 max-w-[60ch] text-ink-secondary">
+      Ausbildung und Berufserfahrung im Zeitverlauf, chronologisch von A bis K.
+    </p>
+  </section>
+
+  <section class="mt-10">
+    <Gantt entries={revisions} />
+  </section>
+
+  <section class="mt-12 space-y-8">
+    {
+      rows.map((r) => (
+        <article class="grid gap-2 border-t border-line pt-6 sm:grid-cols-[minmax(0,140px)_1fr] sm:gap-6">
+          <div>
+            <p class="font-ui text-xs text-ink-muted">
+              Rev. {r.rev} ({r.from}–{r.to})
+            </p>
+            <p class="font-ui mt-1 text-[11px] text-ink-muted">{r.place}</p>
+          </div>
+          <div>
+            <h2 class="font-display text-xl text-ink sm:text-2xl">{r.title}</h2>
+            <p class="text-sm text-ink-secondary">{r.org}</p>
+            <p class="mt-2 max-w-[68ch] leading-relaxed text-ink">{r.story}</p>
+          </div>
+        </article>
+      ))
+    }
+  </section>
+</Layout>

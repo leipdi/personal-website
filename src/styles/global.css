@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-ink: var(--ink);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-copper: var(--copper);
+  --color-copper-ink: var(--copper-ink);
+  --color-teal: var(--teal);
+  --color-teal-ink: var(--teal-ink);
+  --color-teal-mid: var(--teal-mid);
+  --color-good: var(--good);
+
+  --font-display: "Fraunces", "Iowan Old Style", serif;
+  --font-body: "Fraunces", "Iowan Old Style", serif;
+  --font-ui: "Bricolage Grotesque", system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+
+  /* surfaces */
+  --page: #f1f2ee;
+  --surface: #fcfcfb;
+  --surface-sunken: #e9eae5;
+
+  /* ink — always dark-on-light, no inverted mode */
+  --ink: #14181c;
+  --ink-secondary: #52585e;
+  --ink-muted: #6b7176;
+
+  /* structure */
+  --line: #dcdfd9;
+  --line-strong: #c3c7c0;
+
+  /* brand accents (validated: copper vs teal, ΔE 23.1 normal-vision, both >=3:1 on --surface) */
+  --copper: #c7742a;
+  --copper-ink: #7a4415;
+  --teal: #0c93a2;
+  --teal-ink: #075e69;
+  --teal-mid: #5fb7c2;
+
+  /* status (reserved, not reused as decoration) */
+  --good: #0ca30c;
+}
+
+html {
+  background: var(--page);
+}
+
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: "Fraunces", "Iowan Old Style", serif;
+  font-optical-sizing: auto;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+::selection {
+  background: var(--teal);
+  color: var(--surface);
+}
+
+.font-display {
+  font-family: "Fraunces", "Iowan Old Style", serif;
+  font-optical-sizing: auto;
+}
+
+.font-ui {
+  font-family: "Bricolage Grotesque", system-ui, sans-serif;
+}
+
+:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}

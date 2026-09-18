@@ -1,0 +1,38 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { profile, revisions, projects, ratedSkills } from "../data/cv";
+
+const berufCount = revisions.filter((r) => r.kind === "beruf").length;
+const englisch = ratedSkills.find((s) => s.name === "Englisch")?.levelLabel ?? "";
+const featured = projects[0];
+---
+
+<Layout
+  title="Daniel Lenski — Wirtschaftsingenieur"
+  description="Wirtschaftsingenieur mit Fokus auf Produktion, Nachhaltigkeit und Datenanalyse."
+  active="uebersicht"
+  pageLabel="Übersicht"
+>
+  <section>
+    <p class="font-display text-lg italic text-ink-muted">{profile.role}</p>
+    <h1 class="mt-1 font-display text-5xl font-medium leading-[0.95] tracking-tight text-ink sm:text-6xl md:text-7xl">
+      {profile.name}
+    </h1>
+    <p class="mt-5 max-w-[58ch] text-lg leading-relaxed text-ink-secondary">
+      {profile.claim}
+    </p>
+    <p class="mt-4 max-w-[58ch] leading-relaxed text-ink-secondary">
+      Aktuell stehe ich bei einem Notenschnitt von 1,8 (Bachelor wie Master), bin bei Station {berufCount} meiner
+      Praxis angekommen, habe eine Fachpublikation bei der SolarPACES Conference veröffentlicht und spreche Englisch
+      auf {englisch}-Niveau.
+    </p>
+  </section>
+
+  <section class="mt-14 max-w-[65ch] border-l-2 border-teal py-1 pl-6">
+    <h2 class="mt-1 font-display text-2xl text-ink sm:text-3xl">{featured.title}</h2>
+    <p class="mt-3 max-w-[65ch] text-ink-secondary">{featured.context}</p>
+    <a href="/projekte/" class="mt-4 inline-block border-b border-teal text-sm text-teal-ink hover:text-ink hover:border-ink">
+      Alle Projekte ansehen
+    </a>
+  </section>
+</Layout>
