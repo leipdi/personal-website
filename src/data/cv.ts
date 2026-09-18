@@ -6,6 +6,8 @@ export const profile = {
   role: "Wirtschaftsingenieur, M.Sc.",
   claim:
     "Ich übersetze technische Fragen in Zahlen: was ein Bauteil wirklich kostet, wie viel CO2 ein Fertigungsverfahren verursacht, was ein BI-Dashboard über ein Geschäft verrät.",
+  dashboardNote:
+    "Deshalb ist auch dieser Lebenslauf als Dashboard aufgebaut: Kennzahlen vorn, der Werdegang als Zeitstrahl, Skills nur dort mit Balken bewertet, wo das Original-CV das auch tut.",
   location: "Langenfeld (Rheinland) / Düsseldorf",
   email: "daniel.lenski@hotmail.com",
   phone: "+49 157 74585248",
