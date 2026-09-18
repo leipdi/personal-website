@@ -17,7 +17,7 @@ const span = maxYear - minYear;
 const rows = entries.map((e, i) => {
   const end = e.to === "heute" ? todayFrac : e.toYear;
   const left = ((e.fromYear - minYear) / span) * 100;
-  const width = Math.max(((end - e.fromYear) / span) * 100, 1.2);
+  const width = ((end - e.fromYear) / span) * 100;
   return { ...e, left, width, gridRow: i + 2 };
 });
 
@@ -27,7 +27,7 @@ const todayLeft = ((todayFrac - minYear) / span) * 100;
 const totalRows = rows.length + 1;
 ---
 
-<div class="relative sm:grid sm:grid-cols-[minmax(0,1fr)_18rem] sm:gap-x-3">
+<div class="relative sm:grid sm:grid-cols-[minmax(0,1fr)_18rem] sm:gap-x-3 sm:gap-y-3">
   <div class="font-ui relative mb-2 h-5 text-[11px] text-ink-muted sm:col-start-1" style={{ gridRow: 1 }}>
     {
       axisYears.map((y, i) => (
@@ -46,11 +46,11 @@ const totalRows = rows.length + 1;
   <div class="hidden sm:col-start-2 sm:block" style={{ gridRow: 1 }} aria-hidden="true" />
 
   <div
-    class="absolute top-0 bottom-0 border-l border-dashed border-copper/60 sm:col-start-1"
+    class="absolute top-0 bottom-0 border-l border-dashed border-copper/60 sm:col-start-1 sm:col-end-2"
     style={{ left: `${todayLeft}%`, gridRow: `1 / span ${totalRows}` }}
     aria-hidden="true"
   >
-    <span class="font-ui absolute -top-5 -translate-x-full whitespace-nowrap text-[10px] text-copper">heute</span>
+    <span class="font-ui absolute -top-5 -translate-x-full whitespace-nowrap text-[10px] text-copper-ink">heute</span>
   </div>
 
   {
@@ -62,7 +62,7 @@ const totalRows = rows.length + 1;
         >
           <div
             class:list={["absolute top-0 h-2 rounded-sm", r.kind === "beruf" ? "bg-copper" : "bg-teal"]}
-            style={{ left: `${r.left}%`, width: `${r.width}%` }}
+            style={{ left: `${r.left}%`, width: `${r.width}%`, minWidth: "6px" }}
             title={`${r.title} (${r.from}–${r.to})`}
           />
         </div>
