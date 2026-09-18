@@ -39,7 +39,7 @@ export const revisions: RevisionEntry[] = [
     place: "Langenfeld",
     kind: "ausbildung",
     story:
-      "Abitur mit Note 2,0. Mathematik und Physik blieben die Fächer, die am meisten hängen geblieben sind — der rote Faden, der später zum Wirtschaftsingenieurwesen führte.",
+      "Abitur mit Note 2,0, mit Mathematik und Physik als den Fächern, die am meisten hängen geblieben sind und später den roten Faden zum Wirtschaftsingenieurwesen bildeten.",
   },
   {
     rev: "B",
@@ -65,7 +65,7 @@ export const revisions: RevisionEntry[] = [
     place: "Düsseldorf",
     kind: "beruf",
     story:
-      "Tutorien für Erstsemester in den Grundlagenfächern Mathematik gehalten — der erste Job, bei dem Erklären genauso wichtig war wie Rechnen können.",
+      "Als erster Job Tutorien für Erstsemester in Mathematik gehalten, wo Erklären genauso wichtig war wie Rechnen können.",
   },
   {
     rev: "D",
@@ -104,7 +104,7 @@ export const revisions: RevisionEntry[] = [
     place: "Jülich",
     kind: "beruf",
     story:
-      "Ein Heliostat ist ein computergesteuerter Spiegel, der Sonnenlicht auf den Receiver eines Solarturm-Kraftwerks bündelt — je günstiger seine Stahlkonstruktion zu fertigen ist, desto eher rechnet sich Solarturm-Strom. Am DLR in Jülich Bottom-Up-Kalkulationen aus CAD-Daten gebaut, um genau diese Fertigungskosten künftiger Heliostaten zu bewerten. Ergebnis als Fachbeitrag bei der SolarPACES Conference veröffentlicht.",
+      "Ein Heliostat ist ein computergesteuerter Spiegel, der Sonnenlicht auf den Receiver eines Solarturm-Kraftwerks bündelt. Je günstiger seine Stahlkonstruktion zu fertigen ist, desto eher rechnet sich Solarturm-Strom. Am DLR in Jülich Bottom-Up-Kalkulationen aus CAD-Daten gebaut, um genau diese Fertigungskosten künftiger Heliostaten zu bewerten. Ergebnis als Fachbeitrag bei der SolarPACES Conference veröffentlicht.",
   },
   {
     rev: "G",
@@ -130,7 +130,7 @@ export const revisions: RevisionEntry[] = [
     place: "Düsseldorf",
     kind: "beruf",
     story:
-      "Das Dekanat im Tagesgeschäft unterstützt: Mitteilungen für den Fachbereich, Büromaterial, Eventorganisation — die organisatorische Seite eines Fachbereichs von innen gesehen.",
+      "Das Dekanat im Tagesgeschäft unterstützt (Mitteilungen für den Fachbereich, Büromaterial, Eventorganisation) und dabei die organisatorische Seite eines Fachbereichs von innen kennengelernt.",
   },
   {
     rev: "J",
@@ -143,7 +143,7 @@ export const revisions: RevisionEntry[] = [
     place: "Remote",
     kind: "beruf",
     story:
-      "3D-gedruckte Bauteile sparen in der Luftfahrt Gewicht und Material — aber lohnt sich das auch ökologisch, über den gesamten Lebenszyklus? Dafür eine Bewertungsmetrik entwickelt: Ökobilanzierung nach ISO 14040 plus ein Excel-Tool zur Berechnung des kumulierten Energieaufwands (KEA), um additive Fertigung dort einzusetzen, wo sie tatsächlich ökologisch sinnvoll ist. Bislang mit Note 1,2 bewertet.",
+      "3D-gedruckte Bauteile sparen in der Luftfahrt Gewicht und Material. Aber lohnt sich das auch ökologisch, über den gesamten Lebenszyklus? Dafür eine Bewertungsmetrik entwickelt: Ökobilanzierung nach ISO 14040 plus ein Excel-Tool zur Berechnung des kumulierten Energieaufwands (KEA), um additive Fertigung dort einzusetzen, wo sie tatsächlich ökologisch sinnvoll ist. Bislang mit Note 1,2 bewertet.",
   },
   {
     rev: "K",
@@ -177,7 +177,7 @@ export const projects: Project[] = [
     org: "Bachelorarbeit am DLR",
     period: "2024",
     context:
-      "Solarturm-Kraftwerke brauchen hunderte bis tausende Heliostaten — nachführbare Spiegel, die Sonnenlicht auf einen zentralen Receiver bündeln. Sie machen einen Großteil der Anlagenkosten aus, wurden aber bislang oft nur grob kalkuliert.",
+      "Solarturm-Kraftwerke brauchen hunderte bis tausende Heliostaten, nachführbare Spiegel, die Sonnenlicht auf einen zentralen Receiver bündeln. Sie machen einen Großteil der Anlagenkosten aus, wurden aber bislang oft nur grob kalkuliert.",
     approach:
       "Bottom-Up-Kostenkalkulation direkt aus CAD-Geometrie: Stahlbearbeitung, Fertigungsschritte und Materialbedarf künftiger Heliostat-Designs Schritt für Schritt durchgerechnet, statt mit Pauschalwerten zu arbeiten.",
     result:
@@ -193,7 +193,7 @@ export const projects: Project[] = [
     org: "Masterarbeit an der RWTH Aachen",
     period: "2026",
     context:
-      "Additive Fertigung spart in der Luftfahrt oft Gewicht und Material — ob sie dadurch auch über den gesamten Lebenszyklus ökologisch vorteilhaft ist, hängt stark vom Einzelfall ab und war bisher kaum systematisch bewertbar.",
+      "Additive Fertigung spart in der Luftfahrt oft Gewicht und Material. Ob sie dadurch auch über den gesamten Lebenszyklus ökologisch vorteilhaft ist, hängt stark vom Einzelfall ab und war bisher kaum systematisch bewertbar.",
     approach:
       "Eine Bewertungsmetrik für die ökologischen Einflussfaktoren additiver Fertigung entwickelt: Ökobilanzierung nach ISO 14040, ergänzt um ein selbst gebautes Excel-Tool zur Berechnung des kumulierten Energieaufwands (KEA).",
     result: "Mit Note 1,2 bewertete Metrik, die flexible, fallbezogene Entscheidungen für oder gegen additive Fertigung ermöglicht.",
@@ -204,7 +204,7 @@ export const projects: Project[] = [
     org: "Praktikum bei ATVISIO Consult GmbH",
     period: "2026 – heute",
     context:
-      "BI-Consulting lebt davon, dass Kunden ihren Daten trauen können — dafür müssen ETL-Strecken sauber laufen und Berichte verständlich sein, nicht nur technisch korrekt.",
+      "BI-Consulting lebt davon, dass Kunden ihren Daten trauen können. Dafür müssen ETL-Strecken sauber laufen und Berichte verständlich sein, nicht nur technisch korrekt.",
     approach:
       "ETL-Strecken und Berichte für Kunden und intern in Power BI und Jedox aufgebaut; zusätzlich eine Schulung zu Microsoft Copilot in Power BI konzipiert, um Kolleg:innen und Kunden den Einstieg zu erleichtern.",
     result: "Laufende Berichte im Kundeneinsatz und eine wiederverwendbare Copilot-Schulung für das Team.",
@@ -215,7 +215,7 @@ export const projects: Project[] = [
     org: "Werkstudent bei IGH Infotec AG",
     period: "2023 – 2024",
     context:
-      "Ein wachsendes Team brauchte ein digitales Zeiterfassungssystem statt manueller Prozesse — inklusive der Frage, wie man Kolleg:innen zuverlässig auf ein neues Werkzeug umstellt.",
+      "Ein wachsendes Team brauchte ein digitales Zeiterfassungssystem statt manueller Prozesse, inklusive der Frage, wie man Kolleg:innen zuverlässig auf ein neues Werkzeug umstellt.",
     approach:
       "Timebutler als neues Zeiterfassungssystem eingerichtet und Kolleg:innen darin geschult, parallel Mitarbeitercontrolling und Monatsabschlüsse in Excel/Pivot weitergeführt.",
     result: "Eingeführtes System im Regelbetrieb, ohne Unterbrechung der laufenden Controlling-Prozesse.",
@@ -225,7 +225,7 @@ export const projects: Project[] = [
 
 export type RatedSkill = { name: string; level: 1 | 2 | 3 | 4 | 5; levelLabel: string; group: "Software & BI" | "Sprachen" };
 
-// Nur Skills mit expliziter Selbsteinschätzung im Original-CV — keine geschätzten Werte.
+// Nur Skills mit expliziter Selbsteinschätzung im Original-CV, keine geschätzten Werte.
 export const ratedSkills: RatedSkill[] = [
   { name: "Excel / Word / PowerPoint", level: 5, levelLabel: "sehr gut", group: "Software & BI" },
   { name: "Power BI", level: 4, levelLabel: "gut", group: "Software & BI" },
@@ -257,6 +257,6 @@ export const certifications = [
 ];
 
 export const notes = [
-  "Spielt beim VfB 06 Langenfeld und pfeift als Schiedsrichter im Kreis Remscheid/Solingen — auf beiden Seiten der Linie zu Hause.",
+  "Spielt beim VfB 06 Langenfeld und pfeift als Schiedsrichter im Kreis Remscheid/Solingen, auf beiden Seiten der Linie zu Hause.",
   "Baut in der Freizeit mit 3D-Druck und automatisiert eigene Projekte mit Claude (Cowork, Code).",
 ];

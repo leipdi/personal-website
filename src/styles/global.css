@@ -32,7 +32,7 @@
   /* ink — always dark-on-light, no inverted mode */
   --ink: #14181c;
   --ink-secondary: #52585e;
-  --ink-muted: #6b7176;
+  --ink-muted: #666c71;
 
   /* structure */
   --line: #dcdfd9;
