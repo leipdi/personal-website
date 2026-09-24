@@ -1,13 +1,37 @@
 // Quelle: Lebenslauf (PDF) + LinkedIn-Datenexport.
 // Texte hier sind eigene Formulierungen auf Basis der Rohdaten, keine Kopien der CV-Zeilen.
 
+// Die Startseite setzt den Claim als fortlaufenden Satz über die ganze Seite:
+// der Anfang steht im Kopf, jeder Teilsatz eröffnet ein Band mit der Arbeit dazu.
+// Jedes Band hat eine eigene Form (Schema, Blick ins Rechenmodell, reiner Text), siehe index.astro.
+export const claimLead = "Ich übersetze technische Fragen in Zahlen:";
+
+export const claimParts: {
+  clause: string;
+  project: string; // slug in `projects`
+  body: string; // der Absatz im Band, nennt die Station im Satz statt in einer Metazeile
+}[] = [
+  {
+    clause: "was ein Bauteil in der Fertigung kostet,",
+    project: "heliostat",
+    body: "In der Bachelorarbeit am DLR habe ich aus CAD-Daten berechnet, was die Stahlkonstruktion künftiger Heliostaten in der Fertigung kostet, Schritt für Schritt statt mit Pauschalwerten. Die Kostenmodelle sind als Fachbeitrag in den SolarPACES Conference Proceedings erschienen.",
+  },
+  {
+    clause: "wie viel CO₂ ein Fertigungsverfahren verursacht,",
+    project: "luftfahrt",
+    body: "Die Masterarbeit an der RWTH Aachen fragt, wann ein 3D-gedrucktes Luftfahrtbauteil über seinen ganzen Lebenszyklus ökologisch besser ist als ein gefrästes: mit einer Ökobilanz nach ISO 14040 und einem eigenen Excel-Tool für den kumulierten Energieaufwand.",
+  },
+  {
+    clause: "und wie aus den Daten eines Kunden ein Bericht wird.",
+    project: "bi-consulting",
+    body: "Seit Mai 2026 bin ich im BI Consulting bei ATVISIO in Düsseldorf. Ich baue ETL-Strecken und Berichte in Power BI und Jedox, für Kunden und intern, und habe eine Schulung zu Microsoft Copilot in Power BI konzipiert und selbst gehalten.",
+  },
+];
+
 export const profile = {
   name: "Daniel Lenski",
   role: "Wirtschaftsingenieur, M.Sc.",
-  claim:
-    "Ich übersetze technische Fragen in Zahlen: was ein Bauteil wirklich kostet, wie viel CO2 ein Fertigungsverfahren verursacht, was ein BI-Dashboard über ein Geschäft verrät.",
-  dashboardNote:
-    "Deshalb ist auch dieser Lebenslauf als Dashboard aufgebaut: Kennzahlen vorn, der Werdegang als Zeitstrahl, Skills nur dort mit Balken bewertet, wo das Original-CV das auch tut.",
+  claim: [claimLead, ...claimParts.map((p) => p.clause)].join(" "),
   location: "Langenfeld (Rheinland) / Düsseldorf",
   email: "daniel.lenski@hotmail.com",
   phone: "+49 157 74585248",
@@ -15,8 +39,7 @@ export const profile = {
   linkedinUrl: "https://linkedin.com/in/daniel-lenski-de",
 };
 
-export type RevisionEntry = {
-  rev: string;
+export type CareerEntry = {
   from: string;
   to: string;
   fromYear: number;
@@ -26,12 +49,15 @@ export type RevisionEntry = {
   place: string;
   kind: "ausbildung" | "beruf";
   story: string;
+  // Nebenstationen: kompakte Zeile ohne Text, damit sie nicht so viel Raum bekommen wie die Abschlussarbeiten.
+  minor?: true;
+  // Slug eines Projekts auf /projekte/, falls es dazu eine ausführliche Fallstudie gibt.
+  project?: string;
 };
 
-// Älteste zuerst; Rev-Buchstaben folgen der Zeichnungskonvention (I, O, Q ausgelassen).
-export const revisions: RevisionEntry[] = [
+// Älteste zuerst. from/to: "2020" (nur Jahr), "Okt 2021" (Monat + Jahr) oder "heute".
+export const career: CareerEntry[] = [
   {
-    rev: "A",
     from: "2013",
     to: "2020",
     fromYear: 2013,
@@ -40,11 +66,11 @@ export const revisions: RevisionEntry[] = [
     org: "Konrad-Adenauer-Gymnasium",
     place: "Langenfeld",
     kind: "ausbildung",
+    minor: true,
     story:
       "Abitur mit Note 2,0, mit Mathematik und Physik als den Fächern, die am meisten hängen geblieben sind und später den roten Faden zum Wirtschaftsingenieurwesen bildeten.",
   },
   {
-    rev: "B",
     from: "2020",
     to: "2024",
     fromYear: 2020,
@@ -54,10 +80,9 @@ export const revisions: RevisionEntry[] = [
     place: "Düsseldorf",
     kind: "ausbildung",
     story:
-      "Grundstudium zwischen Technik und Betriebswirtschaft, mit Note 1,8 abgeschlossen. Die Bachelorarbeit (siehe Rev. F) entschied den Weg in Richtung Produktion und Energie.",
+      "Grundstudium zwischen Technik und Betriebswirtschaft, mit Note 1,8 abgeschlossen. Die Bachelorarbeit am DLR entschied den Weg in Richtung Produktion und Energie.",
   },
   {
-    rev: "C",
     from: "Okt 2021",
     to: "Jul 2022",
     fromYear: 2021,
@@ -66,11 +91,11 @@ export const revisions: RevisionEntry[] = [
     org: "Hochschule Düsseldorf",
     place: "Düsseldorf",
     kind: "beruf",
+    minor: true,
     story:
       "Als erster Job Tutorien für Erstsemester in Mathematik gehalten, wo Erklären genauso wichtig war wie Rechnen können.",
   },
   {
-    rev: "D",
     from: "Okt 2022",
     to: "Feb 2023",
     fromYear: 2022,
@@ -83,7 +108,6 @@ export const revisions: RevisionEntry[] = [
       "Schnittstelle zwischen Kunden und Softwareentwicklung: Kundentermine vor- und nachbereitet, SAP-Tabellen in Kundensystemen gepflegt und in Produktions-/Logistikfragen beraten.",
   },
   {
-    rev: "E",
     from: "Feb 2023",
     to: "Feb 2024",
     fromYear: 2023,
@@ -92,11 +116,11 @@ export const revisions: RevisionEntry[] = [
     org: "IGH Infotec AG",
     place: "Langenfeld",
     kind: "beruf",
+    project: "zeiterfassung",
     story:
       "Ein Jahr Mitarbeitercontrolling und Monatsabschlüsse in Excel/Pivot betreut und nebenbei ein neues Zeiterfassungssystem (Timebutler) eingeführt und die Kolleg:innen darauf geschult.",
   },
   {
-    rev: "F",
     from: "Mär 2024",
     to: "Jun 2024",
     fromYear: 2024,
@@ -105,11 +129,11 @@ export const revisions: RevisionEntry[] = [
     org: "DLR, Deutsches Zentrum für Luft- und Raumfahrt",
     place: "Jülich",
     kind: "beruf",
+    project: "heliostat",
     story:
       "Ein Heliostat ist ein computergesteuerter Spiegel, der Sonnenlicht auf den Receiver eines Solarturm-Kraftwerks bündelt. Je günstiger seine Stahlkonstruktion zu fertigen ist, desto eher rechnet sich Solarturm-Strom. Am DLR in Jülich Bottom-Up-Kalkulationen aus CAD-Daten gebaut, um genau diese Fertigungskosten künftiger Heliostaten zu bewerten. Ergebnis als Fachbeitrag bei der SolarPACES Conference veröffentlicht.",
   },
   {
-    rev: "G",
     from: "2024",
     to: "heute",
     fromYear: 2024,
@@ -119,10 +143,9 @@ export const revisions: RevisionEntry[] = [
     place: "Düsseldorf",
     kind: "ausbildung",
     story:
-      "Vertiefung mit Schwerpunkt Produktion und Innovation, aktuell mit Note 1,8. Masterarbeit läuft parallel am RWTH-Lehrstuhl (siehe Rev. J).",
+      "Vertiefung mit Schwerpunkt Produktion und Innovation, aktuell mit Note 1,8. Die Masterarbeit läuft parallel an der RWTH Aachen.",
   },
   {
-    rev: "H",
     from: "Sep 2024",
     to: "Mai 2026",
     fromYear: 2024,
@@ -131,11 +154,11 @@ export const revisions: RevisionEntry[] = [
     org: "Hochschule Düsseldorf, FB Maschinenbau & Verfahrenstechnik",
     place: "Düsseldorf",
     kind: "beruf",
+    minor: true,
     story:
       "Das Dekanat im Tagesgeschäft unterstützt (Mitteilungen für den Fachbereich, Büromaterial, Eventorganisation) und dabei die organisatorische Seite eines Fachbereichs von innen kennengelernt.",
   },
   {
-    rev: "J",
     from: "Jan 2026",
     to: "heute",
     fromYear: 2026,
@@ -144,11 +167,11 @@ export const revisions: RevisionEntry[] = [
     org: "RWTH Aachen",
     place: "Remote",
     kind: "beruf",
+    project: "luftfahrt",
     story:
       "3D-gedruckte Bauteile sparen in der Luftfahrt Gewicht und Material. Aber lohnt sich das auch ökologisch, über den gesamten Lebenszyklus? Dafür eine Bewertungsmetrik entwickelt: Ökobilanzierung nach ISO 14040 plus ein Excel-Tool zur Berechnung des kumulierten Energieaufwands (KEA), um additive Fertigung dort einzusetzen, wo sie tatsächlich ökologisch sinnvoll ist. Bislang mit Note 1,2 bewertet.",
   },
   {
-    rev: "K",
     from: "Mai 2026",
     to: "heute",
     fromYear: 2026,
@@ -157,25 +180,44 @@ export const revisions: RevisionEntry[] = [
     org: "ATVISIO Consult GmbH",
     place: "Düsseldorf",
     kind: "beruf",
+    project: "bi-consulting",
     story:
-      "Von der Kalkulation zum Dashboard: ETL-Strecken und Berichte für Kunden und intern in Power BI und Jedox gebaut, außerdem eine Schulung zu Microsoft Copilot in Power BI konzipiert und selbst gehalten.",
+      "ETL-Strecken und Berichte für Kunden und intern in Power BI und Jedox gebaut, außerdem eine Schulung zu Microsoft Copilot in Power BI konzipiert und selbst gehalten.",
   },
 ];
 
 export type Project = {
+  slug: string;
   title: string;
   org: string;
   period: string;
   context: string;
   approach: string;
   result: string;
-  tags: string[];
   link?: { label: string; href: string };
+  // Welche Abbildung das Projekt begleitet (Komponenten in src/components/figures/).
+  figure?: "am-model" | "heliostat";
 };
 
+// Reihenfolge = Gewichtung auf der Projektseite, nicht Chronologie.
 export const projects: Project[] = [
   {
-    title: "Was ein Heliostat wirklich kosten darf",
+    slug: "luftfahrt",
+    figure: "am-model",
+    title: "Wann sich 3D-Druck in der Luftfahrt ökologisch lohnt",
+    org: "Masterarbeit an der RWTH Aachen",
+    period: "2026",
+    context:
+      "Additive Fertigung spart in der Luftfahrt oft Gewicht und Material. Ob sie dadurch auch über den gesamten Lebenszyklus ökologisch vorteilhaft ist, hängt stark vom Einzelfall ab und war bisher kaum systematisch bewertbar.",
+    approach:
+      "Eine Bewertungsmetrik für die ökologischen Einflussfaktoren additiver Fertigung entwickelt: Ökobilanzierung nach ISO 14040, ergänzt um ein selbst gebautes Excel-Tool zur Berechnung des kumulierten Energieaufwands (KEA).",
+    result:
+      "Eine Metrik, mit der sich für ein konkretes Bauteil prüfen lässt, ob sich der 3D-Druck über den Lebenszyklus ökologisch lohnt. Bislang mit Note 1,2 bewertet.",
+  },
+  {
+    slug: "heliostat",
+    figure: "heliostat",
+    title: "Was die Stahlkonstruktion eines Heliostaten kostet",
     org: "Bachelorarbeit am DLR",
     period: "2024",
     context:
@@ -184,44 +226,32 @@ export const projects: Project[] = [
       "Bottom-Up-Kostenkalkulation direkt aus CAD-Geometrie: Stahlbearbeitung, Fertigungsschritte und Materialbedarf künftiger Heliostat-Designs Schritt für Schritt durchgerechnet, statt mit Pauschalwerten zu arbeiten.",
     result:
       "Belastbare Kostenmodelle für die Bewertung künftiger Heliostat-Generationen, als Fachbeitrag bei der SolarPACES Conference veröffentlicht.",
-    tags: ["Herstellkostenrechnung", "Stahlkonstruktionen", "CAD", "Bottom-Up-Kalkulation"],
     link: {
       label: "SolarPACES Conference Proceedings, DOI",
       href: "https://doi.org/10.52825/solarpaces.v3i.2420",
     },
   },
   {
-    title: "Wann sich 3D-Druck in der Luftfahrt ökologisch lohnt",
-    org: "Masterarbeit an der RWTH Aachen",
-    period: "2026",
-    context:
-      "Additive Fertigung spart in der Luftfahrt oft Gewicht und Material. Ob sie dadurch auch über den gesamten Lebenszyklus ökologisch vorteilhaft ist, hängt stark vom Einzelfall ab und war bisher kaum systematisch bewertbar.",
-    approach:
-      "Eine Bewertungsmetrik für die ökologischen Einflussfaktoren additiver Fertigung entwickelt: Ökobilanzierung nach ISO 14040, ergänzt um ein selbst gebautes Excel-Tool zur Berechnung des kumulierten Energieaufwands (KEA).",
-    result: "Mit Note 1,2 bewertete Metrik, die flexible, fallbezogene Entscheidungen für oder gegen additive Fertigung ermöglicht.",
-    tags: ["Ökobilanz", "Luftfahrt", "ISO 14040", "Bewertungsmetrik"],
-  },
-  {
-    title: "Vom Rohdatensatz zum Kunden-Dashboard",
+    slug: "bi-consulting",
+    title: "Berichte in Power BI und Jedox",
     org: "Praktikum bei ATVISIO Consult GmbH",
     period: "2026 – heute",
     context:
-      "BI-Consulting lebt davon, dass Kunden ihren Daten trauen können. Dafür müssen ETL-Strecken sauber laufen und Berichte verständlich sein, nicht nur technisch korrekt.",
+      "Die Daten eines Kunden liegen meist in mehreren Systemen. Bevor daraus ein Bericht werden kann, müssen sie über ETL-Strecken zusammengeführt und in ein Datenmodell gebracht werden.",
     approach:
       "ETL-Strecken und Berichte für Kunden und intern in Power BI und Jedox aufgebaut; zusätzlich eine Schulung zu Microsoft Copilot in Power BI konzipiert, um Kolleg:innen und Kunden den Einstieg zu erleichtern.",
     result: "Laufende Berichte im Kundeneinsatz und eine wiederverwendbare Copilot-Schulung für das Team.",
-    tags: ["Power BI", "Jedox", "SQL", "Consulting"],
   },
   {
-    title: "Zeiterfassung ohne Zettelwirtschaft",
+    slug: "zeiterfassung",
+    title: "Ein neues Zeiterfassungssystem einführen",
     org: "Werkstudent bei IGH Infotec AG",
     period: "2023 – 2024",
     context:
       "Ein wachsendes Team brauchte ein digitales Zeiterfassungssystem statt manueller Prozesse, inklusive der Frage, wie man Kolleg:innen zuverlässig auf ein neues Werkzeug umstellt.",
     approach:
       "Timebutler als neues Zeiterfassungssystem eingerichtet und Kolleg:innen darin geschult, parallel Mitarbeitercontrolling und Monatsabschlüsse in Excel/Pivot weitergeführt.",
-    result: "Eingeführtes System im Regelbetrieb, ohne Unterbrechung der laufenden Controlling-Prozesse.",
-    tags: ["Projektmanagement", "Controlling", "Prozessdigitalisierung"],
+    result: "Timebutler lief danach im Alltag, und die Monatsabschlüsse liefen während der Umstellung normal weiter.",
   },
 ];
 
@@ -239,18 +269,17 @@ export const ratedSkills: RatedSkill[] = [
   { name: "Englisch", level: 4, levelLabel: "C1", group: "Sprachen" },
 ];
 
-// Methoden/Fachgebiete ohne eigene Skalen-Bewertung im CV.
-export const competencies = [
-  "Ökobilanz (LCA)",
-  "Herstellkostenrechnung",
-  "Stahlkonstruktionen",
-  "Forschungsprojektmanagement",
-  "Python",
-  "Consulting",
-  "Controlling",
-  "Finanzen",
-  "Marketing",
+// Methoden/Fachgebiete ohne eigene Skalen-Bewertung im CV. `where` nennt nur Stationen,
+// in denen das Thema laut CV/LinkedIn tatsächlich vorkam; ohne Beleg bleibt es bei `others`.
+export const competencies: { name: string; where: string; href: string }[] = [
+  { name: "Ökobilanz (LCA) nach ISO 14040", where: "Masterarbeit, RWTH Aachen", href: "/projekte/#luftfahrt" },
+  { name: "Herstellkostenrechnung", where: "Bachelorarbeit, DLR", href: "/projekte/#heliostat" },
+  { name: "Stahlkonstruktionen", where: "Bachelorarbeit, DLR", href: "/projekte/#heliostat" },
+  { name: "BI Consulting", where: "Praktikum, ATVISIO Consult", href: "/projekte/#bi-consulting" },
+  { name: "Controlling und Finanzen", where: "Werkstudent, IGH Infotec", href: "/projekte/#zeiterfassung" },
 ];
+
+export const otherCompetencies = ["Forschungsprojektmanagement", "Python", "Marketing"];
 
 export const certifications = [
   { name: "Lean Six Sigma Yellow Belt", authority: "Lean Six Sigma Academy (LSSA)", date: "2025" },

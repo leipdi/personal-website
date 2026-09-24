@@ -1,0 +1,148 @@
+---
+// Schematic side view: sun -> mirror -> receiver. The mirror is tilted so its normal
+// bisects the directions to sun and receiver, i.e. the reflection is geometrically right.
+const sun = { x: 44, y: 44 };
+const m = { x: 170, y: 150 };
+const rec = { x: 470, y: 68 };
+
+const unit = (dx: number, dy: number) => {
+  const l = Math.hypot(dx, dy);
+  return { x: dx / l, y: dy / l };
+};
+const toSun = unit(sun.x - m.x, sun.y - m.y);
+const toRec = unit(rec.x - m.x, rec.y - m.y);
+const normal = unit(toSun.x + toRec.x, toSun.y + toRec.y);
+const along = { x: -normal.y, y: normal.x };
+const half = 62;
+const a = { x: m.x - along.x * half, y: m.y - along.y * half };
+const b = { x: m.x + along.x * half, y: m.y + along.y * half };
+const back = { x: m.x - normal.x * 12, y: m.y - normal.y * 12 };
+const f = (n: number) => n.toFixed(1);
+// short sun rays, so the sun reads as a sun without a colour of its own
+const sunRays = Array.from({ length: 8 }, (_, i) => {
+  const t = (i * Math.PI) / 4;
+  return { x1: sun.x + Math.cos(t) * 24, y1: sun.y + Math.sin(t) * 24, x2: sun.x + Math.cos(t) * 31, y2: sun.y + Math.sin(t) * 31 };
+});
+---
+
+<figure class="helio">
+  <svg viewBox="0 0 560 345" role="img" aria-labelledby="helio-t">
+    <title id="helio-t">
+      Schema eines Heliostaten: Der Spiegel lenkt Sonnenlicht auf den Receiver an der Turmspitze. Kalkuliert wurde die
+      Stahlkonstruktion darunter.
+    </title>
+
+    <line x1="16" x2="544" y1="250" y2="250" class="ground" />
+
+    <!-- rays -->
+    <line x1={sun.x} y1={sun.y} x2={m.x} y2={m.y} class="ray" />
+    <line x1={m.x} y1={m.y} x2={rec.x} y2={rec.y} class="ray" />
+
+    <!-- sun -->
+    <circle cx={sun.x} cy={sun.y} r="18" class="sun" />
+    {sunRays.map((r) => <line x1={f(r.x1)} y1={f(r.y1)} x2={f(r.x2)} y2={f(r.y2)} class="sun-ray" />)}
+
+    <!-- tower + receiver -->
+    <rect x="458" y="84" width="24" height="166" class="tower" />
+    <rect x="448" y="52" width="44" height="32" class="receiver" />
+    <text x="440" y="46" text-anchor="end" class="lbl">Receiver</text>
+
+    <!-- steel structure: pylon + truss, the part the thesis costed -->
+    <g class="steel">
+      <line x1={f(a.x)} y1={f(a.y)} x2={f(back.x)} y2={f(back.y + 14)} />
+      <line x1={f(b.x)} y1={f(b.y)} x2={f(back.x)} y2={f(back.y + 14)} />
+      <rect x={f(back.x - 7)} y={f(back.y + 8)} width="14" height={f(250 - back.y - 8)} class="pylon" />
+    </g>
+
+    <!-- mirror -->
+    <line x1={f(a.x)} y1={f(a.y)} x2={f(b.x)} y2={f(b.y)} class="mirror" />
+    <text x={f(b.x + 10)} y={f(b.y + 4)} class="lbl">Spiegel</text>
+
+    <!-- callout for the costed part, below the ground so it has the full width -->
+    <line x1={f(back.x)} y1="256" x2={f(back.x)} y2="276" class="callout" />
+    <text class="lbl" x={f(back.x - 7)} y="300">
+      <tspan x={f(back.x - 7)}>Stahlbau und Antrieb:</tspan>
+      <tspan x={f(back.x - 7)} dy="1.25em">hier setzte die Kalkulation an</tspan>
+    </text>
+  </svg>
+</figure>
+
+<style>
+  .helio {
+    margin: 0;
+  }
+
+  svg {
+    display: block;
+    width: 100%;
+    max-width: 30rem;
+    height: auto;
+  }
+
+  .ground {
+    stroke: var(--navy);
+    stroke-width: 2;
+  }
+
+  .ray {
+    stroke: var(--steel);
+    stroke-width: 2;
+    stroke-dasharray: 6 5;
+  }
+
+  /* paper, not signal yellow: yellow is reserved for the break-even point in the AM model */
+  .sun {
+    fill: var(--paper);
+    stroke: var(--navy);
+    stroke-width: 2;
+  }
+
+  .sun-ray {
+    stroke: var(--navy);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  .tower {
+    fill: var(--sky);
+    stroke: var(--navy);
+    stroke-width: 2;
+  }
+
+  .receiver {
+    fill: var(--navy);
+  }
+
+  .steel line {
+    stroke: var(--navy);
+    stroke-width: 3;
+  }
+
+  .pylon {
+    fill: var(--navy);
+  }
+
+  .mirror {
+    stroke: var(--navy);
+    stroke-width: 8;
+    stroke-linecap: square;
+  }
+
+  .callout {
+    stroke: var(--navy);
+    stroke-width: 1.5;
+  }
+
+  .lbl {
+    font-size: 21px;
+    fill: var(--navy);
+  }
+
+  /* the SVG scales down with the screen: on small phones set the labels larger in
+     viewBox units so they stay at ~12px or more on screen (declared after the base rule) */
+  @media (max-width: 26rem) {
+    .lbl {
+      font-size: 26px;
+    }
+  }
+</style>

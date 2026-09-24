@@ -1,23 +1,218 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import ProjectCard from "../../components/ProjectCard.astro";
+import AmModel from "../../components/figures/AmModel.astro";
+import Heliostat from "../../components/figures/Heliostat.astro";
 import { projects } from "../../data/cv";
+
+const featured = projects.filter((p) => p.figure);
+const smaller = projects.filter((p) => !p.figure);
 ---
 
 <Layout
-  title="Projekte — Daniel Lenski"
-  description="Ausgewählte Projekte aus Abschlussarbeiten und Praxisstationen."
+  title="Projekte, Daniel Lenski"
+  description="Abschlussarbeiten und Praxisprojekte: Ökobilanz additiver Fertigung, Heliostat-Kosten, BI Consulting."
   active="projekte"
-  pageLabel="Projekte"
 >
-  <section>
-    <h1 class="font-display text-4xl tracking-tight text-ink sm:text-5xl">Projekte</h1>
-    <p class="mt-2 max-w-[60ch] text-ink-secondary">
-      Vier Stationen, an denen sich zeigt, wie aus einer Fragestellung ein belastbares Ergebnis wird.
-    </p>
-  </section>
+  <div class="wrap page-head">
+    <h1 class="display page-title">Projekte</h1>
+  </div>
 
-  <section class="mt-8 grid gap-6 sm:grid-cols-2">
-    {projects.map((p) => <ProjectCard project={p} />)}
+  {
+    featured.map((p, i) => (
+      <article
+        class:list={["essay", i % 2 === 1 && "essay-wash"]}
+        id={p.slug}
+        aria-labelledby={`t-${p.slug}`}
+      >
+        <div class="wrap">
+          <h2 id={`t-${p.slug}`} class="etitle">
+            {p.title}
+          </h2>
+          <p class="byline">
+            {p.org}, {p.period}
+          </p>
+
+          <div class:list={["essay-body", p.figure === "heliostat" && "has-aside"]}>
+            <p class="text">{p.context}</p>
+            {p.figure === "heliostat" && (
+              <div class="aside">
+                <Heliostat />
+              </div>
+            )}
+            <p class="text">{p.approach}</p>
+            {p.figure === "am-model" && (
+              <div class="full">
+                <AmModel />
+              </div>
+            )}
+            <p class="text result">
+              <strong>Ergebnis.</strong> {p.result}
+            </p>
+            {p.link && (
+              <p class="link">
+                <a class="prose-link" href={p.link.href} target="_blank" rel="noreferrer">
+                  {p.link.label}
+                </a>
+              </p>
+            )}
+          </div>
+        </div>
+      </article>
+    ))
+  }
+
+  <section class="wrap practice" aria-labelledby="h-praxis">
+    <h2 id="h-praxis" class="h2">Aus der Praxis</h2>
+    <div class="practice-grid">
+      {
+        smaller.map((p) => (
+          <article id={p.slug}>
+            <h3 class="ptitle">{p.title}</h3>
+            <p class="byline">
+              {p.org}, {p.period}
+            </p>
+            <div class="text small">
+              <p>{p.context}</p>
+              <p>{p.approach}</p>
+              <p>{p.result}</p>
+            </div>
+          </article>
+        ))
+      }
+    </div>
   </section>
 </Layout>
+
+<style>
+  .page-head {
+    padding-top: 2.5rem;
+  }
+
+  .essay {
+    padding: 3rem 0 3.5rem;
+  }
+
+  .essay-wash {
+    background: var(--sky-wash);
+  }
+
+  @media (min-width: 64rem) {
+    .page-head {
+      padding-top: 4rem;
+    }
+    .essay {
+      padding: 4.5rem 0 5rem;
+    }
+  }
+
+  /* essay titles in the text face: the condensed cut is kept for page titles only */
+  .etitle {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-optical-sizing: auto;
+    font-size: clamp(2rem, 1.4rem + 2.4vw, 3.25rem);
+    line-height: 1.08;
+    letter-spacing: -0.015em;
+    max-width: 20ch;
+  }
+
+  /* byline after the title, like an article, not an eyebrow above it */
+  .byline {
+    margin-top: 0.6rem;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.0625rem;
+    color: var(--ink-2);
+  }
+
+  .essay-body {
+    margin-top: 2rem;
+    display: grid;
+    row-gap: 1.1rem;
+  }
+
+  .essay-body > * {
+    max-width: var(--measure);
+  }
+
+  .essay-body > .full {
+    max-width: none;
+    margin: 1.5rem 0;
+  }
+
+  .aside {
+    margin: 0.5rem 0;
+  }
+
+  /* wide screens: the explanatory figure sits beside the text instead of interrupting it.
+     Only from 75rem, below that the side column is too narrow for legible labels. */
+  @media (min-width: 75rem) {
+    .has-aside {
+      grid-template-columns: minmax(0, var(--measure)) minmax(0, 1fr);
+      column-gap: 4rem;
+      align-content: start;
+    }
+    .has-aside > .text,
+    .has-aside > .link {
+      grid-column: 1;
+    }
+    .has-aside > .aside {
+      grid-column: 2;
+      grid-row: 1 / span 3;
+      margin: 0;
+    }
+  }
+
+  .result {
+    font-size: 1.3125rem;
+    line-height: 1.45;
+  }
+
+  .result strong {
+    font-family: var(--sans);
+    font-size: 0.85em;
+  }
+
+  .practice {
+    padding-top: 4rem;
+  }
+
+  .h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  .practice-grid {
+    margin-top: 1.75rem;
+    display: grid;
+    gap: 2.5rem;
+  }
+
+  @media (min-width: 48rem) {
+    .practice-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+    }
+  }
+
+  .ptitle {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.5rem;
+    line-height: 1.2;
+  }
+
+  .practice .byline {
+    margin-top: 0.3rem;
+    font-size: 1rem;
+  }
+
+  .small {
+    margin-top: 0.75rem;
+    font-size: 1.0625rem;
+  }
+
+  .small p + p {
+    margin-top: 0.6rem;
+  }
+</style>

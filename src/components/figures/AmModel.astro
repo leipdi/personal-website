@@ -1,0 +1,575 @@
+---
+// Ciechanowski-style: the model sits inside the case-study prose. The text explains the two
+// quantities; the figure below is one self-contained unit (cases, verdict, chart, sliders)
+// that fits a laptop screen, so every change is visible without scrolling.
+// Without JS the controls are hidden (html.js is set in Layout) and a static note says so.
+import {
+  AM,
+  CHART,
+  DEFAULT_PRESET,
+  PRESETS,
+  RANGE,
+  amMarks,
+  amModel,
+  amSvg,
+  amVerdict,
+  fmt,
+  fmtBtf,
+  savingHint,
+  fmtL,
+} from "../../lib/amModel";
+
+const initial = PRESETS[DEFAULT_PRESET].input;
+const r = amModel(initial);
+const verdict = amVerdict(initial);
+const marks = amMarks(initial);
+const ariaChart = (v: string) => `Vorteil des gedruckten Teils über ${AM.years} Jahre Linienbetrieb. ${v}`;
+---
+
+<div class="am" data-am>
+  <div class="am-text text">
+    <p>
+      Wie stark das vom Einzelfall abhängt, zeigt ein Rechenbeispiel. Es ist stark vereinfacht und rechnet mit
+      gerundeten Literaturwerten, es sind nicht die Ergebnisse der Masterarbeit. Verglichen wird eine Titan-Halterung,
+      die gefräst ein Kilogramm wiegt, mit demselben Teil aus dem 3D-Drucker.
+    </p>
+    <p>
+      <strong>Materialeinsatz.</strong> Beim Fräsen wird das Teil aus einem massiven Block geschnitten, der Rest wird zu
+      Spänen. Das Verhältnis von eingekauftem Material zu fertigem Teil heißt Buy-to-Fly-Verhältnis. Bei Titanteilen in
+      der Luftfahrt sind 10 : 1 und mehr keine Seltenheit, und Titan herzustellen kostet viel Energie. Der Drucker
+      kommt mit rund {fmt(AM.btfPrint, 1)} kg Pulver je kg Teil aus, braucht dafür aber viel Energie für Pulver und Laser.
+    </p>
+    <p>
+      <strong>Gewicht.</strong> Gedruckt lassen sich Formen bauen, die kein Fräser herstellen kann, und damit Gewicht
+      sparen. Jedes Kilogramm weniger spart Kerosin, bei rund {fmt(AM.hoursPerYear)} Flugstunden im Jahr und über
+      viele Jahre.
+    </p>
+  </div>
+
+  <figure class="am-fig">
+    <div class="presets needs-js" role="group" aria-label="Vergleichsfall wählen">
+      {
+        PRESETS.map((p, i) => (
+          <button type="button" data-preset={i} aria-pressed={i === DEFAULT_PRESET ? "true" : "false"}>
+            <span class="p-name">{p.label}</span>
+            <span class="p-vals tnum">
+              {fmtBtf(p.input.btf)}, {Math.round(p.input.saving * 100)} % leichter
+            </span>
+          </button>
+        ))
+      }
+    </div>
+
+    <p class="verdict" aria-live="polite" data-verdict>{verdict}</p>
+
+    <div class="plot">
+      <svg
+        viewBox={`0 0 ${CHART.ssrW} ${CHART.h}`}
+        class="chart"
+        role="img"
+        aria-label={ariaChart(verdict)}
+        data-chart
+        set:html={amSvg(initial, { w: CHART.ssrW })}
+      />
+      <p class="legend" aria-hidden="true">
+        <span data-mark="gain" hidden={!marks.gain}><i class="sw sw-gain"></i>Vorsprung des Drucks</span>
+        <span data-mark="deficit" hidden={!marks.deficit}><i class="sw sw-deficit"></i>Rückstand des Drucks</span>
+        <span data-mark="be" hidden={!marks.be}><i class="sw sw-be"></i>wieder eingeflogen</span>
+        <span data-mark="ghost"><i class="sw sw-ghost"></i>die anderen Vergleichsfälle</span>
+      </p>
+    </div>
+
+    <div class="controls needs-js">
+      <label>
+        <span class="c-name">Buy-to-Fly-Verhältnis beim Fräsen</span>
+        <output class="tnum" data-out="btf">{fmtBtf(initial.btf)}</output>
+        <span class="c-hint tnum" data-hint="btf">{fmt(initial.btf, initial.btf % 1 ? 1 : 0)} kg Titan eingekauft für 1 kg fertiges Teil</span>
+        <input
+          type="range"
+          min={RANGE.btf.min}
+          max={RANGE.btf.max}
+          step={RANGE.btf.step}
+          value={initial.btf}
+          data-in="btf"
+        />
+      </label>
+      <label>
+        <span class="c-name">Gewichtsersparnis durch den Druck</span>
+        <output class="tnum" data-out="saving">{Math.round(initial.saving * 100)} %</output>
+        <span class="c-hint tnum" data-hint="saving">{savingHint(r.mPrint)}</span>
+        <input
+          type="range"
+          min={RANGE.saving.min}
+          max={RANGE.saving.max}
+          step={RANGE.saving.step}
+          value={initial.saving * 100}
+          data-in="saving"
+        />
+      </label>
+    </div>
+
+    <p class="nojs">
+      Zu sehen ist der Fall „{PRESETS[DEFAULT_PRESET].label}“ ({fmtBtf(initial.btf)}, {Math.round(initial.saving * 100)}&nbsp;%
+      leichter). Mit aktiviertem JavaScript lassen sich die beiden Werte verstellen und weitere Fälle vergleichen.
+    </p>
+
+    <dl class="facts tnum">
+      <div><dt>Herstellung gefräst</dt><dd data-fact="prodConv">{fmtL(r.prodConv)}</dd></div>
+      <div><dt>Herstellung gedruckt</dt><dd data-fact="prodPrint">{fmtL(r.prodPrint)}</dd></div>
+      <div><dt>Ersparnis im Flug pro Jahr</dt><dd data-fact="perYear">{fmtL(r.perYear)}</dd></div>
+    </dl>
+
+    <figcaption>
+      Vereinfachtes Rechenmodell mit gerundeten Literaturwerten für Titan, Pulver, Laserschmelzen und Kerosin. Es zeigt
+      die Logik der Abwägung, nicht die Methodik oder die Ergebnisse der Masterarbeit. Nicht enthalten sind Gutschriften
+      für recycelte Titanspäne und die Nachbearbeitung des gedruckten Teils, Stützstrukturen nur pauschal über den
+      Pulvermehrbedarf. Alle Energiemengen sind in Liter Kerosin umgerechnet (rund {AM.mjPerLitre} MJ je Liter), der
+      Flugbetrieb mit rund {fmt(AM.hoursPerYear)} Flugstunden pro Jahr über {AM.years} Jahre.
+    </figcaption>
+  </figure>
+</div>
+
+<script>
+  import { AM, PRESETS, amMarks, amModel, amSvg, amVerdict, fmt, fmtBtf, savingHint, fmtL } from "../../lib/amModel";
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-am]")) {
+    const saving = root.querySelector<HTMLInputElement>('[data-in="saving"]')!;
+    const btf = root.querySelector<HTMLInputElement>('[data-in="btf"]')!;
+    const svg = root.querySelector<SVGSVGElement>("[data-chart]")!;
+    const presets = root.querySelectorAll<HTMLButtonElement>("[data-preset]");
+    const q = (sel: string) => root.querySelector(sel)!;
+    let width = 0;
+
+    const render = () => {
+      const input = { saving: Number(saving.value) / 100, btf: Number(btf.value) };
+      const r = amModel(input);
+      const verdict = amVerdict(input);
+      const marks = amMarks(input);
+      q('[data-out="saving"]').textContent = `${saving.value} %`;
+      q('[data-out="btf"]').textContent = fmtBtf(input.btf);
+      q('[data-hint="btf"]').textContent =
+        `${fmt(input.btf, input.btf % 1 ? 1 : 0)} kg Titan eingekauft für 1 kg fertiges Teil`;
+      q('[data-hint="saving"]').textContent = savingHint(r.mPrint);
+      q("[data-verdict]").textContent = verdict;
+      q('[data-fact="prodConv"]').textContent = fmtL(r.prodConv);
+      q('[data-fact="prodPrint"]').textContent = fmtL(r.prodPrint);
+      q('[data-fact="perYear"]').textContent = fmtL(r.perYear);
+      for (const [k, on] of Object.entries(marks)) {
+        const el = root.querySelector<HTMLElement>(`[data-mark="${k}"]`);
+        if (el) el.hidden = !on;
+      }
+      if (width > 0) {
+        svg.setAttribute("viewBox", `0 0 ${width} ${svg.viewBox.baseVal.height}`);
+        svg.innerHTML = amSvg(input, { w: width });
+      }
+      svg.setAttribute("aria-label", `Vorteil des gedruckten Teils über ${AM.years} Jahre Linienbetrieb. ${verdict}`);
+      presets.forEach((b) => {
+        const p = PRESETS[Number(b.dataset.preset)].input;
+        b.setAttribute("aria-pressed", String(p.btf === input.btf && Math.abs(p.saving - input.saving) < 1e-9));
+      });
+    };
+
+    new ResizeObserver(([entry]) => {
+      const w = Math.round(entry.contentRect.width);
+      if (w > 0 && w !== width) {
+        width = w;
+        render();
+      }
+    }).observe(svg);
+
+    saving.addEventListener("input", render);
+    btf.addEventListener("input", render);
+    presets.forEach((b) =>
+      b.addEventListener("click", () => {
+        const p = PRESETS[Number(b.dataset.preset)].input;
+        btf.value = String(p.btf);
+        saving.value = String(Math.round(p.saving * 100));
+        render();
+      }),
+    );
+  }
+</script>
+
+<style>
+  .am {
+    display: grid;
+    gap: 2rem;
+  }
+
+  .am-text {
+    max-width: var(--measure);
+  }
+
+  .am-text p + p {
+    margin-top: 1rem;
+  }
+
+  .am-text strong {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 0.95em;
+  }
+
+  /* ---------- the figure: one unit, cases on top ---------- */
+  .am-fig {
+    margin: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "presets"
+      "verdict"
+      "plot"
+      "controls"
+      "nojs"
+      "facts"
+      "cap";
+    row-gap: 1rem;
+  }
+
+  .presets {
+    grid-area: presets;
+  }
+  .verdict {
+    grid-area: verdict;
+  }
+  .plot {
+    grid-area: plot;
+  }
+  .controls {
+    grid-area: controls;
+  }
+  .nojs {
+    grid-area: nojs;
+  }
+  .facts {
+    grid-area: facts;
+  }
+  figcaption {
+    grid-area: cap;
+  }
+
+  /* laptop and up: cases across the top, reading column left, chart right,
+     so cases + verdict + chart + sliders fit one 768px-high screen */
+  @media (min-width: 64rem) {
+    .am-fig {
+      grid-template-columns: minmax(0, 21rem) minmax(0, 1fr);
+      grid-template-areas:
+        "presets presets"
+        "verdict plot"
+        "controls plot"
+        "nojs plot"
+        "facts plot"
+        "cap cap";
+      grid-template-rows: auto auto auto auto 1fr auto;
+      column-gap: 3rem;
+      row-gap: 1.25rem;
+    }
+    .plot {
+      align-self: start;
+    }
+    .facts {
+      align-self: end;
+    }
+  }
+
+  /* ---------- no-JS: nothing interactive that does nothing ---------- */
+  :global(html.js) .nojs {
+    display: none;
+  }
+  :global(html:not(.js)) .needs-js {
+    display: none;
+  }
+  :global(html:not(.js)) .chart {
+    max-width: 30rem;
+  }
+
+  .nojs {
+    font-size: 0.9375rem;
+    color: var(--ink-2);
+    max-width: 40ch;
+  }
+
+  /* ---------- comparison cases: visible toggle buttons ---------- */
+  /* always one row of three, so cases and chart share a phone screen */
+  .presets {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+
+  .presets button {
+    display: grid;
+    gap: 0.1rem;
+    text-align: left;
+    font: inherit;
+    padding: 0.55rem 0.8rem;
+    min-height: 2.75rem;
+    color: var(--navy);
+    background: var(--paper);
+    border: 1.5px solid var(--navy);
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  .presets button:hover {
+    background: var(--sky-wash);
+  }
+
+  .presets button[aria-pressed="true"] {
+    background: var(--navy);
+    color: var(--paper);
+  }
+
+  .p-name {
+    font-weight: 700;
+    font-size: 0.9375rem;
+    line-height: 1.25;
+  }
+
+  .p-vals {
+    font-size: 0.8125rem;
+    line-height: 1.3;
+    opacity: 0.85;
+  }
+
+  /* phones: names only (the values show on the sliders right below) */
+  @media (max-width: 29.99rem) {
+    .presets button {
+      padding: 0.45rem 0.4rem;
+      align-content: center;
+    }
+    .p-name {
+      font-size: 0.875rem;
+      hyphens: manual;
+    }
+    .p-vals {
+      display: none;
+    }
+  }
+
+  .verdict {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.1875rem;
+    line-height: 1.4;
+    min-height: 5.6em; /* room for four lines, so the chart doesn't jump */
+  }
+
+  @media (min-width: 64rem) {
+    .verdict {
+      min-height: 7em;
+    }
+  }
+
+  .chart {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .chart :global(.gl) {
+    stroke: var(--line);
+  }
+
+  .chart :global(.tk) {
+    font-size: 12px;
+    fill: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .chart :global(.an) {
+    font-size: 12px;
+    font-weight: 700;
+    fill: var(--navy);
+  }
+
+  .chart :global(.gain) {
+    fill: var(--sky);
+  }
+
+  /* deficit must not look like advantage: navy hatch, outlined */
+  .chart :global(.deficit) {
+    fill: url(#am-hatch);
+    stroke: var(--navy);
+    stroke-width: 1;
+  }
+
+  .chart :global(.hatch-bg) {
+    fill: var(--paper);
+  }
+
+  .chart :global(.hatch-ln) {
+    stroke: var(--navy);
+    stroke-width: 1.75;
+  }
+
+  .chart :global(.zero) {
+    stroke: var(--navy);
+    stroke-width: 1.25;
+  }
+
+  .chart :global(.ghost) {
+    fill: none;
+    stroke: var(--steel);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 4;
+  }
+
+  .chart :global(.ln) {
+    fill: none;
+    stroke: var(--navy);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+
+  /* the one use of signal yellow on the site: the break-even point */
+  .chart :global(.be) {
+    fill: var(--signal);
+    stroke: var(--navy);
+    stroke-width: 2;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.25rem;
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--ink-2);
+  }
+
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .legend span[hidden] {
+    display: none;
+  }
+
+  .sw {
+    display: inline-block;
+    width: 1.25rem;
+    height: 0.75rem;
+  }
+
+  .sw-gain {
+    background: var(--sky);
+  }
+
+  .sw-deficit {
+    background: repeating-linear-gradient(45deg, var(--navy) 0 1.5px, var(--paper) 1.5px 4.2px);
+    box-shadow: inset 0 0 0 1px var(--navy);
+  }
+
+  .sw-be {
+    width: 0.75rem;
+    border-radius: 50%;
+    background: var(--signal);
+    box-shadow: inset 0 0 0 1.5px var(--navy);
+  }
+
+  .sw-ghost {
+    height: 0;
+    border-top: 1.5px dashed var(--steel);
+  }
+
+  /* ---------- sliders: label, value, hint, track on shared rows, so the two tracks
+     line up whatever wraps ---------- */
+  .controls {
+    display: grid;
+    gap: 1.25rem 2rem;
+  }
+
+  label {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "name out"
+      "hint hint"
+      "range range";
+    column-gap: 1rem;
+    align-items: baseline;
+    font-size: 0.9375rem;
+  }
+
+  @media (min-width: 40rem) and (max-width: 63.99rem) {
+    .controls {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto auto;
+    }
+    label {
+      grid-row: span 3;
+      grid-template-rows: subgrid;
+    }
+    /* subgrid rows inherit this gap, keep it tight so name, hint and track stay together */
+    .controls {
+      row-gap: 0.25rem;
+    }
+  }
+
+  .c-name {
+    grid-area: name;
+    font-weight: 700;
+  }
+
+  output {
+    grid-area: out;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .c-hint {
+    grid-area: hint;
+    color: var(--ink-2);
+    font-size: 0.875rem;
+  }
+
+  input[type="range"] {
+    grid-area: range;
+    align-self: end;
+    width: 100%;
+    accent-color: var(--navy);
+    height: 1.75rem;
+    margin-top: 0.2rem;
+    cursor: pointer;
+  }
+
+  /* a small two-column table: what | how much */
+  .facts {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    max-width: 24rem;
+    font-size: 0.9375rem;
+  }
+
+  .facts div {
+    display: contents;
+  }
+
+  .facts dt,
+  .facts dd {
+    padding: 0.35rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .facts dt {
+    color: var(--ink-2);
+    padding-right: 1rem;
+  }
+
+  .facts dd {
+    font-weight: 700;
+    text-align: right;
+  }
+
+  figcaption {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--ink-2);
+    max-width: 70ch;
+  }
+</style>

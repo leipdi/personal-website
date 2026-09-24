@@ -1,45 +1,317 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import Gantt from "../../components/Gantt.astro";
-import { revisions } from "../../data/cv";
+import { career } from "../../data/cv";
+import { toFrac, todayFrac } from "../../lib/dates";
 
-const rows = [...revisions].reverse();
+// Newest start first (the usual CV order), so every station sits above what came before it.
+const rows = career
+  .map((e) => {
+    const start = toFrac(e.from, "start");
+    const end = toFrac(e.to, "end");
+    return { ...e, start, end, ongoing: e.to === "heute" };
+  })
+  .sort((a, b) => b.start - a.start || b.end - a.end);
+
+// The axis starts with the first non-minor station (the Bachelor, 2020). Anything older
+// (the Abitur) is listed as a text-only row instead of eating half the axis.
+const minYear = Math.floor(Math.min(...rows.filter((r) => !r.minor).map((r) => r.start)));
+const maxYear = Math.ceil(todayFrac + 0.25);
+const span = maxYear - minYear;
+const pct = (v: number) => ((v - minYear) / span) * 100;
+const onAxis = (r: { start: number }) => r.start >= minYear;
+
+const ticks: number[] = [];
+for (let y = minYear; y < maxYear; y++) ticks.push(y);
+const todayPct = pct(todayFrac);
 ---
 
 <Layout
-  title="Werdegang — Daniel Lenski"
-  description="Ausbildung und Berufserfahrung von Daniel Lenski im Überblick."
+  title="Werdegang, Daniel Lenski"
+  description="Ausbildung und Berufserfahrung von Daniel Lenski, neueste Station zuerst."
   active="werdegang"
-  pageLabel="Werdegang"
 >
-  <section>
-    <h1 class="font-display text-4xl tracking-tight text-ink sm:text-5xl">Werdegang</h1>
-    <p class="mt-2 max-w-[60ch] text-ink-secondary">
-      Ausbildung und Berufserfahrung im Zeitverlauf, chronologisch von A bis K.
-    </p>
-  </section>
+  <div class="wrap page">
+    <h1 class="display page-title">Werdegang</h1>
 
-  <section class="mt-10">
-    <Gantt entries={revisions} />
-  </section>
+    <div class="axis-wrap">
+      <div class="legend">
+        <span><i class="sw sw-beruf"></i>Beruf</span>
+        <span><i class="sw sw-ausb"></i>Ausbildung</span>
+        <span><i class="sw sw-now"></i>heute</span>
+      </div>
+      <div class="axis tnum" aria-hidden="true">
+        {ticks.map((y) => <span class:list={[y % 2 === 1 && "odd"]} style={`left:${pct(y)}%`}>{y}</span>)}
+      </div>
+    </div>
 
-  <section class="mt-12 space-y-8">
-    {
-      rows.map((r) => (
-        <article class="grid gap-2 border-t border-line pt-6 sm:grid-cols-[minmax(0,140px)_1fr] sm:gap-6">
-          <div>
-            <p class="font-ui text-xs text-ink-muted">
-              Rev. {r.rev} ({r.from}–{r.to})
+    <ol class="list" style={`--today:${todayPct}%`}>
+      {
+        rows.map((r) => (
+          <li class:list={["row", r.minor && "row-minor", !onAxis(r) && "row-off"]}>
+            <p class="when tnum">
+              {r.from} bis {r.to}
             </p>
-            <p class="font-ui mt-1 text-[11px] text-ink-muted">{r.place}</p>
-          </div>
-          <div>
-            <h2 class="font-display text-xl text-ink sm:text-2xl">{r.title}</h2>
-            <p class="text-sm text-ink-secondary">{r.org}</p>
-            <p class="mt-2 max-w-[68ch] leading-relaxed text-ink">{r.story}</p>
-          </div>
-        </article>
-      ))
-    }
-  </section>
+            <div class="body">
+              <h2 class="title">
+                {r.project ? (
+                  <a class="title-link" href={`/projekte/#${r.project}`}>
+                    {r.title}
+                  </a>
+                ) : (
+                  r.title
+                )}
+                {r.minor && <span class="org-inline">, {r.org}</span>}
+              </h2>
+              {!r.minor && (
+                <p class="org">
+                  {r.org}, {r.place}
+                </p>
+              )}
+              {onAxis(r) && (
+                <div
+                  class="track"
+                  role="img"
+                  aria-label={`${r.kind === "beruf" ? "Beruf" : "Ausbildung"} von ${r.from} bis ${r.to}`}
+                >
+                  <span
+                    class:list={["bar", r.kind === "beruf" ? "bar-beruf" : "bar-ausb"]}
+                    style={`left:${pct(r.start)}%;width:${pct(r.end) - pct(r.start)}%`}
+                  />
+                </div>
+              )}
+              {!r.minor && <p class="text story">{r.story}</p>}
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
 </Layout>
+
+<style>
+  .page {
+    padding-top: 2.5rem;
+  }
+
+  @media (min-width: 64rem) {
+    .page {
+      padding-top: 4rem;
+    }
+    /* the axis sticks to the top here: keep anchored/focused rows below it
+       (:root outranks the plain html rule in global.css) */
+    :global(:root) {
+      scroll-padding-top: 7.5rem;
+    }
+  }
+
+  /* dates column width, shared by axis and rows so tracks line up with the ticks */
+  .axis-wrap,
+  .row {
+    --when-w: 0rem;
+  }
+
+  @media (min-width: 40rem) {
+    .axis-wrap,
+    .row {
+      --when-w: 11rem;
+    }
+  }
+
+  .axis-wrap {
+    margin-top: 2.5rem;
+    padding: 0.75rem 0 0.5rem var(--when-w);
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+  }
+
+  @media (min-width: 64rem) {
+    .axis-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.25rem;
+    font-size: 0.875rem;
+    color: var(--ink-2);
+  }
+
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .sw {
+    display: inline-block;
+    width: 1.5rem;
+    height: 0.625rem;
+  }
+
+  .sw-beruf {
+    background: var(--navy);
+  }
+
+  .sw-ausb {
+    background: var(--pinstripe);
+    box-shadow: inset 0 0 0 1px var(--navy);
+  }
+
+  .sw-now {
+    width: 0;
+    height: 1rem;
+    border-left: 2px solid var(--navy);
+  }
+
+  .axis {
+    position: relative;
+    height: 1.25rem;
+    margin-top: 0.9rem;
+    font-size: 0.75rem;
+    color: var(--ink-2);
+  }
+
+  .axis span {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+
+  .axis span:first-child {
+    transform: none;
+  }
+
+  /* narrow phones: every second year is enough */
+  @media (max-width: 26rem) {
+    .axis .odd {
+      display: none;
+    }
+  }
+
+  .list {
+    margin-top: 0.5rem;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: var(--when-w) minmax(0, 1fr);
+    padding: 1.75rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .when {
+    font-size: 0.875rem;
+    color: var(--ink-2);
+    padding-top: 0.2rem;
+    grid-column: 1 / -1;
+  }
+
+  .body {
+    grid-column: 1 / -1;
+  }
+
+  @media (min-width: 40rem) {
+    .when {
+      grid-column: 1;
+    }
+    .body {
+      grid-column: 2;
+    }
+  }
+
+  /* one title size for every full row; the theses stand out by linking to their case study */
+  .title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .title-link {
+    color: var(--navy);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+    text-decoration-color: var(--steel);
+  }
+
+  .title-link:hover {
+    text-decoration-thickness: 2px;
+    text-decoration-color: var(--navy);
+  }
+
+  .org {
+    color: var(--ink-2);
+  }
+
+  /* each track carries a thin "heute" line, so ongoing stations visibly touch today */
+  .track {
+    position: relative;
+    height: 0.75rem;
+    margin: 0.9rem 0;
+    background: var(--sky-wash);
+  }
+
+  .track::after {
+    content: "";
+    position: absolute;
+    left: var(--today);
+    top: -0.25rem;
+    bottom: -0.25rem;
+    border-left: 2px solid var(--navy);
+    transform: translateX(-1px);
+  }
+
+  .bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    min-width: 5px;
+  }
+
+  .bar-beruf {
+    background: var(--navy);
+  }
+
+  .bar-ausb {
+    background: var(--pinstripe);
+    box-shadow: inset 0 0 0 1px var(--navy);
+  }
+
+  .story {
+    max-width: var(--measure);
+  }
+
+  /* minor stations: one line and a thin track, no story. They happened,
+     but they shouldn't get the same room as the main ones. */
+  .row-minor {
+    padding: 0.9rem 0;
+  }
+
+  .row-minor .when {
+    padding-top: 0;
+  }
+
+  .row-minor .title {
+    font-size: 1rem;
+    font-weight: 400;
+  }
+
+  .org-inline {
+    color: var(--ink-2);
+  }
+
+  .row-minor .track {
+    height: 0.375rem;
+    margin: 0.5rem 0 0;
+  }
+
+  .row-minor .track::after {
+    top: -0.2rem;
+    bottom: -0.2rem;
+  }
+</style>

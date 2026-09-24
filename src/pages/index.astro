@@ -1,41 +1,343 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { profile, revisions, projects, ratedSkills } from "../data/cv";
+import Heliostat from "../components/figures/Heliostat.astro";
+import { profile, claimLead, claimParts, projects } from "../data/cv";
+import { cvPdf } from "../data/nav";
+import { DEFAULT_PRESET, PRESETS, amSvg, amVerdict, fmtBtf } from "../lib/amModel";
 
-const berufCount = revisions.filter((r) => r.kind === "beruf").length;
-const englisch = ratedSkills.find((s) => s.name === "Englisch")?.levelLabel ?? "";
-const featured = projects[0];
+// The claim runs as one sentence down the page: its opening sits in the hero,
+// every following clause opens a band with the work that backs it up. Each band has its
+// own form (schematic / a glimpse of the model / plain text), so they don't read as a
+// row of identical tiles.
+const bands = claimParts.map((part) => {
+  const project = projects.find((p) => p.slug === part.project);
+  if (!project) throw new Error(`Projekt fehlt: ${part.project}`);
+  return { ...part, p: project };
+});
+
+const [mailUser, mailDomain] = profile.email.split("@");
+const glimpse = PRESETS[DEFAULT_PRESET];
+const glimpseW = 480;
+const glimpseH = 190;
 ---
 
-<Layout
-  title="Daniel Lenski — Wirtschaftsingenieur"
-  description="Wirtschaftsingenieur mit Fokus auf Produktion, Nachhaltigkeit und Datenanalyse."
-  active="uebersicht"
-  pageLabel="Übersicht"
->
-  <section>
-    <p class="font-display text-lg italic text-ink-muted">{profile.role}</p>
-    <h1 class="mt-1 font-display text-5xl font-medium leading-[0.95] tracking-tight text-ink sm:text-6xl md:text-7xl">
-      {profile.name}
-    </h1>
-    <p class="mt-5 max-w-[58ch] text-lg leading-relaxed text-ink-secondary">
-      {profile.claim}
-    </p>
-    <p class="mt-4 max-w-[58ch] leading-relaxed text-ink-secondary">
-      Aktuell stehe ich bei einem Notenschnitt von 1,8 (Bachelor wie Master), bin bei Station {berufCount} meiner
-      Praxis angekommen, habe eine Fachpublikation bei der SolarPACES Conference veröffentlicht und spreche Englisch
-      auf {englisch}-Niveau.
-    </p>
-    <p class="mt-5 max-w-[58ch] text-sm leading-relaxed text-ink-muted">
-      {profile.dashboardNote}
-    </p>
+<Layout title="Daniel Lenski, Wirtschaftsingenieur" description={profile.claim} active="uebersicht">
+  <section class="hero" aria-labelledby="name">
+    <div class="wrap hero-in">
+      <div class="hero-text">
+        <h1 id="name" class="display page-title hero-name">{profile.name}</h1>
+        <p class="hero-role">{profile.role}, {profile.location}</p>
+        <p class="hero-claim">{claimLead}</p>
+      </div>
+      <div class="hero-photo">
+        <img src="/img/daniel-lenski.jpg" alt="Porträt von Daniel Lenski" width="400" height="400" />
+      </div>
+    </div>
   </section>
 
-  <section class="mt-14 max-w-[65ch] border-l-2 border-teal py-1 pl-6">
-    <h2 class="mt-1 font-display text-2xl text-ink sm:text-3xl">{featured.title}</h2>
-    <p class="mt-3 max-w-[65ch] text-ink-secondary">{featured.context}</p>
-    <a href="/projekte/" class="mt-4 inline-block border-b border-teal text-sm text-teal-ink hover:text-ink hover:border-ink">
-      Alle Projekte ansehen
-    </a>
+  {
+    bands.map((b, i) => (
+      <section
+        class:list={["band", `band-${b.project}`, i % 2 === 1 && "band-wash"]}
+        aria-labelledby={`c-${b.project}`}
+      >
+        <div class="wrap band-grid">
+          <h2 id={`c-${b.project}`} class="clause" set:html={b.clause.replace("₂", "<sub>2</sub>")} />
+
+          <div class="band-text">
+            <p class="text">{b.body}</p>
+            <p class="band-links">
+              <a class="prose-link" href={`/projekte/#${b.p.slug}`}>
+                {b.p.figure === "am-model" ? "Zum Rechenmodell in der Fallstudie" : "Zur Fallstudie"}
+              </a>
+              {b.p.link && (
+                <a class="prose-link" href={b.p.link.href} target="_blank" rel="noreferrer">
+                  {b.p.link.label}
+                </a>
+              )}
+            </p>
+          </div>
+
+          {b.p.figure === "heliostat" && (
+            <div class="band-fig">
+              <Heliostat />
+            </div>
+          )}
+
+          {b.p.figure === "am-model" && (
+            <figure class="band-fig glimpse">
+              <svg
+                viewBox={`0 0 ${glimpseW} ${glimpseH}`}
+                role="img"
+                aria-label={`Rechenbeispiel ${glimpse.label}: ${amVerdict(glimpse.input)}`}
+                set:html={amSvg(glimpse.input, { w: glimpseW, h: glimpseH, bare: true, ghosts: false, fixed: false })}
+              />
+              <figcaption>
+                Aus dem Rechenmodell der Fallstudie, Fall „{glimpse.label}“ ({fmtBtf(glimpse.input.btf)},{" "}
+                {Math.round(glimpse.input.saving * 100)} % leichter): {amVerdict(glimpse.input)}
+              </figcaption>
+            </figure>
+          )}
+        </div>
+      </section>
+    ))
+  }
+
+  <section class="end" aria-labelledby="h-end">
+    <div class="wrap end-in">
+      <h2 id="h-end" class="end-line">
+        Fragen zu einem der Projekte? Schreiben Sie mir:{" "}
+        <a class="end-mail" href={`mailto:${profile.email}`}>{mailUser}<wbr />@{mailDomain}</a>
+      </h2>
+      <p class="end-links">
+        <a class="prose-link" href={profile.linkedinUrl} target="_blank" rel="noreferrer">LinkedIn</a>
+        <a class="prose-link" href={cvPdf} target="_blank" rel="noreferrer">Lebenslauf (PDF)</a>
+        <a class="prose-link" href="/kontakt/">Alle Kontaktdaten</a>
+      </p>
+    </div>
   </section>
 </Layout>
+
+<style>
+  /* ---------- hero: the portrait's own blue field. Name first, then the claim. ---------- */
+  .hero {
+    background: var(--sky);
+  }
+
+  .hero-in {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    padding-top: 2.25rem;
+  }
+
+  .hero-name {
+    font-size: clamp(3.5rem, 2rem + 7vw, 7.5rem);
+    line-height: 0.9;
+    color: var(--navy);
+  }
+
+  .hero-role {
+    margin-top: 0.9rem;
+    font-size: 1rem;
+    line-height: 1.4;
+    color: var(--ink-sky);
+    max-width: 44ch;
+  }
+
+  .hero-claim {
+    margin-top: 2rem;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-optical-sizing: auto;
+    font-size: clamp(2rem, 1.2rem + 3.2vw, 3.5rem);
+    line-height: 1.08;
+    letter-spacing: -0.015em;
+    max-width: 14em;
+  }
+
+  /* The portrait sits on the content grid, flush with the band's bottom edge, in a
+     paper-white mat that joins the white page below. The mat gives it a deliberate
+     edge, so the slightly different backdrop blue reads as a print, not a seam.
+     Never wider than 260 CSS px: the source is 400px. */
+  .hero-photo {
+    justify-self: end;
+    align-self: end;
+    margin-top: 2rem;
+    width: clamp(9rem, 44vw, 16.25rem);
+    aspect-ratio: 1;
+    box-sizing: content-box;
+    border: 0.5rem solid var(--paper);
+    border-bottom: 0;
+    overflow: hidden;
+  }
+
+  /* the source JPEG has a light 1-2px column at its left edge: shift it out of the frame */
+  .hero-photo img {
+    display: block;
+    width: calc(100% + 3px);
+    max-width: none;
+    height: auto;
+    margin-left: -3px;
+  }
+
+  @media (min-width: 48rem) {
+    .hero-in {
+      grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: 3rem;
+      padding-top: 4rem;
+    }
+    .hero-text {
+      padding-bottom: 3.5rem;
+    }
+    .hero-photo {
+      margin-top: 0;
+    }
+  }
+
+  /* ---------- bands: one per clause of the claim, each in its own form ---------- */
+  .band {
+    padding: 3.5rem 0 4rem;
+  }
+
+  .band-wash {
+    background: var(--sky-wash);
+  }
+
+  .band-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 1.75rem;
+  }
+
+  .clause {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-style: italic;
+    font-size: clamp(1.75rem, 1rem + 3vw, 3.25rem);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    max-width: 22ch;
+  }
+
+  .clause :global(sub) {
+    font-size: 0.6em;
+    vertical-align: baseline;
+    position: relative;
+    top: 0.25em;
+  }
+
+  .band-text .text {
+    max-width: var(--measure);
+  }
+
+  .band-links {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.75rem;
+    font-size: 0.9375rem;
+  }
+
+  .band-fig {
+    margin: 0;
+  }
+
+  .glimpse svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .glimpse figcaption {
+    margin-top: 0.75rem;
+    font-size: 0.9375rem;
+    color: var(--ink-2);
+    max-width: 44ch;
+  }
+
+  .glimpse :global(.gain) {
+    fill: var(--sky);
+  }
+  .glimpse :global(.deficit) {
+    fill: url(#am-hatch);
+    stroke: var(--navy);
+    stroke-width: 1;
+  }
+  .glimpse :global(.hatch-bg) {
+    fill: var(--paper);
+  }
+  .glimpse :global(.hatch-ln) {
+    stroke: var(--navy);
+    stroke-width: 1.75;
+  }
+  .glimpse :global(.zero) {
+    stroke: var(--navy);
+    stroke-width: 1.25;
+  }
+  .glimpse :global(.ln) {
+    fill: none;
+    stroke: var(--navy);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .glimpse :global(.be) {
+    fill: var(--signal);
+    stroke: var(--navy);
+    stroke-width: 2;
+  }
+
+  /* the BI band is text only: the paragraph itself is the content, set a size up */
+  .band-bi-consulting .text {
+    font-size: clamp(1.1875rem, 1rem + 0.8vw, 1.5rem);
+    line-height: 1.5;
+    max-width: 44rem;
+  }
+
+  @media (min-width: 56rem) {
+    .band {
+      padding: 5rem 0 5.5rem;
+    }
+    /* clause across the top, text left, figure right */
+    .band-heliostat .band-grid,
+    .band-luftfahrt .band-grid {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      column-gap: 4rem;
+      align-items: start;
+    }
+    .band-heliostat .clause,
+    .band-luftfahrt .clause {
+      grid-column: 1 / -1;
+    }
+  }
+
+  /* ---------- ending: back to the sky field, one line to get in touch ---------- */
+  /* the ending runs to the bottom of the page, so the home page drops the layout's
+     bottom padding and the band itself keeps clear of the phone tab bar */
+  :global(main.content#inhalt) {
+    padding-bottom: 0;
+  }
+
+  .end {
+    background: var(--sky);
+    padding: 3.5rem 0 calc(4rem + 4.75rem + env(safe-area-inset-bottom));
+  }
+
+  @media (min-width: 64rem) {
+    .end {
+      padding: 4.5rem 0 5rem;
+    }
+  }
+
+  .end-line {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(1.5rem, 1rem + 2vw, 2.25rem);
+    line-height: 1.25;
+    max-width: 30ch;
+  }
+
+  /* inline-block: the address moves to its own line as a whole and only breaks at the @ when even that is too narrow */
+  .end-mail {
+    display: inline-block;
+    color: var(--navy);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+    overflow-wrap: anywhere;
+  }
+
+  .end-mail:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  .end-links {
+    margin-top: 1.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.75rem;
+  }
+
+  .end-links .prose-link {
+    text-decoration-color: var(--ink-sky);
+  }
+</style>
