@@ -1,46 +1,179 @@
 ---
 import TabBar from "../components/TabBar.astro";
-import { profile } from "../data/cv";
+import { nav, cvPdf, type NavId } from "../data/nav";
 import "../styles/global.css";
 
 interface Props {
   title: string;
   description: string;
-  active: string;
-  pageLabel: string;
+  active: NavId;
 }
 
-const { title, description, active, pageLabel } = Astro.props;
+const { title, description, active } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="de">
   <head>
     <meta charset="utf-8" />
+    <script is:inline>document.documentElement.classList.add("js");</script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#adc2dc" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;0,900;1,400;1,500;1,600&family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..700&display=swap"
     />
   </head>
-  <body class="min-h-screen bg-page text-ink antialiased">
-    <div class="sticky top-0 z-40 border-b border-line bg-page/90 backdrop-blur">
-      <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-2.5 sm:px-6">
-        <a href="/" class="font-display text-base italic text-ink hover:text-teal-ink">{profile.name}</a>
-        <span class="font-ui text-xs tracking-wide text-ink-muted">{pageLabel}</span>
-      </div>
-    </div>
+  <body>
+    <a href="#inhalt" class="skip">Zum Inhalt springen</a>
 
-    <main class="mx-auto max-w-5xl px-4 pb-28 pt-8 sm:px-6 sm:pt-10">
+    <header class="top">
+      <div class="wrap top-in">
+        <a href="/" class="display top-name">Daniel Lenski</a>
+        <nav class="top-nav" aria-label="Hauptnavigation">
+          <ul>
+            {
+              nav.map((n) => (
+                <li>
+                  <a href={n.href} aria-current={active === n.id ? "page" : undefined}>
+                    {n.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+        <a href={cvPdf} target="_blank" rel="noreferrer" class="top-cv">Lebenslauf (PDF)</a>
+      </div>
+    </header>
+
+    <main id="inhalt" class="content">
       <slot />
     </main>
 
     <TabBar active={active} />
   </body>
 </html>
+
+<style>
+  .skip {
+    position: absolute;
+    left: 1rem;
+    top: -4rem;
+    z-index: 100;
+    background: var(--navy);
+    color: var(--paper);
+    padding: 0.5rem 0.75rem;
+  }
+  .skip:focus {
+    top: 1rem;
+  }
+
+  /* room for the fixed mobile tab bar */
+  .content {
+    padding-bottom: 7rem;
+  }
+
+  @media (min-width: 64rem) {
+    .content {
+      padding-bottom: 6rem;
+    }
+  }
+
+  /* ---------- top bar: sky strip, the portrait's backdrop colour ---------- */
+  .top {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: var(--sky);
+  }
+
+  .top-in {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    min-height: 3.25rem;
+  }
+
+  .top-name {
+    font-size: 1.625rem;
+    line-height: 1;
+    color: var(--navy);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  /* on phones the bottom tab bar is the navigation */
+  .top-nav {
+    display: none;
+  }
+
+  .top-cv {
+    font-size: 0.875rem;
+    color: var(--navy);
+    text-decoration: underline;
+    text-decoration-color: var(--ink-sky);
+    text-underline-offset: 0.2em;
+    padding: 0.5rem 0;
+    white-space: nowrap;
+  }
+
+  .top-cv:hover {
+    text-decoration-thickness: 2px;
+    text-decoration-color: var(--navy);
+  }
+
+  @media (min-width: 64rem) {
+    .top {
+      position: static;
+    }
+
+    .top-in {
+      min-height: 4rem;
+    }
+
+    .top-nav {
+      display: block;
+      margin-left: auto;
+    }
+
+    .top-nav ul {
+      display: flex;
+      gap: 1.75rem;
+    }
+
+    .top-nav a {
+      display: block;
+      padding: 0.5rem 0;
+      font-size: 1rem;
+      color: var(--ink-sky);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+    }
+
+    .top-nav a:hover {
+      color: var(--navy);
+      border-bottom-color: var(--ink-sky);
+    }
+
+    .top-nav a[aria-current="page"] {
+      color: var(--navy);
+      font-weight: 700;
+      border-bottom-color: var(--navy);
+    }
+
+    .top-cv {
+      margin-left: 1rem;
+      padding-left: 1.75rem;
+      border-left: 1px solid var(--ink-sky);
+      line-height: 1.2;
+    }
+  }
+</style>
