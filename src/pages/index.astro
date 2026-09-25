@@ -344,17 +344,24 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     color: var(--ink-2);
   }
 
-  .skill-foot .lbl {
+  .skill-foot > .lbl {
     margin-bottom: -0.35rem;
+    text-align: center;
   }
 
   /* software: large logos side by side, the name centred underneath (owner, 2026-09-25);
      logos sized by height so a wordmark (SAP) keeps its width */
-  /* fixed-width columns so a second row of logos lines up under the first */
+  /* logos with their names centred in the box (owner, 2026-09-25); equal-width items,
+     so a wrapped second row sits centred under the first */
   .tools {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, 6rem);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 1.1rem 0.5rem;
+  }
+
+  .tools > li {
+    flex: 0 0 6rem;
   }
 
   .tool {
@@ -426,6 +433,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     color: var(--ink-2);
     padding-top: 0.75rem;
     border-top: 1px solid var(--line);
+    text-align: center;
   }
 
   /* inline links a space away from the label: a tight focus ring keeps neighbours readable */
