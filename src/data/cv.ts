@@ -1,37 +1,19 @@
 // Quelle: Lebenslauf (PDF) + LinkedIn-Datenexport.
-// Texte hier sind eigene Formulierungen auf Basis der Rohdaten, keine Kopien der CV-Zeilen.
-
-// Die Startseite setzt den Claim als fortlaufenden Satz über die ganze Seite:
-// der Anfang steht im Kopf, jeder Teilsatz eröffnet ein Band mit der Arbeit dazu.
-// Jedes Band hat eine eigene Form (Schema, Blick ins Rechenmodell, reiner Text), siehe index.astro.
-export const claimLead = "Ich übersetze technische Fragen in Zahlen:";
-
-export const claimParts: {
-  clause: string;
-  project: string; // slug in `projects`
-  body: string; // der Absatz im Band, nennt die Station im Satz statt in einer Metazeile
-}[] = [
-  {
-    clause: "was ein Bauteil in der Fertigung kostet,",
-    project: "heliostat",
-    body: "In der Bachelorarbeit am DLR habe ich aus CAD-Daten berechnet, was die Stahlkonstruktion künftiger Heliostaten in der Fertigung kostet, Schritt für Schritt statt mit Pauschalwerten. Die Kostenmodelle sind als Fachbeitrag in den SolarPACES Conference Proceedings erschienen.",
-  },
-  {
-    clause: "wie viel CO₂ ein Fertigungsverfahren verursacht,",
-    project: "luftfahrt",
-    body: "Die Masterarbeit an der RWTH Aachen fragt, wann ein 3D-gedrucktes Luftfahrtbauteil über seinen ganzen Lebenszyklus ökologisch besser ist als ein gefrästes: mit einer Ökobilanz nach ISO 14040 und einem eigenen Excel-Tool für den kumulierten Energieaufwand.",
-  },
-  {
-    clause: "und wie aus den Daten eines Kunden ein Bericht wird.",
-    project: "bi-consulting",
-    body: "Seit Mai 2026 bin ich im BI Consulting bei ATVISIO in Düsseldorf. Ich baue ETL-Strecken und Berichte in Power BI und Jedox, für Kunden und intern, und habe eine Schulung zu Microsoft Copilot in Power BI konzipiert und selbst gehalten.",
-  },
-];
+//
+// KI-PLATZHALTER: Fakten (Titel, Arbeitgeber, Orte, Zeiträume, Noten, Software-Einstufungen,
+// Zertifikate, Kontaktdaten) stammen aus CV/LinkedIn. Alle Fließtexte und Zuordnungen sind
+// dagegen KI-Entwürfe und auf der Seite magenta als Platzhalter markiert:
+//   profile.claim, career[].story, projects[].title/context/approach/result,
+//   topSkills (komplett: Auswahl, Titel, Belegzeilen, Zuordnung von Stationen und Software),
+//   competencies[].skill (Zuordnung CV-Methode -> Kernkompetenz), notes.
+// Beim Ersetzen durch eigene Texte auch den <Placeholder>-Wrapper in der Seite entfernen.
 
 export const profile = {
   name: "Daniel Lenski",
   role: "Wirtschaftsingenieur, M.Sc.",
-  claim: [claimLead, ...claimParts.map((p) => p.clause)].join(" "),
+  // KI-PLATZHALTER
+  claim:
+    "Ich berechne, was Bauteile in der Fertigung kosten und welchen Energieaufwand sie verursachen, und baue Berichte in Power BI und Jedox.",
   location: "Langenfeld (Rheinland) / Düsseldorf",
   email: "daniel.lenski@hotmail.com",
   phone: "+49 157 74585248",
@@ -40,6 +22,7 @@ export const profile = {
 };
 
 export type CareerEntry = {
+  id: string; // Anker auf /werdegang/ (#id), stabil halten: der Skill-Hub verlinkt darauf
   from: string;
   to: string;
   fromYear: number;
@@ -48,7 +31,7 @@ export type CareerEntry = {
   org: string;
   place: string;
   kind: "ausbildung" | "beruf";
-  story: string;
+  story: string; // KI-PLATZHALTER
   // Nebenstationen: kompakte Zeile ohne Text, damit sie nicht so viel Raum bekommen wie die Abschlussarbeiten.
   minor?: true;
   // Slug eines Projekts auf /projekte/, falls es dazu eine ausführliche Fallstudie gibt.
@@ -62,6 +45,7 @@ export const career: CareerEntry[] = [
     to: "2020",
     fromYear: 2013,
     toYear: 2020,
+    id: "abitur",
     title: "Allgemeine Hochschulreife",
     org: "Konrad-Adenauer-Gymnasium",
     place: "Langenfeld",
@@ -75,6 +59,7 @@ export const career: CareerEntry[] = [
     to: "2024",
     fromYear: 2020,
     toYear: 2024,
+    id: "bachelor",
     title: "B.Eng. Wirtschaftsingenieurwesen",
     org: "Hochschule Düsseldorf",
     place: "Düsseldorf",
@@ -87,6 +72,7 @@ export const career: CareerEntry[] = [
     to: "Jul 2022",
     fromYear: 2021,
     toYear: 2022,
+    id: "tutor",
     title: "Mathematik-Tutor",
     org: "Hochschule Düsseldorf",
     place: "Düsseldorf",
@@ -100,6 +86,7 @@ export const career: CareerEntry[] = [
     to: "Feb 2023",
     fromYear: 2022,
     toYear: 2023,
+    id: "praktikum-pm",
     title: "Praktikant Projektmanagement",
     org: "IGH Infotec AG",
     place: "Langenfeld",
@@ -112,6 +99,7 @@ export const career: CareerEntry[] = [
     to: "Feb 2024",
     fromYear: 2023,
     toYear: 2024,
+    id: "werkstudent-controlling",
     title: "Werkstudent Finanzen & Controlling",
     org: "IGH Infotec AG",
     place: "Langenfeld",
@@ -125,6 +113,7 @@ export const career: CareerEntry[] = [
     to: "Jun 2024",
     fromYear: 2024,
     toYear: 2024,
+    id: "bachelorarbeit",
     title: "Bachelorarbeit: Herstellkostenoptimierung von Heliostaten",
     org: "DLR, Deutsches Zentrum für Luft- und Raumfahrt",
     place: "Jülich",
@@ -138,6 +127,7 @@ export const career: CareerEntry[] = [
     to: "heute",
     fromYear: 2024,
     toYear: 2026,
+    id: "master",
     title: "M.Sc. Internationales Wirtschaftsingenieurwesen",
     org: "Hochschule Düsseldorf",
     place: "Düsseldorf",
@@ -150,6 +140,7 @@ export const career: CareerEntry[] = [
     to: "Mai 2026",
     fromYear: 2024,
     toYear: 2026,
+    id: "hilfskraft",
     title: "Wissenschaftliche Hilfskraft",
     org: "Hochschule Düsseldorf, FB Maschinenbau & Verfahrenstechnik",
     place: "Düsseldorf",
@@ -163,6 +154,7 @@ export const career: CareerEntry[] = [
     to: "heute",
     fromYear: 2026,
     toYear: 2026,
+    id: "masterarbeit",
     title: "Masterarbeit: Ökobilanz additiver Fertigung in der Luftfahrt",
     org: "RWTH Aachen",
     place: "Remote",
@@ -176,6 +168,7 @@ export const career: CareerEntry[] = [
     to: "heute",
     fromYear: 2026,
     toYear: 2026,
+    id: "praktikum-bi",
     title: "Praktikum BI Consulting",
     org: "ATVISIO Consult GmbH",
     place: "Düsseldorf",
@@ -188,12 +181,12 @@ export const career: CareerEntry[] = [
 
 export type Project = {
   slug: string;
-  title: string;
+  title: string; // KI-PLATZHALTER
   org: string;
   period: string;
-  context: string;
-  approach: string;
-  result: string;
+  context: string; // KI-PLATZHALTER
+  approach: string; // KI-PLATZHALTER
+  result: string; // KI-PLATZHALTER
   link?: { label: string; href: string };
   // Welche Abbildung das Projekt begleitet (Komponenten in src/components/figures/).
   figure?: "am-model" | "heliostat";
@@ -269,25 +262,98 @@ export const ratedSkills: RatedSkill[] = [
   { name: "Englisch", level: 4, levelLabel: "C1", group: "Sprachen" },
 ];
 
-// Methoden/Fachgebiete ohne eigene Skalen-Bewertung im CV. `where` nennt nur Stationen,
-// in denen das Thema laut CV/LinkedIn tatsächlich vorkam; ohne Beleg bleibt es bei `others`.
-export const competencies: { name: string; where: string; href: string }[] = [
-  { name: "Ökobilanz (LCA) nach ISO 14040", where: "Masterarbeit, RWTH Aachen", href: "/projekte/#luftfahrt" },
-  { name: "Herstellkostenrechnung", where: "Bachelorarbeit, DLR", href: "/projekte/#heliostat" },
-  { name: "Stahlkonstruktionen", where: "Bachelorarbeit, DLR", href: "/projekte/#heliostat" },
-  { name: "BI Consulting", where: "Praktikum, ATVISIO Consult", href: "/projekte/#bi-consulting" },
-  { name: "Controlling und Finanzen", where: "Werkstudent, IGH Infotec", href: "/projekte/#zeiterfassung" },
+// Methoden/Fachgebiete aus dem CV ohne eigene Skalen-Bewertung. `skill` ordnet sie einer
+// Kernkompetenz aus `topSkills` zu; /kenntnisse/ zeigt sie dort als "Im CV: …" unter dem
+// Kompetenztitel, damit Startseite und Kenntnisse dieselben Namen verwenden.
+// KI-PLATZHALTER: die Zuordnung Methode -> Kernkompetenz (skill) ist abgeleitet, nicht aus dem CV.
+export const competencies: { name: string; skill: TopSkillId }[] = [
+  { name: "Herstellkostenrechnung", skill: "kosten" },
+  { name: "Stahlkonstruktionen", skill: "kosten" },
+  { name: "Ökobilanz (LCA) nach ISO 14040", skill: "oekobilanz" },
+  { name: "BI Consulting", skill: "bi" },
+  { name: "Controlling und Finanzen", skill: "bi" },
 ];
 
-export const otherCompetencies = ["Forschungsprojektmanagement", "Python", "Marketing"];
+// Python steht als Werkzeug unter "BI und Controlling" (Kaggle-Kurs), daher hier nicht doppelt.
+export const otherCompetencies = ["Forschungsprojektmanagement", "Marketing"];
 
+// id = Anker auf /kenntnisse/ (#id), der Skill-Hub verlinkt darauf.
 export const certifications = [
-  { name: "Lean Six Sigma Yellow Belt", authority: "Lean Six Sigma Academy (LSSA)", date: "2025" },
-  { name: "SQL Grundkurs 1 & 2", authority: "LinkedIn Learning", date: "2025" },
-  { name: "Python Course", authority: "Kaggle", date: "2026" },
+  { id: "z-lean-six-sigma", name: "Lean Six Sigma Yellow Belt", authority: "Lean Six Sigma Academy (LSSA)", date: "2025" },
+  { id: "z-sql", name: "SQL Grundkurs 1 & 2", authority: "LinkedIn Learning", date: "2025" },
+  { id: "z-python", name: "Python Course", authority: "Kaggle", date: "2026" },
 ];
 
+// KI-PLATZHALTER: Formulierung von KI, Fakten aus LinkedIn.
 export const notes = [
   "Spielt beim VfB 06 Langenfeld und pfeift als Schiedsrichter im Kreis Remscheid/Solingen, auf beiden Seiten der Linie zu Hause.",
   "Baut in der Freizeit mit 3D-Druck und automatisiert eigene Projekte mit Claude (Cowork, Code).",
+];
+
+// KI-PLATZHALTER (komplett): Skill-Hub der Startseite und Gruppierung auf /kenntnisse/.
+// Ein erster KI-Vorschlag, den Daniel selbst überarbeitet: welche Kompetenzen, ihre Titel,
+// die Belegzeilen (proof) und die Zuordnung von Stationen (learned) und Software (tools)
+// sind abgeleitet. Die Fakten in den Belegzeilen stammen nur aus den Stationen oben.
+// Software steht nur dort, wo eine Station oder ein Zertifikat sie belegt; wo das offen ist, steht eine Frage
+// an Daniel (toolsQuestion) statt einer geratenen Angabe.
+export type TopSkillId = "kosten" | "oekobilanz" | "bi" | "prozesse";
+
+export type TopSkill = {
+  id: TopSkillId;
+  title: string;
+  proof: string[];
+  tools: string[];
+  toolsQuestion?: string;
+  learned: { label: string; href: string }[];
+};
+
+export const topSkills: TopSkill[] = [
+  {
+    id: "kosten",
+    title: "Kostenkalkulation",
+    proof: [
+      "Bottom-Up-Kostenmodelle für die Stahlkonstruktion von Heliostaten, direkt aus CAD-Daten. Bachelorarbeit am DLR 2024, veröffentlicht bei der SolarPACES Conference.",
+    ],
+    tools: [],
+    toolsQuestion: "Offen: Mit welcher Software entstanden die Kalkulationen und die CAD-Daten (Excel, Autodesk Inventor oder Fusion)?",
+    learned: [{ label: "Bachelorarbeit am DLR", href: "/projekte/#heliostat" }],
+  },
+  {
+    id: "oekobilanz",
+    title: "Ökobilanzierung",
+    proof: [
+      "Bewertungsmetrik für 3D-gedruckte Luftfahrtbauteile: Ökobilanz nach ISO 14040 und ein selbst gebautes Excel-Tool für den kumulierten Energieaufwand (KEA). Masterarbeit an der RWTH Aachen, bislang Note 1,2.",
+    ],
+    tools: ["KEA-Tool in Excel (selbst gebaut)"],
+    learned: [{ label: "Masterarbeit an der RWTH Aachen", href: "/projekte/#luftfahrt" }],
+  },
+  {
+    id: "bi",
+    title: "BI und Controlling",
+    proof: [
+      "ETL-Strecken und Berichte in Power BI und Jedox für Kunden und intern, dazu eine selbst konzipierte Schulung zu Copilot in Power BI. Praktikum bei ATVISIO, seit 2026.",
+      "Davor ein Jahr Mitarbeitercontrolling und Monatsabschlüsse in Excel mit Pivot-Tabellen.",
+    ],
+    tools: ["Power BI", "Jedox", "MSSQL", "Excel", "Python"],
+    learned: [
+      { label: "Praktikum BI Consulting (ATVISIO)", href: "/projekte/#bi-consulting" },
+      { label: "Werkstudent Finanzen & Controlling (IGH Infotec)", href: "/werdegang/#werkstudent-controlling" },
+      { label: "SQL Grundkurs (LinkedIn Learning)", href: "/kenntnisse/#z-sql" },
+      { label: "Python Course (Kaggle)", href: "/kenntnisse/#z-python" },
+    ],
+  },
+  {
+    id: "prozesse",
+    title: "Prozesse und Projekte",
+    proof: [
+      "Als Werkstudent bei IGH Infotec (2023–2024) Timebutler als neues Zeiterfassungssystem eingeführt und die Kolleg:innen darauf geschult.",
+      "Im Praktikum Projektmanagement Kundentermine vor- und nachbereitet, SAP-Tabellen in Kundensystemen gepflegt und in Produktions- und Logistikfragen beraten.",
+    ],
+    tools: ["Timebutler", "SAP"],
+    learned: [
+      { label: "Timebutler-Einführung (IGH Infotec)", href: "/projekte/#zeiterfassung" },
+      { label: "Praktikum Projektmanagement (IGH Infotec)", href: "/werdegang/#praktikum-pm" },
+      { label: "Lean Six Sigma Yellow Belt", href: "/kenntnisse/#z-lean-six-sigma" },
+    ],
+  },
 ];

@@ -1,5 +1,7 @@
 ---
 import Layout from "../../layouts/Layout.astro";
+import Placeholder from "../../components/Placeholder.astro";
+import ImagePlaceholder from "../../components/ImagePlaceholder.astro";
 import { profile, notes } from "../../data/cv";
 import { cvPdf } from "../../data/nav";
 
@@ -37,8 +39,14 @@ const liPath = profile.linkedin.slice(liCut);
 
       <section class="off" aria-labelledby="h-off">
         <h2 id="h-off" class="h2">Neben dem Job</h2>
-        <div class="text">
-          {notes.map((n) => <p>{n}</p>)}
+        <Placeholder>
+          <div class="text">
+            {notes.map((n) => <p>{n}</p>)}
+          </div>
+        </Placeholder>
+        <div class="off-pics">
+          <ImagePlaceholder label="Beim Pfeifen als Schiedsrichter" ratio="4 / 3" />
+          <ImagePlaceholder label="Ein selbst gedrucktes 3D-Druck-Teil" ratio="4 / 3" />
         </div>
       </section>
     </div>
@@ -84,12 +92,15 @@ const liPath = profile.linkedin.slice(liCut);
       margin-top: 4.5rem;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 5rem;
+      /* the "Neben dem Job" column (text + two pictures) is much taller: don't stretch the address to match */
+      align-items: start;
     }
   }
 
   .letterhead {
     font-style: normal;
     display: grid;
+    align-content: start;
     justify-items: start;
     gap: 0.15rem;
   }
@@ -125,6 +136,13 @@ const liPath = profile.linkedin.slice(liCut);
 
   .off .text {
     margin-top: 0.5rem;
+  }
+
+  .off-pics {
+    margin-top: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 1rem;
   }
 
   .off p + p {

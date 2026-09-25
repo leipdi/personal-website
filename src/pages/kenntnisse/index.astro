@@ -1,6 +1,7 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import { ratedSkills, competencies, otherCompetencies, certifications } from "../../data/cv";
+import Placeholder from "../../components/Placeholder.astro";
+import { ratedSkills, competencies, otherCompetencies, certifications, topSkills } from "../../data/cv";
 
 // Ledger: the CV's own words are the scale, strongest first, so nothing is drawn that the
 // CV doesn't say. The skills are what matters and are set large; the level word is the
@@ -21,7 +22,7 @@ const languages = byLevel("Sprachen");
 
 <Layout
   title="Kenntnisse, Daniel Lenski"
-  description="Software- und Sprachkenntnisse in eigener Einschätzung, Methoden mit Beleg, Zertifikate."
+  description="Software- und Sprachkenntnisse in eigener Einschätzung, Kernkompetenzen mit Beleg, Zertifikate."
   active="kenntnisse"
 >
   <div class="wrap page">
@@ -57,21 +58,35 @@ const languages = byLevel("Sprachen");
       </section>
 
       <section class="wide" aria-labelledby="k-meth">
-        <h2 id="k-meth" class="h2">Methoden, und wo sie zum Einsatz kamen</h2>
-        <dl class="pairs">
-          {
-            competencies.map((c) => (
-              <div>
-                <dt>{c.name}</dt>
-                <dd>
-                  <a class="prose-link" href={c.href}>
-                    {c.where}
-                  </a>
-                </dd>
-              </div>
-            ))
-          }
-        </dl>
+        <h2 id="k-meth" class="h2">Kernkompetenzen und wo sie herkommen</h2>
+        <Placeholder kind="vorschlag" note="Kompetenzen wie auf der Startseite, Zuordnung von CV-Methoden und Stationen">
+          <dl class="pairs">
+            {
+              topSkills.map((sk) => {
+                const terms = competencies.filter((c) => c.skill === sk.id).map((c) => c.name);
+                return (
+                  <div>
+                    <dt>
+                      {sk.title}
+                      {terms.length > 0 && <span class="terms">Im CV: {terms.join(", ")}</span>}
+                    </dt>
+                    <dd>
+                      <ul class="where">
+                        {sk.learned.map((l) => (
+                          <li>
+                            <a class="prose-link" href={l.href}>
+                              {l.label}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </dd>
+                  </div>
+                );
+              })
+            }
+          </dl>
+        </Placeholder>
         <p class="others">Außerdem: {otherCompetencies.join(", ")}.</p>
       </section>
 
@@ -80,7 +95,7 @@ const languages = byLevel("Sprachen");
         <dl class="pairs">
           {
             certifications.map((c) => (
-              <div>
+              <div id={c.id}>
                 <dt>
                   {c.name} <span class="tnum year">{c.date}</span>
                 </dt>
@@ -201,6 +216,34 @@ const languages = byLevel("Sprachen");
     .pairs dd {
       margin-top: 0;
     }
+  }
+
+  .terms {
+    display: block;
+    margin-top: 0.15rem;
+    font-family: var(--sans);
+    font-weight: 400;
+    font-size: 0.9375rem;
+    color: var(--ink-2);
+  }
+
+  .where li + li {
+    margin-top: 0.15rem;
+  }
+
+  /* reached via a link from the home skill hub: mark the row it points to
+     (a navy bar in the gutter, it doesn't shift the row) */
+  .pairs > div {
+    position: relative;
+  }
+
+  .pairs > div:target::before {
+    content: "";
+    position: absolute;
+    left: -0.75rem;
+    top: 0.6rem;
+    bottom: 0.6rem;
+    border-left: 4px solid var(--navy);
   }
 
   .others {
