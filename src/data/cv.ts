@@ -269,13 +269,13 @@ export const ratedSkills: RatedSkill[] = [
 export const competencies: { name: string; skill: TopSkillId }[] = [
   { name: "Herstellkostenrechnung", skill: "kosten" },
   { name: "Stahlkonstruktionen", skill: "kosten" },
-  { name: "Ökobilanz (LCA) nach ISO 14040", skill: "oekobilanz" },
-  { name: "BI Consulting", skill: "bi" },
-  { name: "Controlling und Finanzen", skill: "bi" },
+  { name: "BI Consulting", skill: "data" },
+  { name: "Controlling und Finanzen", skill: "controlling" },
 ];
 
-// Python steht als Werkzeug unter "BI und Controlling" (Kaggle-Kurs), daher hier nicht doppelt.
-export const otherCompetencies = ["Forschungsprojektmanagement", "Marketing"];
+// Python steht als Werkzeug unter "Data & AI" (Kaggle-Kurs), daher hier nicht doppelt.
+// Ökobilanz hat seit 2026-09-25 keine eigene Box mehr (Vorgabe Daniel), steht daher hier.
+export const otherCompetencies = ["Ökobilanz (LCA) nach ISO 14040", "Forschungsprojektmanagement", "Marketing"];
 
 // id = Anker auf /kenntnisse/ (#id), der Skill-Hub verlinkt darauf.
 export const certifications = [
@@ -296,21 +296,23 @@ export const notes = [
 // sind abgeleitet. Die Fakten in den Belegzeilen stammen nur aus den Stationen oben.
 // Software steht nur dort, wo eine Station oder ein Zertifikat sie belegt; wo das offen ist, steht eine Frage
 // an Daniel (toolsQuestion) statt einer geratenen Angabe.
-export type TopSkillId = "kosten" | "oekobilanz" | "bi" | "prozesse";
+export type TopSkillId = "kosten" | "data" | "prozesse" | "controlling";
 
 export type TopSkill = {
   id: TopSkillId;
   title: string;
   proof: string[];
-  tools: string[];
+  tools: string[]; // Schlüssel aus src/data/tools.ts (Logo oder Logo-Platzhalter)
   toolsQuestion?: string;
   learned: { label: string; href: string }[];
 };
 
+// Reihenfolge und Auswahl der Boxen: Vorgabe von Daniel (2026-09-25). Belegzeilen und
+// Zuordnungen bleiben KI-Entwurf.
 export const topSkills: TopSkill[] = [
   {
     id: "kosten",
-    title: "Kostenkalkulation",
+    title: "Bauteilkostenkalkulation",
     proof: [
       "Bottom-Up-Kostenmodelle für die Stahlkonstruktion von Heliostaten, direkt aus CAD-Daten. Bachelorarbeit am DLR 2024, veröffentlicht bei der SolarPACES Conference.",
     ],
@@ -319,25 +321,15 @@ export const topSkills: TopSkill[] = [
     learned: [{ label: "Bachelorarbeit am DLR", href: "/projekte/#heliostat" }],
   },
   {
-    id: "oekobilanz",
-    title: "Ökobilanzierung",
-    proof: [
-      "Bewertungsmetrik für 3D-gedruckte Luftfahrtbauteile: Ökobilanz nach ISO 14040 und ein selbst gebautes Excel-Tool für den kumulierten Energieaufwand (KEA). Masterarbeit an der RWTH Aachen, bislang Note 1,2.",
-    ],
-    tools: ["KEA-Tool in Excel (selbst gebaut)"],
-    learned: [{ label: "Masterarbeit an der RWTH Aachen", href: "/projekte/#luftfahrt" }],
-  },
-  {
-    id: "bi",
-    title: "BI und Controlling",
+    id: "data",
+    title: "Data & AI",
     proof: [
       "ETL-Strecken und Berichte in Power BI und Jedox für Kunden und intern, dazu eine selbst konzipierte Schulung zu Copilot in Power BI. Praktikum bei ATVISIO, seit 2026.",
-      "Davor ein Jahr Mitarbeitercontrolling und Monatsabschlüsse in Excel mit Pivot-Tabellen.",
+      "Privat eigene Projekte mit Claude automatisiert (Cowork, Code).",
     ],
-    tools: ["Power BI", "Jedox", "MSSQL", "Excel", "Python"],
+    tools: ["Power BI", "Jedox", "MSSQL", "Python", "Copilot in Power BI", "Claude"],
     learned: [
       { label: "Praktikum BI Consulting (ATVISIO)", href: "/projekte/#bi-consulting" },
-      { label: "Werkstudent Finanzen & Controlling (IGH Infotec)", href: "/werdegang/#werkstudent-controlling" },
       { label: "SQL Grundkurs (LinkedIn Learning)", href: "/kenntnisse/#z-sql" },
       { label: "Python Course (Kaggle)", href: "/kenntnisse/#z-python" },
     ],
@@ -354,6 +346,17 @@ export const topSkills: TopSkill[] = [
       { label: "Timebutler-Einführung (IGH Infotec)", href: "/projekte/#zeiterfassung" },
       { label: "Praktikum Projektmanagement (IGH Infotec)", href: "/werdegang/#praktikum-pm" },
       { label: "Lean Six Sigma Yellow Belt", href: "/kenntnisse/#z-lean-six-sigma" },
+    ],
+  },
+  {
+    id: "controlling",
+    title: "Controlling",
+    proof: [
+      "Ein Jahr Mitarbeitercontrolling und Monatsabschlüsse mit Excel und Pivot-Tabellen, als Werkstudent Finanzen & Controlling bei IGH Infotec (2023–2024).",
+    ],
+    tools: ["Excel"],
+    learned: [
+      { label: "Werkstudent Finanzen & Controlling (IGH Infotec)", href: "/werdegang/#werkstudent-controlling" },
     ],
   },
 ];

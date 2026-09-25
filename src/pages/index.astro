@@ -1,8 +1,29 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Placeholder from "../components/Placeholder.astro";
-import { profile, topSkills } from "../data/cv";
+import { profile, topSkills, type TopSkillId } from "../data/cv";
+import { tool } from "../data/tools";
 import { cvPdf } from "../data/nav";
+
+// line icons for the box heads (24px grid, drawn at 28px with a 2px stroke)
+const skillIcons: Record<TopSkillId, string> = {
+  // calculator
+  kosten:
+    "M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm2 3h8v3H8V6Zm0 7h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01",
+  // a data table feeding a report: plain, no AI sparkle trope
+  data: "M3 4h11v16H3V4Zm0 5h11M3 14.5h11M8 9v11M17.5 20v-5M21 20V9",
+  // two steps joined by a flow arrow
+  prozesse: "M4 5h5v5H4V5Zm11 9h5v5h-5v-5ZM6.5 10v3a2 2 0 0 0 2 2H15m0 0-2-2m2 2-2 2",
+  // bar chart on a baseline
+  controlling: "M4 20h16M7 16v-5M11 16V8M15 16v-3M19 16V5",
+};
+
+// Long German compounds get soft hyphens for display only (the data keeps the plain word),
+// so a narrow box breaks "Bauteilkostenkalkulation" at a word joint instead of overflowing.
+const titleBreaks: Record<string, string> = {
+  Bauteilkostenkalkulation: "Bauteil­kosten­kalkulation",
+};
+const displayTitle = (t: string) => titleBreaks[t] ?? t;
 
 const [mailUser, mailDomain] = profile.email.split("@");
 // neutral and factual (name, role, fields named in the CV): the AI-drafted claim must not end up in search results
@@ -27,42 +48,74 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
       <h2 id="h-hub" class="display hub-title">Kernkompetenzen</h2>
       <Placeholder
         kind="vorschlag"
-        note="Auswahl und Titel der Kompetenzen, Belegzeilen sowie die Zuordnung von Stationen und Software sind KI-abgeleitet"
+        note="Belegzeilen und Zuordnung von Stationen und Software KI-abgeleitet; gestrichelte Logos sind Logo-Platzhalter"
       >
         <ul class="hub-grid">
           {
             topSkills.map((s) => (
               <li class="skill" aria-labelledby={`sk-${s.id}`}>
-                <h3 id={`sk-${s.id}`} class="display skill-title">
-                  {s.title}
-                </h3>
-                <div class="text skill-proof">
-                  {s.proof.map((line) => (
-                    <p>{line}</p>
-                  ))}
+                <div class="skill-body">
+                  <div class="skill-head">
+                    <svg
+                      class="skill-ico"
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      width="28"
+                      height="28"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d={skillIcons[s.id]} />
+                    </svg>
+                    <h3 id={`sk-${s.id}`} class="display skill-title">
+                      {displayTitle(s.title)}
+                    </h3>
+                  </div>
+                  <div class="text skill-proof">
+                    {s.proof.map((line) => (
+                      <p>{line}</p>
+                    ))}
+                  </div>
                 </div>
-                <div class="skill-tools">
+                <div class="skill-foot">
                   <p class="lbl" id={`sw-${s.id}`}>
                     Software
                   </p>
                   {s.tools.length > 0 && (
-                    <ul class="chips" aria-labelledby={`sw-${s.id}`}>
-                      {s.tools.map((name) => (
-                        <li>{name}</li>
-                      ))}
+                    <ul class="tools">
+                      {s.tools.map((key) => {
+                        const t = tool(key);
+                        return t.svg ? (
+                          <li class:list={["tool", t.wordmark && "tool-wm"]}>
+                            <span class="tool-logo" aria-hidden="true" set:html={t.svg} />
+                            {t.wordmark ? <span class="sr-only">{t.name}</span> : t.name}
+                          </li>
+                        ) : (
+                          <li class="tool tool-ph" data-placeholder="logo">
+                            <span class="tool-mono" aria-hidden="true">
+                              {t.mono}
+                            </span>
+                            {t.name}
+                            <span class="sr-only"> (Logo-Platzhalter)</span>
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                   {s.toolsQuestion && <p class="tools-open">{s.toolsQuestion}</p>}
+                  <p class="skill-src">
+                    <span class="lbl">Gelernt bei</span>{" "}
+                    {s.learned.map((l, i) => (
+                      <>
+                        {i > 0 && ", "}
+                        <a href={l.href}>{l.label}</a>
+                      </>
+                    ))}
+                  </p>
                 </div>
-                <p class="skill-src">
-                  <span class="lbl">Gelernt bei</span>{" "}
-                  {s.learned.map((l, i) => (
-                    <>
-                      {i > 0 && ", "}
-                      <a href={l.href}>{l.label}</a>
-                    </>
-                  ))}
-                </p>
               </li>
             ))
           }
@@ -181,24 +234,26 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     }
   }
 
-  /* ---------- skill hub: a heavy navy rule over each box, condensed title on white ---------- */
+  /* ---------- skill hub: real boxes (owner request), drawn in the site's own language:
+     paper-white page (the portrait's white mat joins it), square-ish boxes with a 1px rule
+     border and a heavy navy top edge like the Kenntnisse section rules, no blur shadow.
+     Each box = body (icon + title, proof) over a tinted footer (Software, Gelernt bei). ---------- */
   .hub {
-    padding: 2.25rem 0 3.5rem;
+    background: var(--paper);
+    padding: 2rem 0 3.5rem;
   }
 
   .hub-title {
-    font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.25rem);
+    font-size: clamp(2rem, 1.5rem + 2vw, 2.75rem);
     line-height: 1;
     color: var(--navy);
     margin-bottom: 1rem;
   }
 
-  /* each box is a 4-row subgrid (title, proof, software, source), so across a row of boxes
-     the software and source lines start at the same height */
   .hub-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 2.25rem 3rem;
+    gap: 1.25rem 1.5rem;
   }
 
   @media (min-width: 44rem) {
@@ -207,20 +262,71 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     }
   }
 
+  /* each box is a 2-row subgrid (body, footer): across a row the footers start at the same
+     height, so a shorter proof shows as white space in the body above a level footer.
+     minmax(0, 1fr): a long title can never widen the box past its grid cell */
   .skill {
     display: grid;
-    grid-row: span 4;
+    grid-template-columns: minmax(0, 1fr);
+    grid-row: span 2;
     grid-template-rows: subgrid;
-    row-gap: 0.85rem;
-    align-content: start;
-    border-top: 6px solid var(--navy);
-    padding-top: 0.8rem;
+    row-gap: 0;
+    min-width: 0;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-top: 4px solid var(--navy);
+    border-radius: 3px;
+    overflow: hidden;
   }
 
-  .skill-title {
-    font-size: clamp(1.75rem, 1.4rem + 1vw, 2.125rem);
-    line-height: 1;
+  .skill-body {
+    min-width: 0;
+    padding: 1.1rem 1.1rem 1.25rem;
+  }
+
+  .skill-foot {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding: 1rem 1.1rem 1.1rem;
+    background: var(--sky-wash);
+    border-top: 1px solid var(--line);
+  }
+
+  @media (min-width: 44rem) {
+    .skill-body {
+      padding: 1.35rem 1.5rem 1.5rem;
+    }
+    .skill-foot {
+      padding: 1.1rem 1.5rem 1.2rem;
+    }
+  }
+
+  .skill-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .skill-ico {
+    flex: none;
+    width: 1.75rem;
+    height: 1.75rem;
     color: var(--navy);
+  }
+
+  /* only the soft hyphens set in the markup may break the title; overflow-wrap is the
+     last resort for a future title without them */
+  .skill-title {
+    min-width: 0;
+    font-size: clamp(1.5rem, 1.25rem + 0.9vw, 2rem);
+    line-height: 1;
+    padding-top: 0.1rem;
+    color: var(--navy);
+    hyphens: manual;
+    overflow-wrap: anywhere;
   }
 
   .skill-proof {
@@ -239,22 +345,52 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     color: var(--ink-2);
   }
 
-  .skill-tools .lbl {
-    margin-bottom: 0.35rem;
+  .skill-foot .lbl {
+    margin-bottom: -0.35rem;
   }
 
-  .chips {
+  /* software: logo + name, no pill chrome; logos sized by height so a wordmark keeps its width */
+  .tools {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
+    gap: 0.6rem 1.1rem;
   }
 
-  .chips li {
-    background: var(--sky-wash);
-    padding: 0.2rem 0.55rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    line-height: 1.35;
+  .tool {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1.25;
+    white-space: nowrap;
+  }
+
+  .tool-logo {
+    display: flex;
+    align-items: center;
+    height: 1.375rem;
+  }
+
+  .tool-logo :global(svg) {
+    display: block;
+    height: 100%;
+    width: auto;
+  }
+
+  /* no free logo available: dashed magenta outline monogram = marked logo placeholder */
+  .tool-mono {
+    display: grid;
+    place-items: center;
+    min-width: 1.375rem;
+    height: 1.375rem;
+    padding: 0 0.15rem;
+    border: 1.5px dashed var(--ph);
+    border-radius: 3px;
+    color: var(--ph);
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0;
   }
 
   /* an open question for the owner, not a design element: scaffolding colour */
@@ -262,9 +398,12 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     font-size: 0.875rem;
     line-height: 1.4;
     color: var(--ph);
+    background: var(--paper);
     border: 1.5px dashed var(--ph);
-    padding: 0.3rem 0.55rem;
+    border-radius: 3px;
+    padding: 0.45rem 0.7rem;
     max-width: 30rem;
+    overflow-wrap: anywhere;
   }
 
   /* quiet source line, not a stack of links */
@@ -272,8 +411,13 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     font-size: 0.875rem;
     line-height: 1.5;
     color: var(--ink-2);
-    padding-top: 0.6rem;
+    padding-top: 0.75rem;
     border-top: 1px solid var(--line);
+  }
+
+  /* inline links a space away from the label: a tight focus ring keeps neighbours readable */
+  .skill-src a:focus-visible {
+    outline-offset: 1px;
   }
 
   .skill-src a {
@@ -281,7 +425,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 0.2em;
-    text-decoration-color: var(--line);
+    text-decoration-color: var(--steel);
   }
 
   .skill-src a:hover {
