@@ -273,9 +273,9 @@ export const competencies: { name: string; skill: TopSkillId }[] = [
   { name: "Controlling und Finanzen", skill: "controlling" },
 ];
 
-// Python steht als Werkzeug unter "Data & AI" (Kaggle-Kurs), daher hier nicht doppelt.
-// Ökobilanz hat seit 2026-09-25 keine eigene Box mehr (Vorgabe Daniel), steht daher hier.
-export const otherCompetencies = ["Ökobilanz (LCA) nach ISO 14040", "Forschungsprojektmanagement", "Marketing"];
+// Ökobilanz hat seit 2026-09-25 keine eigene Box mehr, Python kein Software-Logo mehr
+// (beides Vorgabe Daniel), daher stehen sie hier.
+export const otherCompetencies = ["Ökobilanz (LCA) nach ISO 14040", "Python", "Forschungsprojektmanagement", "Marketing"];
 
 // id = Anker auf /kenntnisse/ (#id), der Skill-Hub verlinkt darauf.
 export const certifications = [
@@ -314,10 +314,10 @@ export const topSkills: TopSkill[] = [
     id: "kosten",
     title: "Bauteilkostenkalkulation",
     proof: [
-      "Bottom-Up-Kostenmodelle für die Stahlkonstruktion von Heliostaten, direkt aus CAD-Daten. Bachelorarbeit am DLR 2024, veröffentlicht bei der SolarPACES Conference.",
+      "Bottom-Up-Kostenmodelle für die Stahlkonstruktion von Heliostaten: CAD-Daten aus Autodesk Inventor, die Kalkulation selbst von Hand in Excel aufgebaut. Bachelorarbeit am DLR 2024, veröffentlicht bei der SolarPACES Conference.",
     ],
-    tools: [],
-    toolsQuestion: "Offen: Mit welcher Software entstanden die Kalkulationen und die CAD-Daten (Excel, Autodesk Inventor oder Fusion)?",
+    // Software laut Daniel (2026-09-25): CAD in Inventor, Kalkulation per Hand in Excel
+    tools: ["Autodesk Inventor", "Excel"],
     learned: [{ label: "Bachelorarbeit am DLR", href: "/projekte/#heliostat" }],
   },
   {
@@ -327,11 +327,11 @@ export const topSkills: TopSkill[] = [
       "ETL-Strecken und Berichte in Power BI und Jedox für Kunden und intern, dazu eine selbst konzipierte Schulung zu Copilot in Power BI. Praktikum bei ATVISIO, seit 2026.",
       "Privat eigene Projekte mit Claude automatisiert (Cowork, Code).",
     ],
-    tools: ["Power BI", "Jedox", "MSSQL", "Python", "Copilot in Power BI", "Claude"],
+    // Python und Jedox auf Wunsch von Daniel (2026-09-25) nicht als Software-Logo
+    tools: ["Power BI", "MSSQL", "Copilot in Power BI", "Claude"],
     learned: [
       { label: "Praktikum BI Consulting (ATVISIO)", href: "/projekte/#bi-consulting" },
       { label: "SQL Grundkurs (LinkedIn Learning)", href: "/kenntnisse/#z-sql" },
-      { label: "Python Course (Kaggle)", href: "/kenntnisse/#z-python" },
     ],
   },
   {

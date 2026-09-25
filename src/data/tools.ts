@@ -3,26 +3,40 @@
 // logo placeholder until the owner adds the real logo.
 import powerbi from "../assets/logos/powerbi.svg?raw";
 import excel from "../assets/logos/excel.svg?raw";
-import python from "../assets/logos/python.svg?raw";
 import sap from "../assets/logos/sap.svg?raw";
 import claude from "../assets/logos/claude.svg?raw";
 import mssql from "../assets/logos/mssql.svg?raw";
+import autodesk from "../assets/logos/autodesk.svg?raw";
 
-// wordmark: the logo already spells the name, so the text label is only for screen readers
-export type Tool = { name: string; svg?: string; mono?: string; wordmark?: true };
+export type Tool = { name: string; svg?: string; mono?: string };
 
 export const tools: Record<string, Tool> = {
   "Power BI": { name: "Power BI", svg: powerbi },
   Excel: { name: "Excel", svg: excel },
-  Python: { name: "Python", svg: python },
-  SAP: { name: "SAP", svg: sap, wordmark: true },
+  // no free Inventor logo exists: the Autodesk mark, captioned with the product name
+  "Autodesk Inventor": { name: "Autodesk Inventor", svg: autodesk },
+  SAP: { name: "SAP", svg: sap },
   Claude: { name: "Claude", svg: claude },
   // same name as the CV self-rating on /kenntnisse/
   MSSQL: { name: "MSSQL", svg: mssql },
-  Jedox: { name: "Jedox", mono: "J" },
   Timebutler: { name: "Timebutler", mono: "T" },
-  "Copilot in Power BI": { name: "Copilot in Power BI", mono: "Co" },
+  // non-breaking space: wraps as "Copilot in / Power BI", never leaves "BI" alone
+  "Copilot in Power BI": { name: "Copilot in Power BI", mono: "Co" },
 };
+
+// Inlined SVGs carry fixed gradient/mask ids; the same logo in two boxes would duplicate
+// them. Suffix every id (and its url(#…) / href="#…" references) per usage.
+export function uniqueSvg(svg: string, suffix: string): string {
+  const ids = [...svg.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]);
+  let out = svg;
+  for (const id of ids) {
+    const esc = id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    out = out
+      .replace(new RegExp(`id="${esc}"`, "g"), `id="${id}-${suffix}"`)
+      .replace(new RegExp(`#${esc}(?=[)"'])`, "g"), `#${id}-${suffix}`);
+  }
+  return out;
+}
 
 export function tool(key: string): Tool {
   const t = tools[key];
