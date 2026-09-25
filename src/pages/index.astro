@@ -2,7 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import Placeholder from "../components/Placeholder.astro";
 import { profile, topSkills, type TopSkillId } from "../data/cv";
-import { tool } from "../data/tools";
+import { tool, uniqueSvg } from "../data/tools";
 import { cvPdf } from "../data/nav";
 
 // line icons for the box heads (24px grid, drawn at 28px with a 2px stroke)
@@ -81,7 +81,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
                   </div>
                 </div>
                 <div class="skill-foot">
-                  <p class="lbl" id={`sw-${s.id}`}>
+                  <p class="lbl">
                     Software
                   </p>
                   {s.tools.length > 0 && (
@@ -89,16 +89,16 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
                       {s.tools.map((key) => {
                         const t = tool(key);
                         return t.svg ? (
-                          <li class:list={["tool", t.wordmark && "tool-wm"]}>
-                            <span class="tool-logo" aria-hidden="true" set:html={t.svg} />
-                            {t.wordmark ? <span class="sr-only">{t.name}</span> : t.name}
+                          <li class="tool">
+                            <span class="tool-logo" aria-hidden="true" set:html={uniqueSvg(t.svg, s.id)} />
+                            <span class="tool-name">{t.name}</span>
                           </li>
                         ) : (
                           <li class="tool tool-ph" data-placeholder="logo">
                             <span class="tool-mono" aria-hidden="true">
                               {t.mono}
                             </span>
-                            {t.name}
+                            <span class="tool-name">{t.name}</span>
                             <span class="sr-only"> (Logo-Platzhalter)</span>
                           </li>
                         );
@@ -235,9 +235,9 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   }
 
   /* ---------- skill hub: real boxes (owner request), drawn in the site's own language:
-     paper-white page (the portrait's white mat joins it), square-ish boxes with a 1px rule
-     border and a heavy navy top edge like the Kenntnisse section rules, no blur shadow.
-     Each box = body (icon + title, proof) over a tinted footer (Software, Gelernt bei). ---------- */
+     paper-white page (the portrait's white mat joins it), boxes that are just an even frame
+     (no coloured edge, no shadow). Each box = body (icon + title, proof) over a footer
+     (Software logos, Gelernt bei) separated by a hairline. ---------- */
   .hub {
     background: var(--paper);
     padding: 2rem 0 3.5rem;
@@ -273,8 +273,8 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     row-gap: 0;
     min-width: 0;
     background: var(--paper);
-    border: 1px solid var(--line);
-    border-top: 4px solid var(--navy);
+    /* just the frame (owner, 2026-09-25): one even border, no coloured edge */
+    border: 1px solid #c3cedd;
     border-radius: 3px;
     overflow: hidden;
   }
@@ -290,7 +290,6 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     flex-direction: column;
     gap: 0.9rem;
     padding: 1rem 1.1rem 1.1rem;
-    background: var(--sky-wash);
     border-top: 1px solid var(--line);
   }
 
@@ -349,46 +348,60 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     margin-bottom: -0.35rem;
   }
 
-  /* software: logo + name, no pill chrome; logos sized by height so a wordmark keeps its width */
+  /* software: large logos side by side, the name centred underneath (owner, 2026-09-25);
+     logos sized by height so a wordmark (SAP) keeps its width */
+  /* fixed-width columns so a second row of logos lines up under the first */
   .tools {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem 1.1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 6rem);
+    gap: 1.1rem 0.5rem;
   }
 
   .tool {
-    display: inline-flex;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 0.4rem;
-    font-size: 0.9375rem;
+    min-width: 0;
+    text-align: center;
+  }
+
+  .tool-name {
+    font-size: 0.75rem;
     font-weight: 500;
     line-height: 1.25;
-    white-space: nowrap;
   }
 
   .tool-logo {
     display: flex;
     align-items: center;
-    height: 1.375rem;
+    justify-content: center;
+    height: 3.25rem;
+  }
+
+  /* a wide wordmark (SAP) shrinks to the column width instead of spilling into the gap */
+  .tool-logo {
+    max-width: 100%;
   }
 
   .tool-logo :global(svg) {
     display: block;
     height: 100%;
     width: auto;
+    max-width: 100%;
   }
 
   /* no free logo available: dashed magenta outline monogram = marked logo placeholder */
   .tool-mono {
     display: grid;
     place-items: center;
-    min-width: 1.375rem;
-    height: 1.375rem;
-    padding: 0 0.15rem;
+    min-width: 3.25rem;
+    height: 3.25rem;
+    padding: 0 0.2rem;
     border: 1.5px dashed var(--ph);
-    border-radius: 3px;
+    border-radius: 4px;
     color: var(--ph);
-    font-size: 0.6875rem;
+    font-size: 0.9375rem;
     font-weight: 800;
     letter-spacing: 0;
   }
