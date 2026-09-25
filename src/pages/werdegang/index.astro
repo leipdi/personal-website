@@ -1,5 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
+import Placeholder from "../../components/Placeholder.astro";
 import { career } from "../../data/cv";
 import { toFrac, todayFrac } from "../../lib/dates";
 
@@ -47,7 +48,7 @@ const todayPct = pct(todayFrac);
     <ol class="list" style={`--today:${todayPct}%`}>
       {
         rows.map((r) => (
-          <li class:list={["row", r.minor && "row-minor", !onAxis(r) && "row-off"]}>
+          <li id={r.id} class:list={["row", r.minor && "row-minor", !onAxis(r) && "row-off"]}>
             <p class="when tnum">
               {r.from} bis {r.to}
             </p>
@@ -79,7 +80,11 @@ const todayPct = pct(todayFrac);
                   />
                 </div>
               )}
-              {!r.minor && <p class="text story">{r.story}</p>}
+              {!r.minor && (
+                <Placeholder>
+                  <p class="text story">{r.story}</p>
+                </Placeholder>
+              )}
             </div>
           </li>
         ))
@@ -129,6 +134,8 @@ const todayPct = pct(todayFrac);
       position: sticky;
       top: 0;
       z-index: 5;
+      /* also cover the gutter, where a :target row draws its marker bar */
+      box-shadow: -1rem 0 0 var(--paper);
     }
   }
 
@@ -213,6 +220,21 @@ const todayPct = pct(todayFrac);
 
   .body {
     grid-column: 1 / -1;
+  }
+
+  /* reached via a link from the home skill hub: mark the row it points to */
+  /* (a navy bar in the gutter; a tint would hide the sky-wash track) */
+  .row {
+    position: relative;
+  }
+
+  .row:target::before {
+    content: "";
+    position: absolute;
+    left: -0.75rem;
+    top: 1rem;
+    bottom: 1rem;
+    border-left: 4px solid var(--navy);
   }
 
   @media (min-width: 40rem) {

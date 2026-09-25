@@ -1,0 +1,83 @@
+---
+// Marks content an AI drafted (prose, figures, proposals) until the owner replaces it.
+// Deliberately loud (magenta, dashed): it is scaffolding, not part of the design.
+// Once a text is replaced with the owner's own words, remove the wrapper.
+interface Props {
+  kind?: "text" | "data" | "vorschlag";
+  note?: string;
+  inline?: boolean;
+}
+
+const { kind = "text", note, inline = false } = Astro.props;
+const labels = { text: "KI-Text", data: "KI-Daten", vorschlag: "KI-Vorschlag" };
+const label = `Platzhalter: ${labels[kind]}${note ? `, ${note}` : ""}`;
+---
+
+{
+  inline ? (
+    // inline marks sit inside headings and sentences: one short screen-reader hint, no title tooltip
+    <span class="ph ph-inline" data-placeholder={kind}>
+      <slot />
+      <span class="ph-mark" aria-hidden="true">KI</span>
+      <span class="sr-only"> ({labels[kind]})</span>
+    </span>
+  ) : (
+    <div class="ph ph-block" data-placeholder={kind}>
+      <p class="ph-tag">{label}</p>
+      <slot />
+    </div>
+  )
+}
+
+<style>
+  /* The dashed rule hangs in the gutter (absolutely positioned), so a marked block keeps
+     exactly the position and width it will have once the wrapper is removed. */
+  .ph-block {
+    position: relative;
+  }
+
+  .ph-block::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -0.75rem;
+    border-left: 3px dashed var(--ph);
+    pointer-events: none;
+  }
+
+  .ph-tag {
+    display: inline-block;
+    margin-bottom: 0.4rem;
+    padding: 0.05rem 0.4rem;
+    background: var(--ph);
+    color: #fff;
+    font-family: var(--sans);
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-style: normal;
+    letter-spacing: 0;
+    line-height: 1.5;
+  }
+
+  .ph-inline {
+    text-decoration: underline dashed var(--ph);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+  }
+
+  .ph-mark {
+    display: inline-block;
+    margin-left: 0.3em;
+    padding: 0 0.3em;
+    background: var(--ph);
+    color: #fff;
+    font-family: var(--sans);
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-style: normal;
+    letter-spacing: 0;
+    line-height: 1.4;
+    vertical-align: 0.35em;
+  }
+</style>

@@ -2,7 +2,22 @@
 import Layout from "../../layouts/Layout.astro";
 import AmModel from "../../components/figures/AmModel.astro";
 import Heliostat from "../../components/figures/Heliostat.astro";
+import Placeholder from "../../components/Placeholder.astro";
+import ImagePlaceholder from "../../components/ImagePlaceholder.astro";
 import { projects } from "../../data/cv";
+
+// Where a real picture would help; shown as marked placeholders until the owner has them.
+const pictures: Record<string, { label: string; note?: string }> = {
+  luftfahrt: {
+    label: "Das untersuchte 3D-gedruckte Bauteil, als Foto oder CAD-Rendering",
+    note: "falls die Masterarbeit ein Beispielbauteil zeigt",
+  },
+  heliostat: { label: "Heliostatfeld am DLR in Jülich oder CAD-Modell der Stahlkonstruktion" },
+  "bi-consulting": {
+    label: "Ausschnitt eines Berichts aus Power BI oder Jedox",
+    note: "anonymisiert, ohne Kundendaten",
+  },
+};
 
 const featured = projects.filter((p) => p.figure);
 const smaller = projects.filter((p) => !p.figure);
@@ -26,28 +41,41 @@ const smaller = projects.filter((p) => !p.figure);
       >
         <div class="wrap">
           <h2 id={`t-${p.slug}`} class="etitle">
-            {p.title}
+            <Placeholder inline>{p.title}</Placeholder>
           </h2>
           <p class="byline">
             {p.org}, {p.period}
           </p>
 
-          <div class:list={["essay-body", p.figure === "heliostat" && "has-aside"]}>
-            <p class="text">{p.context}</p>
-            {p.figure === "heliostat" && (
-              <div class="aside">
-                <Heliostat />
-              </div>
-            )}
-            <p class="text">{p.approach}</p>
+          <div class:list={["essay-body", "has-aside", p.figure !== "am-model" && "aside-spans"]}>
+            <div class="prose">
+              <Placeholder>
+                <p class="text">{p.context}</p>
+                <p class="text">{p.approach}</p>
+              </Placeholder>
+            </div>
+            <div class="aside">
+              {p.figure === "heliostat" && (
+                <Placeholder kind="data" note="KI-Skizze, besser durch echtes Bild ersetzen">
+                  <Heliostat />
+                </Placeholder>
+              )}
+              {pictures[p.slug] && <ImagePlaceholder {...pictures[p.slug]} />}
+            </div>
             {p.figure === "am-model" && (
               <div class="full">
-                <AmModel />
+                <Placeholder kind="data" note="Rechenmodell mit gerundeten Literaturwerten, Texte und Fälle">
+                  <AmModel />
+                </Placeholder>
               </div>
             )}
-            <p class="text result">
-              <strong>Ergebnis.</strong> {p.result}
-            </p>
+            <div class="prose">
+              <Placeholder>
+                <p class="text result">
+                  <strong>Ergebnis.</strong> {p.result}
+                </p>
+              </Placeholder>
+            </div>
             {p.link && (
               <p class="link">
                 <a class="prose-link" href={p.link.href} target="_blank" rel="noreferrer">
@@ -66,16 +94,25 @@ const smaller = projects.filter((p) => !p.figure);
     <div class="practice-grid">
       {
         smaller.map((p) => (
-          <article id={p.slug}>
-            <h3 class="ptitle">{p.title}</h3>
+          <article id={p.slug} aria-labelledby={`t-${p.slug}`}>
+            <h3 id={`t-${p.slug}`} class="ptitle">
+              <Placeholder inline>{p.title}</Placeholder>
+            </h3>
             <p class="byline">
               {p.org}, {p.period}
             </p>
-            <div class="text small">
-              <p>{p.context}</p>
-              <p>{p.approach}</p>
-              <p>{p.result}</p>
-            </div>
+            <Placeholder>
+              <div class="text small">
+                <p>{p.context}</p>
+                <p>{p.approach}</p>
+                <p>{p.result}</p>
+              </div>
+            </Placeholder>
+            {pictures[p.slug] && (
+              <div class="practice-pic">
+                <ImagePlaceholder {...pictures[p.slug]} ratio="16 / 9" />
+              </div>
+            )}
           </article>
         ))
       }
@@ -140,8 +177,19 @@ const smaller = projects.filter((p) => !p.figure);
     margin: 1.5rem 0;
   }
 
+  .prose p + p {
+    margin-top: 1.1rem;
+  }
+
   .aside {
     margin: 0.5rem 0;
+    display: grid;
+    gap: 1.25rem;
+    align-content: start;
+  }
+
+  .practice-pic {
+    margin-top: 1.25rem;
   }
 
   /* wide screens: the explanatory figure sits beside the text instead of interrupting it.
@@ -152,14 +200,26 @@ const smaller = projects.filter((p) => !p.figure);
       column-gap: 4rem;
       align-content: start;
     }
-    .has-aside > .text,
+    .has-aside > .prose,
     .has-aside > .link {
       grid-column: 1;
     }
     .has-aside > .aside {
       grid-column: 2;
-      grid-row: 1 / span 3;
+      grid-row: 1;
       margin: 0;
+    }
+    .has-aside > .full {
+      grid-column: 1 / -1;
+    }
+    /* No full-width figure in between: the aside runs beside all the prose rows. The last
+       row is 1fr, so if the aside is taller the extra height ends up below the text instead
+       of opening a gap before "Ergebnis". */
+    .aside-spans {
+      grid-template-rows: auto auto minmax(0, 1fr);
+    }
+    .aside-spans > .aside {
+      grid-row: 1 / 4;
     }
   }
 

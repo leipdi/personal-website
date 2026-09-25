@@ -28,6 +28,9 @@
   --ink-sky: #2b3a5c; /* secondary text on sky, 6.2:1 */
   --steel: #51709b; /* second data series, 5.1:1 on paper */
   --signal: #f3c318; /* fill only, always paired with navy outline/text */
+  /* Placeholder marker for AI-drafted content (components/Placeholder, ImagePlaceholder).
+     Not part of the palette: it should look like scaffolding. 7.4:1 on paper. */
+  --ph: #a3175f;
   --line: #d3dce8;
 
   /* Ausbildung = navy pinstripe, Beruf = solid navy */
