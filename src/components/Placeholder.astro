@@ -10,7 +10,7 @@ interface Props {
 
 const { kind = "text", note, inline = false } = Astro.props;
 const labels = { text: "KI-Text", data: "KI-Daten", vorschlag: "KI-Vorschlag" };
-const label = `Platzhalter: ${labels[kind]}${note ? `, ${note}` : ""}`;
+const label = `Platzhalter: ${labels[kind]}`;
 ---
 
 {
@@ -23,13 +23,21 @@ const label = `Platzhalter: ${labels[kind]}${note ? `, ${note}` : ""}`;
     </span>
   ) : (
     <div class="ph ph-block" data-placeholder={kind}>
-      <p class="ph-tag">{label}</p>
+      <p class="ph-head">
+        <span class="ph-tag">{label}</span>{note && " "}
+        {note && <span class="ph-note">{note}</span>}
+      </p>
       <slot />
     </div>
   )
 }
 
 <style>
+  /* keep the tag off a heading rule directly above it */
+  .ph-block > .ph-head {
+    padding-top: 0.35rem;
+  }
+
   /* The dashed rule hangs in the gutter (absolutely positioned), so a marked block keeps
      exactly the position and width it will have once the wrapper is removed. */
   .ph-block {
@@ -46,9 +54,25 @@ const label = `Platzhalter: ${labels[kind]}${note ? `, ${note}` : ""}`;
     pointer-events: none;
   }
 
+  /* short solid label; the longer note follows as magenta text, so on phones the mark
+     stays one short solid line instead of a wrapped magenta slab */
+  .ph-head {
+    margin-bottom: 0.5rem;
+    font-family: var(--sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-style: normal;
+    letter-spacing: 0;
+    line-height: 1.5;
+    color: var(--ph);
+  }
+
+  .ph-note {
+    margin-left: 0.1rem;
+  }
+
   .ph-tag {
     display: inline-block;
-    margin-bottom: 0.4rem;
     padding: 0.05rem 0.4rem;
     background: var(--ph);
     color: #fff;
