@@ -26,11 +26,11 @@ const liPath = profile.linkedin.slice(liCut);
 
     <div class="card-row">
       <!-- a letterhead, not a form: the details speak for themselves without labels -->
-      <address class="text letterhead">
+      <address class="letterhead">
         <strong>{profile.name}</strong>
         <span>{profile.role}</span>
         <span>{profile.location}</span>
-        <a class="prose-link tnum" href={`tel:${profile.phone.replace(/\s/g, "")}`}>{profile.phone}</a>
+        <a class="prose-link" href={`tel:${profile.phone.replace(/\s/g, "")}`}>{profile.phone}</a>
         <a class="prose-link" href={profile.linkedinUrl} target="_blank" rel="noreferrer"
           >{liHost}<wbr /><span class="nobr">{liPath}</span></a
         >
@@ -60,7 +60,7 @@ const liPath = profile.linkedin.slice(liCut);
 
   @media (min-width: 64rem) {
     .page {
-      padding-top: 5rem;
+      padding-top: 3rem;
     }
   }
 
@@ -69,16 +69,18 @@ const liPath = profile.linkedin.slice(liCut);
     font-size: clamp(2.25rem, 0.9rem + 5.6vw, 6.5rem);
     font-weight: 800;
     line-height: 1;
-    color: var(--navy);
+    color: var(--ink);
+    letter-spacing: -0.045em;
     text-decoration: underline;
-    text-decoration-thickness: 0.06em;
-    text-underline-offset: 0.1em;
-    text-decoration-color: var(--sky);
+    text-decoration-thickness: 0.07em;
+    text-underline-offset: 0.12em;
+    text-decoration-color: var(--steel);
     overflow-wrap: anywhere;
   }
 
   .mail:hover {
-    text-decoration-color: var(--navy);
+    text-decoration-thickness: 0.14em;
+    text-decoration-color: var(--ink);
   }
 
   .card-row {
@@ -97,7 +99,12 @@ const liPath = profile.linkedin.slice(liCut);
     }
   }
 
+  /* one type style for the whole block: grotesk, the name in 700, the rest 400 */
   .letterhead {
+    font-family: var(--sans);
+    font-size: 1.125rem;
+    font-weight: 400;
+    line-height: 1.5;
     font-style: normal;
     display: grid;
     align-content: start;
@@ -106,8 +113,7 @@ const liPath = profile.linkedin.slice(liCut);
   }
 
   .letterhead strong {
-    font-family: var(--sans);
-    font-size: 1.25rem;
+    font-weight: 700;
   }
 
   .nobr {
@@ -118,20 +124,26 @@ const liPath = profile.linkedin.slice(liCut);
     margin-top: 1.5rem;
     font-family: var(--sans);
     font-size: 1rem;
-    background: var(--navy);
+    background: var(--ink);
     color: var(--paper);
+    border: 2px solid var(--ink);
     padding: 0.8rem 1.25rem;
     font-weight: 700;
     text-decoration: none;
   }
 
   .cv:hover {
-    background: var(--ink-sky);
+    background: var(--ink-2);
+    border-color: var(--ink-2);
+    color: var(--paper);
   }
 
+  /* section head: a quiet grotesk label, not display */
   .h2 {
-    font-size: 1.125rem;
+    font-size: 1.25rem;
     font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.2;
   }
 
   .off .text {

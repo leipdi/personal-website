@@ -20,6 +20,7 @@ export const tools: Record<string, Tool> = {
   // same name as the CV self-rating on /kenntnisse/
   MSSQL: { name: "MSSQL", svg: mssql },
   Timebutler: { name: "Timebutler", mono: "T" },
+  Jedox: { name: "Jedox", mono: "J" },
   // non-breaking space: wraps as "Copilot in / Power BI", never leaves "BI" alone
   "Copilot in Power BI": { name: "Copilot in Power BI", mono: "Co" },
 };

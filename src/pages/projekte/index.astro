@@ -2,6 +2,7 @@
 import Layout from "../../layouts/Layout.astro";
 import AmModel from "../../components/figures/AmModel.astro";
 import Heliostat from "../../components/figures/Heliostat.astro";
+import LifeCycle from "../../components/figures/LifeCycle.astro";
 import Placeholder from "../../components/Placeholder.astro";
 import ImagePlaceholder from "../../components/ImagePlaceholder.astro";
 import { projects } from "../../data/cv";
@@ -9,8 +10,8 @@ import { projects } from "../../data/cv";
 // Where a real picture would help; shown as marked placeholders until the owner has them.
 const pictures: Record<string, { label: string; note?: string }> = {
   luftfahrt: {
-    label: "Das untersuchte 3D-gedruckte Bauteil, als Foto oder CAD-Rendering",
-    note: "falls die Masterarbeit ein Beispielbauteil zeigt",
+    label: "Die Luftleitschaufel aus Ultem 9085, massiv und hohl, als Foto oder CAD-Rendering",
+    note: "falls Diehl Aviation ein Bild freigibt",
   },
   heliostat: { label: "Heliostatfeld am DLR in Jülich oder CAD-Modell der Stahlkonstruktion" },
   "bi-consulting": {
@@ -30,6 +31,23 @@ const smaller = projects.filter((p) => !p.figure);
 >
   <div class="wrap page-head">
     <h1 class="display page-title">Projekte</h1>
+    <!-- a plain index, so the page title and the first essay title aren't two stacked giant headings -->
+    <nav class="index" aria-label="Projekte auf dieser Seite">
+      <ul>
+        {
+          projects.map((p) => (
+            <li>
+              <a class="prose-link" href={`#${p.slug}`}>
+                <Placeholder inline>{p.title}</Placeholder>
+              </a>{" "}
+              <span class="index-org">
+                {p.org}, {p.period}
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
   </div>
 
   {
@@ -64,8 +82,8 @@ const smaller = projects.filter((p) => !p.figure);
             </div>
             {p.figure === "am-model" && (
               <div class="full">
-                <Placeholder kind="data" note="Rechenmodell mit gerundeten Literaturwerten, Texte und Fälle">
-                  <AmModel />
+                <Placeholder kind="data" note="Zahlen aus der Masterarbeit, Darstellung und Texte KI-Entwurf">
+                  <LifeCycle />
                 </Placeholder>
               </div>
             )}
@@ -76,6 +94,13 @@ const smaller = projects.filter((p) => !p.figure);
                 </p>
               </Placeholder>
             </div>
+            {p.figure === "am-model" && (
+              <div class="full">
+                <Placeholder kind="data" note="Rechenmodell mit gerundeten Literaturwerten, Texte und Fälle">
+                  <AmModel />
+                </Placeholder>
+              </div>
+            )}
             {p.link && (
               <p class="link">
                 <a class="prose-link" href={p.link.href} target="_blank" rel="noreferrer">
@@ -125,32 +150,53 @@ const smaller = projects.filter((p) => !p.figure);
     padding-top: 2.5rem;
   }
 
+  .index {
+    margin-top: 1.5rem;
+  }
+
+  .index li {
+    font-size: 1.0625rem;
+    line-height: 1.4;
+  }
+
+  .index li + li {
+    margin-top: 0.45rem;
+  }
+
+  .index-org {
+    color: var(--ink-2);
+  }
+
   .essay {
     padding: 3rem 0 3.5rem;
   }
 
+  .essay + .essay {
+    border-top: 1.5px solid var(--ink);
+  }
+
   .essay-wash {
-    background: var(--sky-wash);
+    background: var(--wash);
   }
 
   @media (min-width: 64rem) {
     .page-head {
-      padding-top: 4rem;
+      padding-top: 3rem;
     }
     .essay {
       padding: 4.5rem 0 5rem;
     }
   }
 
-  /* essay titles in the text face: the condensed cut is kept for page titles only */
+  /* content headings in the serif; the heavy grotesk is kept for the name and page titles */
   .etitle {
     font-family: var(--serif);
-    font-weight: 600;
     font-optical-sizing: auto;
-    font-size: clamp(2rem, 1.4rem + 2.4vw, 3.25rem);
-    line-height: 1.08;
-    letter-spacing: -0.015em;
-    max-width: 20ch;
+    font-weight: 600;
+    font-size: clamp(2rem, 1.6rem + 1.6vw, 2.75rem);
+    line-height: 1.1;
+    letter-spacing: normal;
+    max-width: 22ch;
   }
 
   /* byline after the title, like an article, not an eyebrow above it */
@@ -235,11 +281,15 @@ const smaller = projects.filter((p) => !p.figure);
 
   .practice {
     padding-top: 4rem;
+    border-top: 1.5px solid var(--ink);
   }
 
+  /* section head: a quiet grotesk label, not display */
   .h2 {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.2;
   }
 
   .practice-grid {
@@ -257,8 +307,10 @@ const smaller = projects.filter((p) => !p.figure);
 
   .ptitle {
     font-family: var(--serif);
+    font-optical-sizing: auto;
     font-weight: 600;
     font-size: 1.5rem;
+    letter-spacing: normal;
     line-height: 1.2;
   }
 

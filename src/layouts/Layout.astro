@@ -21,13 +21,13 @@ const { title, description, active } = Astro.props;
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="color-scheme" content="light" />
-    <meta name="theme-color" content="#adc2dc" />
+    <meta name="theme-color" content="#f4f6f8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&display=swap"
     />
   </head>
   <body>
@@ -40,7 +40,7 @@ const { title, description, active } = Astro.props;
 
     <header class="top">
       <div class="wrap top-in">
-        <a href="/" class="display top-name">Daniel Lenski</a>
+        <a href="/" class="top-name">Daniel Lenski</a>
         <nav class="top-nav" aria-label="Hauptnavigation">
           <ul>
             {
@@ -66,6 +66,7 @@ const { title, description, active } = Astro.props;
   </body>
 </html>
 
+
 <style>
   .draft-note {
     background: var(--ph);
@@ -81,7 +82,7 @@ const { title, description, active } = Astro.props;
     left: 1rem;
     top: -4rem;
     z-index: 100;
-    background: var(--navy);
+    background: var(--ink);
     color: var(--paper);
     padding: 0.5rem 0.75rem;
   }
@@ -100,12 +101,13 @@ const { title, description, active } = Astro.props;
     }
   }
 
-  /* ---------- top bar: sky strip, the portrait's backdrop colour ---------- */
+  /* ---------- top bar: the page's own steel paper, closed by one ink rule ---------- */
   .top {
     position: sticky;
     top: 0;
     z-index: 40;
-    background: var(--sky);
+    background: var(--bg);
+    border-bottom: 1.5px solid var(--ink);
   }
 
   .top-in {
@@ -113,13 +115,15 @@ const { title, description, active } = Astro.props;
     align-items: center;
     justify-content: space-between;
     gap: 1.5rem;
-    min-height: 3.25rem;
+    min-height: var(--top-h);
   }
 
   .top-name {
-    font-size: 1.625rem;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
     line-height: 1;
-    color: var(--navy);
+    color: var(--ink);
     text-decoration: none;
     white-space: nowrap;
   }
@@ -131,17 +135,18 @@ const { title, description, active } = Astro.props;
 
   .top-cv {
     font-size: 0.875rem;
-    color: var(--navy);
+    font-weight: 600;
+    color: var(--ink);
     text-decoration: underline;
-    text-decoration-color: var(--ink-sky);
+    text-decoration-color: var(--steel);
     text-underline-offset: 0.2em;
     padding: 0.5rem 0;
     white-space: nowrap;
   }
 
   .top-cv:hover {
-    text-decoration-thickness: 2px;
-    text-decoration-color: var(--navy);
+    text-decoration-thickness: 3px;
+    text-decoration-color: var(--ink);
   }
 
   @media (min-width: 64rem) {
@@ -150,7 +155,11 @@ const { title, description, active } = Astro.props;
     }
 
     .top-in {
-      min-height: 4rem;
+      min-height: 4.25rem;
+    }
+
+    .top-name {
+      font-size: 1.5rem;
     }
 
     .top-nav {
@@ -160,33 +169,35 @@ const { title, description, active } = Astro.props;
 
     .top-nav ul {
       display: flex;
-      gap: 1.75rem;
+      gap: 2rem;
     }
 
     .top-nav a {
       display: block;
-      padding: 0.5rem 0;
+      padding: 0.4rem 0;
       font-size: 1rem;
-      color: var(--ink-sky);
+      font-weight: 500;
+      color: var(--ink-2);
       text-decoration: none;
-      border-bottom: 2px solid transparent;
+      border-bottom: 3px solid transparent;
     }
 
     .top-nav a:hover {
-      color: var(--navy);
-      border-bottom-color: var(--ink-sky);
+      color: var(--ink);
+      border-bottom-color: var(--line);
     }
 
+    /* where you are: an ink underline (sun is kept for the light itself) */
     .top-nav a[aria-current="page"] {
-      color: var(--navy);
+      color: var(--ink);
       font-weight: 700;
-      border-bottom-color: var(--navy);
+      border-bottom-color: var(--ink);
     }
 
     .top-cv {
       margin-left: 1rem;
-      padding-left: 1.75rem;
-      border-left: 1px solid var(--ink-sky);
+      padding-left: 2rem;
+      border-left: 1.5px solid var(--line);
       line-height: 1.2;
     }
   }

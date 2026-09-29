@@ -158,7 +158,7 @@ export function amSvg(input: AmInput, opts: SvgOpts = {}) {
     );
   }
 
-  // deficit (hatched) up to the break-even, advantage (sky) after it
+  // deficit (hatched) up to the break-even, advantage (light steel) after it
   const be = Math.min(r.breakEven, T);
   const poly = (t0: number, t1: number) =>
     `M${n(x(t0))},${n(y(0))} L${n(x(t0))},${n(y(at(t0)))} L${n(x(t1))},${n(y(at(t1)))} L${n(x(t1))},${n(y(0))} Z`;

@@ -80,62 +80,61 @@ const sunRays = Array.from({ length: 8 }, (_, i) => {
   }
 
   .ground {
-    stroke: var(--navy);
+    stroke: var(--ink);
     stroke-width: 2;
   }
 
   .ray {
-    stroke: var(--steel);
+    stroke: var(--sun);
     stroke-width: 2;
     stroke-dasharray: 6 5;
   }
 
-  /* paper, not signal yellow: yellow is reserved for the break-even point in the AM model */
   .sun {
-    fill: var(--paper);
-    stroke: var(--navy);
+    fill: var(--sun);
+    stroke: var(--ink);
     stroke-width: 2;
   }
 
   .sun-ray {
-    stroke: var(--navy);
+    stroke: var(--ink);
     stroke-width: 2;
     stroke-linecap: round;
   }
 
   .tower {
-    fill: var(--sky);
-    stroke: var(--navy);
+    fill: var(--paper);
+    stroke: var(--ink);
     stroke-width: 2;
   }
 
   .receiver {
-    fill: var(--navy);
+    fill: var(--ink);
   }
 
   .steel line {
-    stroke: var(--navy);
+    stroke: var(--ink);
     stroke-width: 3;
   }
 
   .pylon {
-    fill: var(--navy);
+    fill: var(--ink);
   }
 
   .mirror {
-    stroke: var(--navy);
+    stroke: var(--ink);
     stroke-width: 8;
     stroke-linecap: square;
   }
 
   .callout {
-    stroke: var(--navy);
+    stroke: var(--ink);
     stroke-width: 1.5;
   }
 
   .lbl {
     font-size: 21px;
-    fill: var(--navy);
+    fill: var(--ink);
   }
 
   /* the SVG scales down with the screen: on small phones set the labels larger in

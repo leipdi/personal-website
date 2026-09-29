@@ -6,6 +6,9 @@
 //   profile.claim, career[].story, projects[].title/context/approach/result,
 //   topSkills (komplett: Auswahl, Titel, Belegzeilen, Zuordnung von Stationen und Software),
 //   competencies[].skill (Zuordnung CV-Methode -> Kernkompetenz), notes.
+// Seit 2026-09-26 stützen sich die Texte zu Bachelor- und Masterarbeit (career-Stories, projects)
+// zusätzlich auf die beiden Abschlussarbeiten ("Input Data/", nicht im Repo). Daniel hat die
+// Veröffentlichung trotz Sperrvermerk freigegeben. Zahlen daraus sind echt, die Formulierung KI.
 // Beim Ersetzen durch eigene Texte auch den <Placeholder>-Wrapper in der Seite entfernen.
 
 export const profile = {
@@ -13,7 +16,7 @@ export const profile = {
   role: "Wirtschaftsingenieur, M.Sc.",
   // KI-PLATZHALTER
   claim:
-    "Ich berechne, was Bauteile in der Fertigung kosten und welchen Energieaufwand sie verursachen, und baue Berichte in Power BI und Jedox.",
+    "Ich rechne aus, was ein Bauteil in der Herstellung kostet und wie viel Energie es über sein Leben verbraucht, vom Stahlbau eines Heliostaten bis zum gedruckten Kabinenteil im Flugzeug.",
   location: "Langenfeld (Rheinland) / Düsseldorf",
   email: "daniel.lenski@hotmail.com",
   phone: "+49 157 74585248",
@@ -31,11 +34,22 @@ export type CareerEntry = {
   org: string;
   place: string;
   kind: "ausbildung" | "beruf";
-  story: string; // KI-PLATZHALTER
+  story: string; // KI-PLATZHALTER: kurzer Einstieg (Hauptstationen) bzw. ein Satz (Nebenstationen)
   // Nebenstationen: kompakte Zeile ohne Text, damit sie nicht so viel Raum bekommen wie die Abschlussarbeiten.
   minor?: true;
   // Slug eines Projekts auf /projekte/, falls es dazu eine ausführliche Fallstudie gibt.
   project?: string;
+  // Meilenstein im Projektplan auf /werdegang/ (Raute): Abschluss oder Abgabe. at: "2024",
+  // "Jun 2024" oder ein Tagesdatum "18.06.2024". Nur Fakten aus CV oder Abschlussarbeit.
+  // tag = kurze Fahnenbeschriftung im Projektplan ("Abgabe BA")
+  milestone?: { at: string; label: string; tag: string };
+  // Werdegang-Station ausführlich (nur Hauptstationen):
+  tasks?: string[]; // KI-PLATZHALTER: was er dort gemacht hat, aus CV/Abschlussarbeit umformuliert
+  facts?: { label: string; value: string }[]; // Fakten aus CV/LinkedIn/Abschlussarbeit
+  tools?: string[]; // Schlüssel aus src/data/tools.ts, nur was CV/Arbeit belegen
+  visual?: "heliostat" | { image: string; note?: string }; // Bild rechts neben der Station
+  // kurze Zeilenbeschriftung im Projektplan, wenn der Titel zu lang ist
+  short?: string;
 };
 
 // Älteste zuerst. from/to: "2020" (nur Jahr), "Okt 2021" (Monat + Jahr) oder "heute".
@@ -46,13 +60,16 @@ export const career: CareerEntry[] = [
     fromYear: 2013,
     toYear: 2020,
     id: "abitur",
+    milestone: { at: "2020", label: "Abitur, Note 2,0", tag: "Note 2,0" },
+    facts: [{ label: "Note", value: "2,0" }],
+    short: "Abitur",
     title: "Allgemeine Hochschulreife",
     org: "Konrad-Adenauer-Gymnasium",
     place: "Langenfeld",
     kind: "ausbildung",
     minor: true,
     story:
-      "Abitur mit Note 2,0, mit Mathematik und Physik als den Fächern, die am meisten hängen geblieben sind und später den roten Faden zum Wirtschaftsingenieurwesen bildeten.",
+      "Abitur mit Note 2,0.",
   },
   {
     from: "2020",
@@ -60,12 +77,22 @@ export const career: CareerEntry[] = [
     fromYear: 2020,
     toYear: 2024,
     id: "bachelor",
+    tasks: [
+      "Grundstudium zwischen Technik und Betriebswirtschaft",
+      "Parallel die ersten Stationen in der Praxis: Tutor, Praktikum, Werkstudent",
+      "Abschluss mit der Bachelorarbeit am DLR",
+    ],
+    facts: [
+      { label: "Abschluss", value: "Bachelor of Engineering" },
+      { label: "Note", value: "1,8" },
+    ],
+    milestone: { at: "2024", label: "Bachelor of Engineering, Note 1,8", tag: "B.Eng., Note 1,8" },
     title: "B.Eng. Wirtschaftsingenieurwesen",
     org: "Hochschule Düsseldorf",
     place: "Düsseldorf",
     kind: "ausbildung",
     story:
-      "Grundstudium zwischen Technik und Betriebswirtschaft, mit Note 1,8 abgeschlossen. Die Bachelorarbeit am DLR entschied den Weg in Richtung Produktion und Energie.",
+      "Der Einstieg ins Wirtschaftsingenieurwesen. Die Bachelorarbeit am DLR entschied den Weg in Richtung Produktion und Energie.",
   },
   {
     from: "Okt 2021",
@@ -79,7 +106,7 @@ export const career: CareerEntry[] = [
     kind: "beruf",
     minor: true,
     story:
-      "Als erster Job Tutorien für Erstsemester in Mathematik gehalten, wo Erklären genauso wichtig war wie Rechnen können.",
+      "Der erste Job neben dem Studium: Mathematik-Tutorien für Erstsemester.",
   },
   {
     from: "Okt 2022",
@@ -87,12 +114,20 @@ export const career: CareerEntry[] = [
     fromYear: 2022,
     toYear: 2023,
     id: "praktikum-pm",
+    tasks: [
+      "Kundentermine vor- und nachbereitet",
+      "SAP-Tabellen in Kundensystemen gepflegt",
+      "In Produktions- und Logistikfragen beraten",
+    ],
+    facts: [{ label: "Bereich", value: "Projektmanagement" }],
+    tools: ["SAP"],
+    short: "Praktikant Projektmanagement",
     title: "Praktikant Projektmanagement",
     org: "IGH Infotec AG",
     place: "Langenfeld",
     kind: "beruf",
     story:
-      "Schnittstelle zwischen Kunden und Softwareentwicklung: Kundentermine vor- und nachbereitet, SAP-Tabellen in Kundensystemen gepflegt und in Produktions-/Logistikfragen beraten.",
+      "Die Schnittstelle zwischen Kunden und Softwareentwicklung.",
   },
   {
     from: "Feb 2023",
@@ -100,13 +135,21 @@ export const career: CareerEntry[] = [
     fromYear: 2023,
     toYear: 2024,
     id: "werkstudent-controlling",
+    tasks: [
+      "Mitarbeitercontrolling und Monatsabschlüsse in Excel und Pivot-Tabellen",
+      "Timebutler als neues Zeiterfassungssystem eingeführt",
+      "Die Kolleg:innen auf das neue System geschult",
+    ],
+    facts: [{ label: "Bereich", value: "Finanzen & Controlling" }],
+    tools: ["Excel", "Timebutler"],
+    short: "Werkstudent Finanzen & Controlling",
     title: "Werkstudent Finanzen & Controlling",
     org: "IGH Infotec AG",
     place: "Langenfeld",
     kind: "beruf",
     project: "zeiterfassung",
     story:
-      "Ein Jahr Mitarbeitercontrolling und Monatsabschlüsse in Excel/Pivot betreut und nebenbei ein neues Zeiterfassungssystem (Timebutler) eingeführt und die Kolleg:innen darauf geschult.",
+      "Gut ein Jahr im Controlling, dazu ein Einführungsprojekt.",
   },
   {
     from: "Mär 2024",
@@ -114,13 +157,28 @@ export const career: CareerEntry[] = [
     fromYear: 2024,
     toYear: 2024,
     id: "bachelorarbeit",
+    tasks: [
+      "Kalkulationssoftware verglichen; Costing24 ließ sich nur teilweise nutzen",
+      "Aus den CAD-Daten Fertigungsstücklisten und Baumstrukturen abgeleitet",
+      "Für jedes Stahlteil ein Verfahren gewählt, etwa Laserschneiden für dünne Bleche",
+      "Bearbeitungszeiten, Maschinenstundensätze und Materialkosten berechnet",
+    ],
+    facts: [
+      { label: "Herstellkosten", value: "ca. 116 € pro Heliostat" },
+      { label: "Pro Spiegelfläche", value: "58 €/m²" },
+      { label: "Veröffentlicht", value: "SolarPACES Conference" },
+    ],
+    tools: ["Autodesk Inventor", "Excel"],
+    visual: "heliostat",
+    short: "Bachelorarbeit am DLR",
+    milestone: { at: "18.06.2024", label: "Abgabe der Bachelorarbeit", tag: "Abgabe BA" },
     title: "Bachelorarbeit: Herstellkostenoptimierung von Heliostaten",
     org: "DLR, Deutsches Zentrum für Luft- und Raumfahrt",
     place: "Jülich",
     kind: "beruf",
     project: "heliostat",
     story:
-      "Ein Heliostat ist ein computergesteuerter Spiegel, der Sonnenlicht auf den Receiver eines Solarturm-Kraftwerks bündelt. Je günstiger seine Stahlkonstruktion zu fertigen ist, desto eher rechnet sich Solarturm-Strom. Am DLR in Jülich Bottom-Up-Kalkulationen aus CAD-Daten gebaut, um genau diese Fertigungskosten künftiger Heliostaten zu bewerten. Ergebnis als Fachbeitrag bei der SolarPACES Conference veröffentlicht.",
+      "Ein Heliostat ist ein nachgeführter Spiegel, der Sonnenlicht auf den Receiver eines Solarturms lenkt. Die Frage: Was kostet der neue Heliostat des DLR in Serie?",
   },
   {
     from: "2024",
@@ -128,12 +186,22 @@ export const career: CareerEntry[] = [
     fromYear: 2024,
     toYear: 2026,
     id: "master",
+    tasks: [
+      "Schwerpunkt Produktion und Innovation",
+      "Masterarbeit an der RWTH Aachen, gemeinsam mit Diehl Aviation",
+      "Parallel Hilfskraft am Fachbereich und Praktikum im BI Consulting",
+    ],
+    facts: [
+      { label: "Abschluss", value: "Master of Science" },
+      { label: "Note bisher", value: "1,8" },
+    ],
+    short: "M.Sc. Int. Wirtschaftsingenieurwesen",
     title: "M.Sc. Internationales Wirtschaftsingenieurwesen",
     org: "Hochschule Düsseldorf",
     place: "Düsseldorf",
     kind: "ausbildung",
     story:
-      "Vertiefung mit Schwerpunkt Produktion und Innovation, aktuell mit Note 1,8. Die Masterarbeit läuft parallel an der RWTH Aachen.",
+      "Die Vertiefung nach dem Bachelor, parallel zu Job, Praktikum und Masterarbeit.",
   },
   {
     from: "Sep 2024",
@@ -141,27 +209,43 @@ export const career: CareerEntry[] = [
     fromYear: 2024,
     toYear: 2026,
     id: "hilfskraft",
+    short: "Wissenschaftliche Hilfskraft",
     title: "Wissenschaftliche Hilfskraft",
     org: "Hochschule Düsseldorf, FB Maschinenbau & Verfahrenstechnik",
     place: "Düsseldorf",
     kind: "beruf",
     minor: true,
     story:
-      "Das Dekanat im Tagesgeschäft unterstützt (Mitteilungen für den Fachbereich, Büromaterial, Eventorganisation) und dabei die organisatorische Seite eines Fachbereichs von innen kennengelernt.",
+      "Das Dekanat im Tagesgeschäft unterstützt: Mitteilungen für den Fachbereich, Büromaterial, Veranstaltungen.",
   },
   {
     from: "Jan 2026",
-    to: "heute",
+    // Abgabe laut Titelblatt der Arbeit: 01.06.2026 (der CV sagte noch "heute")
+    to: "Jun 2026",
     fromYear: 2026,
     toYear: 2026,
     id: "masterarbeit",
+    tasks: [
+      "Anforderungskatalog aus ISO 14044, REACH und den ICAO-Vorgaben",
+      "Excel-Tool für kumulierten Energieaufwand und Treibhauspotenzial über fünf Lebensphasen",
+      "Erprobt mit Diehl Aviation an einer FDM-gedruckten Luftleitschaufel aus Ultem 9085",
+    ],
+    facts: [
+      { label: "Note bisher", value: "1,2" },
+      { label: "Anteil Nutzung", value: "ca. 99 % der Energie" },
+      { label: "Hohle Variante", value: "rund 68 % weniger" },
+    ],
+    tools: ["Excel"],
+    visual: { image: "Die Luftleitschaufel aus Ultem 9085, massiv und hohl", note: "falls Diehl Aviation ein Bild freigibt" },
+    short: "Masterarbeit, RWTH Aachen",
+    milestone: { at: "01.06.2026", label: "Abgabe der Masterarbeit", tag: "Abgabe MA" },
     title: "Masterarbeit: Ökobilanz additiver Fertigung in der Luftfahrt",
-    org: "RWTH Aachen",
+    org: "RWTH Aachen, mit Diehl Aviation",
     place: "Remote",
     kind: "beruf",
     project: "luftfahrt",
     story:
-      "3D-gedruckte Bauteile sparen in der Luftfahrt Gewicht und Material. Aber lohnt sich das auch ökologisch, über den gesamten Lebenszyklus? Dafür eine Bewertungsmetrik entwickelt: Ökobilanzierung nach ISO 14040 plus ein Excel-Tool zur Berechnung des kumulierten Energieaufwands (KEA), um additive Fertigung dort einzusetzen, wo sie tatsächlich ökologisch sinnvoll ist. Bislang mit Note 1,2 bewertet.",
+      "Lohnt sich ein 3D-gedrucktes Kabinenteil ökologisch, über ein ganzes Flugzeugleben gerechnet? Dafür eine Bewertungsmetrik nach ISO 14044 entwickelt.",
   },
   {
     from: "Mai 2026",
@@ -169,13 +253,21 @@ export const career: CareerEntry[] = [
     fromYear: 2026,
     toYear: 2026,
     id: "praktikum-bi",
+    tasks: [
+      "ETL-Strecken für Kunden und intern aufgebaut",
+      "Berichte in Power BI und Jedox gebaut",
+      "Eine Schulung zu Copilot in Power BI konzipiert und selbst gehalten",
+    ],
+    facts: [{ label: "Bereich", value: "BI Consulting" }],
+    tools: ["Power BI", "Jedox", "Copilot in Power BI"],
+    visual: { image: "Ausschnitt eines Berichts aus Power BI oder Jedox", note: "anonymisiert, ohne Kundendaten" },
     title: "Praktikum BI Consulting",
     org: "ATVISIO Consult GmbH",
     place: "Düsseldorf",
     kind: "beruf",
     project: "bi-consulting",
     story:
-      "ETL-Strecken und Berichte für Kunden und intern in Power BI und Jedox gebaut, außerdem eine Schulung zu Microsoft Copilot in Power BI konzipiert und selbst gehalten.",
+      "Daten aus mehreren Systemen zu Berichten zusammenführen, für Kunden und intern.",
   },
 ];
 
@@ -197,28 +289,28 @@ export const projects: Project[] = [
   {
     slug: "luftfahrt",
     figure: "am-model",
-    title: "Wann sich 3D-Druck in der Luftfahrt ökologisch lohnt",
+    title: "Wann sich ein gedrucktes Kabinenteil ökologisch lohnt",
     org: "Masterarbeit an der RWTH Aachen",
     period: "2026",
     context:
-      "Additive Fertigung spart in der Luftfahrt oft Gewicht und Material. Ob sie dadurch auch über den gesamten Lebenszyklus ökologisch vorteilhaft ist, hängt stark vom Einzelfall ab und war bisher kaum systematisch bewertbar.",
+      "Kabinenteile werden in der Luftfahrt immer öfter gedruckt, weil sich damit Gewicht und Werkzeugkosten sparen lassen. Ob das über den ganzen Lebenszyklus auch ökologisch aufgeht, ließ sich bisher kaum einheitlich bewerten: Eine Recherche in Web of Science fand zu Ökobilanz, Luftfahrt und Bewertungsrahmen 51 Arbeiten, mit additiver Fertigung dazu nur noch zwei.",
     approach:
-      "Eine Bewertungsmetrik für die ökologischen Einflussfaktoren additiver Fertigung entwickelt: Ökobilanzierung nach ISO 14040, ergänzt um ein selbst gebautes Excel-Tool zur Berechnung des kumulierten Energieaufwands (KEA).",
+      "Aus Normen (ISO 14044), Luftfahrtregeln (REACH, ICAO) und bestehenden Ansätzen einen Anforderungskatalog aufgestellt und darauf eine Bewertungsmetrik gebaut. Umgesetzt als Excel-Tool, das ein Modell des Oak Ridge National Laboratory für Kunststoff-Kabinenteile erweitert: kumulierter Energieaufwand (VDI 4600) und Treibhauspotenzial über fünf Lebensphasen, dazu ein Modul für Kabinenwechsel und eine Ampel für die übrigen Umweltkategorien. Erprobt mit Diehl Aviation an einer Luftleitschaufel aus Ultem 9085, gedruckt im FDM-Verfahren, einmal massiv und einmal hohl.",
     result:
-      "Eine Metrik, mit der sich für ein konkretes Bauteil prüfen lässt, ob sich der 3D-Druck über den Lebenszyklus ökologisch lohnt. Bislang mit Note 1,2 bewertet.",
+      "Über zehn Jahre in einem A350 entfallen fast 99 % des Energieaufwands der Luftleitschaufel auf die Nutzung, Herstellung und Material sind Nebensache. Die hohle Variante braucht deshalb rund zwei Drittel weniger Energie als die massive. Ein Tool, das Zulieferer, Kabinenhersteller und Airlines auf weitere Bauteile anwenden können. Bislang mit Note 1,2 bewertet.",
   },
   {
     slug: "heliostat",
     figure: "heliostat",
-    title: "Was die Stahlkonstruktion eines Heliostaten kostet",
+    title: "Was ein Heliostat in der Herstellung kostet",
     org: "Bachelorarbeit am DLR",
     period: "2024",
     context:
-      "Solarturm-Kraftwerke brauchen hunderte bis tausende Heliostaten, nachführbare Spiegel, die Sonnenlicht auf einen zentralen Receiver bündeln. Sie machen einen Großteil der Anlagenkosten aus, wurden aber bislang oft nur grob kalkuliert.",
+      "Solarturm-Kraftwerke brauchen tausende Heliostaten, nachgeführte Spiegel, die Sonnenlicht auf einen Receiver an der Turmspitze lenken. Sie machen einen großen Teil der Anlagenkosten aus. Das DLR hat einen neuen, günstigeren Heliostaten entworfen, und die Frage war, was er in Serie tatsächlich kosten würde.",
     approach:
-      "Bottom-Up-Kostenkalkulation direkt aus CAD-Geometrie: Stahlbearbeitung, Fertigungsschritte und Materialbedarf künftiger Heliostat-Designs Schritt für Schritt durchgerechnet, statt mit Pauschalwerten zu arbeiten.",
+      "Zuerst Kalkulationssoftware verglichen; die gewählte (Costing24) ließ sich nur teilweise nutzen. Deshalb bottom-up von Hand: aus den CAD-Daten Fertigungsstücklisten und Baumstrukturen abgeleitet, für jedes Teil ein Verfahren gewählt, das hohe Stückzahlen und viel Automatisierung erlaubt (etwa Laserschneiden für dünne Stahlteile), dann Bearbeitungszeiten, Maschinenstundensätze und Materialkosten je Kilogramm berechnet. Pylon, Ausleger und Traverse sind im Detail kalkuliert, Spritzgussteile mit dem Hersteller abgeschätzt, Zukaufteile recherchiert.",
     result:
-      "Belastbare Kostenmodelle für die Bewertung künftiger Heliostat-Generationen, als Fachbeitrag bei der SolarPACES Conference veröffentlicht.",
+      "Rund 116 € Herstellkosten pro Heliostat oder 58 € pro Quadratmeter Spiegelfläche, eine erste Abschätzung, die schon nah am Kostenziel liegt. Dazu Ansätze für Beschaffung und Marketing. Veröffentlicht als Fachbeitrag bei der SolarPACES Conference.",
     link: {
       label: "SolarPACES Conference Proceedings, DOI",
       href: "https://doi.org/10.52825/solarpaces.v3i.2420",
