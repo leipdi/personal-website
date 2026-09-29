@@ -109,6 +109,17 @@ const lanes = cats.map((c) => {
       s.lblMax = s.right ? s.l + s.w - (byX[k - 1] ? byX[k - 1].to + 0.5 : 0) : next - s.l - 0.5;
     });
   }
+  // a flag name right of its pole must not sit under the next bar on its line: it hangs left
+  for (const ln of lines) {
+    for (const s of ln) {
+      if (s.ms === null || s.flagLeft) continue;
+      if (ln.some((o) => o !== s && o.l < s.f1 && o.l + o.w > s.ms! + 0.5)) {
+        s.flagLeft = true;
+        s.f0 = s.ms - flagW(s.r);
+        s.f1 = s.ms + 1;
+      }
+    }
+  }
   const flagLine = lines.map((ln) => ln.some((s) => s.ms !== null));
   for (const s of items) s.fb = flagLine.slice(0, s.k).filter(Boolean).length;
   return { ...c, items, nLines: lines.length, nFlag: flagLine.filter(Boolean).length };
@@ -465,7 +476,19 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   const BAR_GAP = 3; // px between two bars on a line
   const PENNANT = 10; // px from a pole to its flag name (0.75rem minus the 2px backing)
   const FLAG_IN = 3.3; // px a left-hanging flag name stays clear of its pole
-  type Box = { b0: number; b1: number; l0: number; l1: number; f0: number; f1: number; lbl: boolean; flag: boolean };
+  type Box = {
+    b0: number;
+    b1: number;
+    l0: number;
+    l1: number;
+    f0: number;
+    f1: number;
+    lbl: boolean;
+    flag: boolean;
+    fx: number; // the flag pole's x
+    fw: number; // the flag name's width
+    fel: HTMLElement | null;
+  };
   const clear = (a0: number, a1: number, b0: number, b1: number, gap: number) => a1 + gap <= b0 || b1 + gap <= a0;
   const pack = () => {
     const W = tracks[0]?.clientWidth ?? 0;
@@ -505,15 +528,17 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
         const f = flagOf(t, s);
         let f0 = 0;
         let f1 = 0;
+        let fx = 0;
+        let fw = 0;
         if (f) {
-          const x = f.offsetLeft;
-          const fw = f.querySelector<HTMLElement>(".flag-lbl")!.getBoundingClientRect().width;
-          const left = fw > 0 && x + PENNANT + fw > W + 2;
+          fx = f.offsetLeft;
+          fw = f.querySelector<HTMLElement>(".flag-lbl")!.getBoundingClientRect().width;
+          const left = fw > 0 && fx + PENNANT + fw > W + 2;
           f.classList.toggle("flag-left", left);
-          f0 = left ? x - FLAG_IN - fw : x;
-          f1 = left ? x + PENNANT : x + PENNANT + fw;
+          f0 = left ? fx - FLAG_IN - fw : fx;
+          f1 = left ? fx + PENNANT : fx + PENNANT + fw;
         }
-        const box: Box = { b0: bl, b1: bl + bw, l0, l1, f0, f1, lbl: w > 0, flag: !!f };
+        const box: Box = { b0: bl, b1: bl + bw, l0, l1, f0, f1, lbl: w > 0, flag: !!f, fx, fw, fel: f };
         let k = lines.findIndex((ln) =>
           ln.every(
             (o) =>
@@ -525,6 +550,21 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
         if (k < 0) k = lines.push([]) - 1;
         lines[k].push(box);
         placed.push({ s, f, k });
+      }
+      // A flag name hanging right of its pole must not sit under the next station's bar on
+      // the same line (the grade at the end of the Abitur ran under the B.Eng. bar): it then
+      // hangs left, under its own bar.
+      for (const ln of lines) {
+        for (const o of ln) {
+          if (!o.fel || !o.fw || o.fel.classList.contains("flag-left")) continue;
+          const n0 = o.fx + PENNANT;
+          const underBar = ln.some((p) => p !== o && p.b0 < o.f1 && p.b1 > n0);
+          if (underBar) {
+            o.fel.classList.add("flag-left");
+            o.f0 = o.fx - FLAG_IN - o.fw;
+            o.f1 = o.fx + PENNANT;
+          }
+        }
       }
       const flagLine = lines.map((ln) => ln.some((o) => o.flag));
       for (const { s, f, k } of placed) {
