@@ -15,6 +15,9 @@ export const todayFrac = today.getFullYear() + (today.getMonth() + (today.getDat
 export function toFrac(value: string, edge: "start" | "end"): number {
   const v = value.trim().toLowerCase();
   if (v === "heute") return todayFrac;
+  // a single day, "18.06.2024" (same value for start and end)
+  const d = v.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if (d) return Number(d[3]) + (Number(d[2]) - 1 + (Number(d[1]) - 1) / 31) / 12;
   const m = v.match(/^([a-zä]{3})\w*\s+(\d{4})$/);
   if (m && m[1] in months) {
     const month = months[m[1]];

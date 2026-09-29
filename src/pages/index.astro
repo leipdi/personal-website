@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Placeholder from "../components/Placeholder.astro";
+import HeliostatField from "../components/figures/HeliostatField.astro";
 import { profile, topSkills, type TopSkillId } from "../data/cv";
 import { tool, uniqueSvg } from "../data/tools";
 import { cvPdf } from "../data/nav";
@@ -32,11 +33,15 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
 
 <Layout title="Daniel Lenski, Wirtschaftsingenieur" description={description} active="uebersicht">
   <section class="hero" aria-labelledby="name">
-    <div class="wrap hero-in">
-      <h1 id="name" class="display page-title hero-name">{profile.name}</h1>
-      <p class="hero-role">{profile.role}, {profile.location}</p>
-      <p class="hero-claim"><Placeholder inline>{profile.claim}</Placeholder></p>
-      <div class="hero-photo">
+    <HeliostatField>
+      <div class="wrap hero-text">
+        <h1 id="name" class="display hero-name">Daniel<br />Lenski</h1>
+        <p class="hero-role">{profile.role}<br />{profile.location}</p>
+      </div>
+    </HeliostatField>
+    <div class="wrap intro">
+      <p class="intro-claim"><Placeholder inline>{profile.claim}</Placeholder></p>
+      <div class="intro-photo">
         <img src="/img/daniel-lenski.jpg" alt="Porträt von Daniel Lenski" width="400" height="400" />
       </div>
     </div>
@@ -45,7 +50,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   <!-- Skill hub: one box per core skill: what he did with it (proof), the software, where it comes from -->
   <section class="hub" aria-labelledby="h-hub">
     <div class="wrap">
-      <h2 id="h-hub" class="display hub-title">Kernkompetenzen</h2>
+      <h2 id="h-hub" class="hub-title">Kernkompetenzen</h2>
       <Placeholder
         kind="vorschlag"
         note="Belegzeilen und Zuordnung von Stationen und Software KI-abgeleitet; gestrichelte Logos sind Logo-Platzhalter"
@@ -70,7 +75,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
                     >
                       <path d={skillIcons[s.id]} />
                     </svg>
-                    <h3 id={`sk-${s.id}`} class="display skill-title">
+                    <h3 id={`sk-${s.id}`} class="skill-title">
                       {displayTitle(s.title)}
                     </h3>
                   </div>
@@ -139,72 +144,72 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   </section>
 </Layout>
 
-<style>
-  /* ---------- hero: the portrait's own blue field. Name, role, claim; kept short so the
-     first row of skills shows on the first screen ---------- */
-  .hero {
-    background: var(--sky);
-  }
 
-  /* phones: name and role full width, claim beside the (smaller) portrait */
-  .hero-in {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "name name"
-      "role role"
-      "claim photo";
-    column-gap: 1rem;
-    padding-top: 1.75rem;
+<style>
+  /* ---------- hero: the heliostat field, name and role in its sky ---------- */
+  .hero-text {
+    padding-top: clamp(1.75rem, 1rem + 3vw, 3.5rem);
   }
 
   .hero-name {
-    grid-area: name;
-    font-size: clamp(3.25rem, 2rem + 5.5vw, 6rem);
-    line-height: 0.9;
-    color: var(--navy);
+    font-size: clamp(3.5rem, 1.5rem + 9vw, 9rem);
+    line-height: 0.86;
+    letter-spacing: -0.05em;
+    color: var(--ink);
   }
 
   .hero-role {
-    grid-area: role;
-    margin-top: 0.6rem;
-    font-size: 1rem;
-    line-height: 1.4;
-    color: var(--ink-sky);
+    margin-top: 1rem;
+    font-size: clamp(1rem, 0.9rem + 0.4vw, 1.25rem);
+    font-weight: 500;
+    line-height: 1.35;
+    color: var(--ink-2);
   }
 
-  .hero-claim {
+  /* ---------- intro under the ground line: claim and portrait side by side ---------- */
+  .intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "claim photo";
+    align-items: start;
+    gap: 1.25rem;
+    padding-top: 1.75rem;
+    padding-bottom: 2.5rem;
+  }
+
+  /* small phones: a claim squeezed beside the portrait ran to 12 lines; stack them */
+  @media (max-width: 25.99rem) {
+    .intro {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas:
+        "claim"
+        "photo";
+    }
+  }
+
+  .intro-claim {
     grid-area: claim;
-    align-self: center;
-    padding: 1.25rem 0 1.5rem;
     font-family: var(--serif);
-    font-weight: 400;
     font-optical-sizing: auto;
-    font-size: clamp(1.125rem, 0.9rem + 1.1vw, 1.75rem);
-    line-height: 1.3;
+    font-size: clamp(1.375rem, 1rem + 1.5vw, 2.25rem);
+    line-height: 1.25;
     letter-spacing: -0.01em;
-    max-width: 30em;
+    /* short measure, and no single word left hanging on the last line */
+    max-width: 22em;
+    text-wrap: pretty;
   }
 
-  /* The portrait sits on the content grid, flush with the band's bottom edge, in a
-     paper-white mat that joins the white page below. The mat gives it a deliberate
-     edge, so the slightly different backdrop blue reads as a print, not a seam.
-     Never wider than 260 CSS px: the source is 400px. */
-  .hero-photo {
+  .intro-photo {
     grid-area: photo;
-    justify-self: end;
-    align-self: end;
-    margin-top: 1.25rem;
-    width: clamp(6.5rem, 30vw, 13rem);
+    width: clamp(6.5rem, 26vw, 12.5rem);
     aspect-ratio: 1;
-    box-sizing: content-box;
-    border: 0.375rem solid var(--paper);
-    border-bottom: 0;
     overflow: hidden;
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
   }
 
   /* the source JPEG has a light 1-2px column at its left edge: shift it out of the frame */
-  .hero-photo img {
+  .intro-photo img {
     display: block;
     width: calc(100% + 3px);
     max-width: none;
@@ -212,42 +217,29 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     margin-left: -3px;
   }
 
-  /* wider: the portrait gets its own column beside all three lines */
   @media (min-width: 48rem) {
-    .hero-in {
-      grid-template-areas:
-        "name photo"
-        "role photo"
-        "claim photo";
-      grid-template-rows: auto auto 1fr;
+    /* close under the ground line, so name, field and claim read as one screen */
+    .intro {
       column-gap: 3rem;
-      padding-top: 2.75rem;
-    }
-    .hero-claim {
-      align-self: start;
-      padding: 1.5rem 0 2.5rem;
-    }
-    .hero-photo {
-      margin-top: 0;
-      border-width: 0.5rem;
-      border-bottom: 0;
+      padding-top: 1.25rem;
+      padding-bottom: 3.5rem;
     }
   }
 
-  /* ---------- skill hub: real boxes (owner request), drawn in the site's own language:
-     paper-white page (the portrait's white mat joins it), boxes that are just an even frame
-     (no coloured edge, no shadow). Each box = body (icon + title, proof) over a footer
-     (Software logos, Gelernt bei) separated by a hairline. ---------- */
+  /* ---------- skill hub: white boxes on the steel page, just an even frame ---------- */
   .hub {
-    background: var(--paper);
-    padding: 2rem 0 3.5rem;
+    padding: 3rem 0 4rem;
+    border-top: 1.5px solid var(--ink);
   }
 
+  /* section head: a quiet grotesk label, not display */
   .hub-title {
-    font-size: clamp(2rem, 1.5rem + 2vw, 2.75rem);
-    line-height: 1;
-    color: var(--navy);
-    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.2;
+    color: var(--ink);
+    margin-bottom: 1.25rem;
   }
 
   .hub-grid {
@@ -262,8 +254,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     }
   }
 
-  /* each box is a 2-row subgrid (body, footer): across a row the footers start at the same
-     height, so a shorter proof shows as white space in the body above a level footer.
+  /* each box is a 2-row subgrid (body, footer): footers start level across a row;
      minmax(0, 1fr): a long title can never widen the box past its grid cell */
   .skill {
     display: grid;
@@ -273,10 +264,15 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     row-gap: 0;
     min-width: 0;
     background: var(--paper);
-    /* just the frame (owner, 2026-09-25): one even border, no coloured edge */
-    border: 1px solid #c3cedd;
+    border: 1px solid var(--line);
     border-radius: 3px;
     overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .skill:hover,
+  .skill:focus-within {
+    border-color: var(--ink);
   }
 
   .skill-body {
@@ -313,17 +309,19 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     flex: none;
     width: 1.75rem;
     height: 1.75rem;
-    color: var(--navy);
+    color: var(--ink);
   }
 
-  /* only the soft hyphens set in the markup may break the title; overflow-wrap is the
-     last resort for a future title without them */
   .skill-title {
     min-width: 0;
-    font-size: clamp(1.5rem, 1.25rem + 0.9vw, 2rem);
-    line-height: 1;
-    padding-top: 0.1rem;
-    color: var(--navy);
+    font-family: var(--serif);
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: 1.5rem;
+    letter-spacing: normal;
+    line-height: 1.15;
+    padding-top: 0;
+    color: var(--ink);
     hyphens: manual;
     overflow-wrap: anywhere;
   }
@@ -349,10 +347,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     text-align: center;
   }
 
-  /* software: large logos side by side, the name centred underneath (owner, 2026-09-25);
-     logos sized by height so a wordmark (SAP) keeps its width */
-  /* logos with their names centred in the box (owner, 2026-09-25); equal-width items,
-     so a wrapped second row sits centred under the first */
+  /* logos with their names centred in the box (owner, 2026-09-25) */
   .tools {
     display: flex;
     flex-wrap: wrap;
@@ -384,10 +379,6 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     align-items: center;
     justify-content: center;
     height: 3.25rem;
-  }
-
-  /* a wide wordmark (SAP) shrinks to the column width instead of spilling into the gap */
-  .tool-logo {
     max-width: 100%;
   }
 
@@ -410,10 +401,8 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     color: var(--ph);
     font-size: 0.9375rem;
     font-weight: 800;
-    letter-spacing: 0;
   }
 
-  /* an open question for the owner, not a design element: scaffolding colour */
   .tools-open {
     font-size: 0.875rem;
     line-height: 1.4;
@@ -426,7 +415,6 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     overflow-wrap: anywhere;
   }
 
-  /* quiet source line, not a stack of links */
   .skill-src {
     font-size: 0.875rem;
     line-height: 1.5;
@@ -436,7 +424,6 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     text-align: center;
   }
 
-  /* inline links a space away from the label: a tight focus ring keeps neighbours readable */
   .skill-src a:focus-visible {
     outline-offset: 1px;
   }
@@ -450,25 +437,25 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   }
 
   .skill-src a:hover {
-    color: var(--navy);
-    text-decoration-color: var(--navy);
+    color: var(--ink);
+    text-decoration-thickness: 3px;
+    text-decoration-color: var(--ink);
   }
 
-  /* ---------- ending: back to the sky field, one line to get in touch ---------- */
-  /* the ending runs to the bottom of the page, so the home page drops the layout's
-     bottom padding and the band itself keeps clear of the phone tab bar */
+  /* ---------- ending: one line to get in touch, on the quiet wash band ---------- */
   :global(main.content#inhalt) {
     padding-bottom: 0;
   }
 
   .end {
-    background: var(--sky);
+    background: var(--wash);
+    border-top: 1.5px solid var(--ink);
     padding: 2.75rem 0 calc(2.25rem + 4.75rem + env(safe-area-inset-bottom));
   }
 
   @media (min-width: 64rem) {
     .end {
-      padding: 3.5rem 0 3rem;
+      padding: 3.5rem 0;
     }
   }
 
@@ -484,18 +471,19 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     white-space: nowrap;
   }
 
-  /* inline-block: the address moves to its own line as a whole and only breaks at the @ when even that is too narrow */
   .end-mail {
     display: inline-block;
-    color: var(--navy);
+    color: var(--ink);
     text-decoration: underline;
-    text-decoration-thickness: 1px;
+    text-decoration-thickness: 2px;
+    text-decoration-color: var(--steel);
     text-underline-offset: 0.18em;
     overflow-wrap: anywhere;
   }
 
   .end-mail:hover {
-    text-decoration-thickness: 2px;
+    text-decoration-thickness: 5px;
+    text-decoration-color: var(--ink);
   }
 
   .end-links {
@@ -503,9 +491,5 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem 1.75rem;
-  }
-
-  .end-links .prose-link {
-    text-decoration-color: var(--ink-sky);
   }
 </style>

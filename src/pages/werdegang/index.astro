@@ -1,260 +1,1433 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import Placeholder from "../../components/Placeholder.astro";
-import { career } from "../../data/cv";
+import ImagePlaceholder from "../../components/ImagePlaceholder.astro";
+import Heliostat from "../../components/figures/Heliostat.astro";
+import { career, topSkills } from "../../data/cv";
+import { tool, uniqueSvg } from "../../data/tools";
 import { toFrac, todayFrac } from "../../lib/dates";
 
-// Newest start first (the usual CV order), so every station sits above what came before it.
-const rows = career
-  .map((e) => {
-    const start = toFrac(e.from, "start");
-    const end = toFrac(e.to, "end");
-    return { ...e, start, end, ongoing: e.to === "heute" };
-  })
-  .sort((a, b) => b.start - a.start || b.end - a.end);
+// Werdegang as a project plan (owner, 2026-09-28): a Gantt chart pinned under the top bar with
+// the categories as swimlanes on the left (Ausbildung, Abschlussarbeiten, Praxis), one colour
+// per category, a flag on the bar for each milestone (degrees, thesis submissions). The
+// stations follow below as text, oldest first; a playhead in the chart follows the reader.
+// Without JS the chart is a static overview above the same text.
+type Row = (typeof career)[number] & { start: number; end: number; cat: Cat };
+type Cat = "ausbildung" | "arbeiten" | "praxis";
 
-// The axis starts with the first non-minor station (the Bachelor, 2020). Anything older
-// (the Abitur) is listed as a text-only row instead of eating half the axis.
-const minYear = Math.floor(Math.min(...rows.filter((r) => !r.minor).map((r) => r.start)));
-const maxYear = Math.ceil(todayFrac + 0.25);
-const span = maxYear - minYear;
-const pct = (v: number) => ((v - minYear) / span) * 100;
-const onAxis = (r: { start: number }) => r.start >= minYear;
+const catOf = (e: (typeof career)[number]): Cat =>
+  e.kind === "ausbildung" ? "ausbildung" : /^(Bachelor|Master)arbeit/.test(e.title) ? "arbeiten" : "praxis";
 
-const ticks: number[] = [];
-for (let y = minYear; y < maxYear; y++) ticks.push(y);
-const todayPct = pct(todayFrac);
+const cats: { id: Cat; name: string; sub: string }[] = [
+  { id: "ausbildung", name: "Ausbildung", sub: "Schule und Studium" },
+  { id: "arbeiten", name: "Abschlussarbeiten", sub: "Bachelor und Master" },
+  { id: "praxis", name: "Praxis", sub: "Neben dem Studium" },
+];
+const catName = (c: Cat) => cats.find((k) => k.id === c)!.name;
+
+const rows: Row[] = career
+  .map((e) => ({ ...e, start: toFrac(e.from, "start"), end: toFrac(e.to, "end"), cat: catOf(e) }))
+  .sort((a, b) => a.start - b.start || a.end - b.end);
+
+// Axis from 2020 (the Bachelor) to just past today. The Abitur started in 2013: its bar
+// simply starts at the axis edge.
+const t0 = 2020;
+const t1 = todayFrac + 0.2;
+const span = t1 - t0;
+const pct = (v: number) => ((Math.min(Math.max(v, t0), t1) - t0) / span) * 100;
+const years: number[] = [];
+for (let y = t0; y <= Math.floor(todayFrac); y++) years.push(y);
+
+const msAt = (r: Row) => (r.milestone ? toFrac(r.milestone.at, "end") : null);
+// A milestone in the bar's last ~1.5 months ends the bar, so the flag stands at its end
+// (display only; the dates in the text stay as they are).
+const barEnd = (r: Row) => {
+  const ms = msAt(r);
+  return ms !== null && ms <= r.end && r.end - ms <= 0.125 ? ms : r.end;
+};
+
+const name = (r: Row) => r.short ?? r.title;
+
+// Lanes: each category is one lane, its stations in date order (DOM and Tab order), each on a
+// line (--line) where neither its bar, its label (above the bar) nor its flag label (below the
+// bar) collides with another. This server-side packing is the no-JS fallback and estimates
+// label widths (~0.65% of the track per character, 12px type on a ~950px track; cut off with
+// an ellipsis at the next bar where the guess is short). With JS the script measures the real
+// labels and packs the lines again for the actual track width.
+const labelW = (r: Row) => name(r).length * 0.65 + 1; // % of the track
+const flagW = (r: Row) => (r.milestone ? r.milestone.tag.length * 0.7 + 2.5 : 0);
+type Seg = {
+  r: Row;
+  k: number; // line
+  fb: number; // lines with flags above this one
+  l: number;
+  w: number;
+  lblMax: number;
+  right: boolean;
+  from: number;
+  to: number;
+  ms: number | null;
+  flagLeft: boolean;
+  f0: number;
+  f1: number;
+};
+const free = (a0: number, a1: number, b0: number, b1: number) => a1 <= b0 - 0.5 || a0 >= b1 + 0.5;
+const lanes = cats.map((c) => {
+  const lines: Seg[][] = [];
+  const items: Seg[] = [];
+  for (const r of rows.filter((x) => x.cat === c.id)) {
+    const l = pct(r.start);
+    const w = Math.max(pct(barEnd(r)) - l, 0.6);
+    // labels that would run past the chart's right edge hang left from the bar's end
+    const right = l + labelW(r) > 100;
+    const from = right ? l + w - labelW(r) : l;
+    const to = right ? l + w : Math.max(l + w, l + labelW(r));
+    const m = msAt(r);
+    const ms = m === null ? null : pct(m);
+    const flagLeft = ms !== null && ms + flagW(r) > 100;
+    const f0 = ms === null ? 0 : flagLeft ? ms - flagW(r) : ms;
+    const f1 = ms === null ? 0 : flagLeft ? ms + 1 : ms + flagW(r);
+    const seg: Seg = { r, k: 0, fb: 0, l, w, lblMax: 0, right, from, to, ms, flagLeft, f0, f1 };
+    let k = lines.findIndex((ln) =>
+      ln.every(
+        (s) =>
+          free(l, l + w, s.l, s.l + s.w) &&
+          free(from, to, s.from, s.to) &&
+          (ms === null || s.ms === null || free(f0, f1, s.f0, s.f1)),
+      ),
+    );
+    if (k < 0) k = lines.push([]) - 1;
+    seg.k = k;
+    lines[k].push(seg);
+    items.push(seg);
+  }
+  // each label may run up to the next bar on its line (or the chart's end)
+  for (const ln of lines) {
+    const byX = [...ln].sort((a, b) => a.l - b.l);
+    byX.forEach((s, k) => {
+      const next = byX[k + 1]?.l ?? 100;
+      s.lblMax = s.right ? s.l + s.w - (byX[k - 1] ? byX[k - 1].to + 0.5 : 0) : next - s.l - 0.5;
+    });
+  }
+  const flagLine = lines.map((ln) => ln.some((s) => s.ms !== null));
+  for (const s of items) s.fb = flagLine.slice(0, s.k).filter(Boolean).length;
+  return { ...c, items, nLines: lines.length, nFlag: flagLine.filter(Boolean).length };
+});
+
+// Which core skills a station fed: the hub's "Gelernt bei" links point at it (by id or case study)
+const skillsOf = (r: Row) =>
+  topSkills.filter((s) =>
+    s.learned.some((l) => l.href.endsWith(`#${r.id}`) || (r.project && l.href.endsWith(`#${r.project}`))),
+  );
+
+// how long a job or thesis ran (months, counted inclusively), or since when it runs
+const duration = (r: Row) => {
+  if (r.kind === "ausbildung") return null;
+  if (r.to === "heute") return `seit ${r.from}`;
+  const m = Math.round((r.end - r.start) * 12);
+  return m >= 1 ? `${m} ${m === 1 ? "Monat" : "Monate"}` : null;
+};
+
+const restCap = "Alle Stationen bis heute";
+const capOf = (r: Row) => `${name(r)}, ${r.from} bis ${r.to}`;
+// the milestone's date as the CV/thesis gives it: a day ("18.06.2024") or a year ("2024")
+const msDate = (r: Row) => r.milestone?.at ?? null;
 ---
 
 <Layout
   title="Werdegang, Daniel Lenski"
-  description="Ausbildung und Berufserfahrung von Daniel Lenski, neueste Station zuerst."
+  description="Ausbildung und Berufserfahrung von Daniel Lenski als Projektplan, vom Abitur bis heute."
   active="werdegang"
 >
-  <div class="wrap page">
+  <div class="wrap page-head">
     <h1 class="display page-title">Werdegang</h1>
+    <p class="lede">Von der Schulzeit bis heute, als Projektplan.</p>
+    <p class="key" aria-hidden="true">
+      <span><i class="k-flag"></i>Meilenstein</span>
+      <span class="js-key"><i class="k-cur"></i>gerade im Blick</span>
+    </p>
+  </div>
 
-    <div class="axis-wrap">
-      <div class="legend">
-        <span><i class="sw sw-beruf"></i>Beruf</span>
-        <span><i class="sw sw-ausb"></i>Ausbildung</span>
-        <span><i class="sw sw-now"></i>heute</span>
-      </div>
-      <div class="axis tnum" aria-hidden="true">
-        {ticks.map((y) => <span class:list={[y % 2 === 1 && "odd"]} style={`left:${pct(y)}%`}>{y}</span>)}
-      </div>
-    </div>
+  <!-- the chart stays pinned up to the last station's top, then scrolls away above it (script) -->
+  <div class="scope" data-scope>
+    <nav
+      class="plan-wrap"
+      aria-label="Projektplan: alle Stationen"
+      data-plan
+      data-t0={t0}
+      data-t1={t1}
+      data-today={todayFrac}
+    >
+      <div class="wrap">
+        <div class="plan">
+          <div class="axis" aria-hidden="true">
+            <span class="axis-track">
+              {years.map((y) => <span class="year" style={`left:${pct(y)}%`}>{y}</span>)}
+            </span>
+          </div>
 
-    <ol class="list" style={`--today:${todayPct}%`}>
-      {
-        rows.map((r) => (
-          <li id={r.id} class:list={["row", r.minor && "row-minor", !onAxis(r) && "row-off"]}>
-            <p class="when tnum">
-              {r.from} bis {r.to}
-            </p>
-            <div class="body">
-              <h2 class="title">
-                {r.project ? (
-                  <a class="title-link" href={`/projekte/#${r.project}`}>
-                    {r.title}
-                  </a>
-                ) : (
-                  r.title
-                )}
-                {r.minor && <span class="org-inline">, {r.org}</span>}
-              </h2>
-              {!r.minor && (
-                <p class="org">
-                  {r.org}, {r.place}
-                </p>
-              )}
-              {onAxis(r) && (
-                <div
-                  class="track"
-                  role="img"
-                  aria-label={`${r.kind === "beruf" ? "Beruf" : "Ausbildung"} von ${r.from} bis ${r.to}`}
-                >
-                  <span
-                    class:list={["bar", r.kind === "beruf" ? "bar-beruf" : "bar-ausb"]}
-                    style={`left:${pct(r.start)}%;width:${pct(r.end) - pct(r.start)}%`}
-                  />
+          <div class="body">
+            <span class="grid" aria-hidden="true" data-grid>
+              {years.slice(1).map((y) => <i style={`left:${pct(y)}%`} />)}
+              <span class="today" style={`left:${pct(todayFrac)}%`}></span>
+              <span class="today-lbl" style={`left:${pct(todayFrac)}%`} data-today-lbl>heute</span>
+              <span class="playhead" data-head></span>
+              <span class="head-tag" data-tag></span>
+            </span>
+
+            {
+              lanes.map((lane) => (
+                <div class="lane" data-cat={lane.id}>
+                  <p class="lane-lbl" aria-hidden="true">
+                    <i />
+                    <span>
+                      {lane.name}
+                      <small>{lane.sub}</small>
+                    </span>
+                  </p>
+                  <div class="lane-track" style={`--lines:${lane.nLines};--flag-lines:${lane.nFlag}`} data-track>
+                    {lane.items.map(({ r, k, fb, l, w, lblMax, right, ms, flagLeft }) => (
+                      <>
+                        <a
+                          class:list={["seg", right && "seg-right"]}
+                          href={`#${r.id}`}
+                          style={`left:${l}%;width:${w}%;--line:${k};--fb:${fb};--lbl-max:${((lblMax / w) * 100).toFixed(1)}%`}
+                          data-row={r.id}
+                          data-start={r.start}
+                          data-end={r.end}
+                          data-bar-end={barEnd(r)}
+                          data-now={r.to === "heute" ? "" : undefined}
+                          data-cap={capOf(r)}
+                          data-name={name(r)}
+                          data-skills={skillsOf(r)
+                            .map((s) => s.id)
+                            .join(" ")}
+                          aria-label={`${catName(r.cat)}: ${r.title}, ${r.from} bis ${r.to}`}
+                        >
+                          <span class="seg-lbl">{name(r)}</span>
+                          <span class="bar" />
+                        </a>
+                        {ms !== null && (
+                          <span
+                            class:list={["flag", flagLeft && "flag-left"]}
+                            data-flag-of={r.id}
+                            data-ms={msAt(r)}
+                            style={`left:${ms}%;--line:${k};--fb:${fb}`}
+                            aria-hidden="true"
+                          >
+                            <span class="flag-lbl">{r.milestone!.tag}</span>
+                          </span>
+                        )}
+                      </>
+                    ))}
+                  </div>
                 </div>
-              )}
-              {!r.minor && (
+              ))
+            }
+          </div>
+        </div>
+        <p class="plan-cap" aria-hidden="true" data-caption>{restCap}</p>
+      </div>
+    </nav>
+
+    <ol class="wrap stations" data-stations>
+      {
+        rows.map((r) => {
+          const skills = skillsOf(r);
+          const dur = duration(r);
+          const facts = [...(dur ? [{ label: "Dauer", value: dur }] : []), ...(r.facts ?? [])];
+          const side = facts.length > 0 || r.tools?.length || (r.visual && r.visual !== "heliostat");
+          return (
+            <li id={r.id} class:list={["st", r.minor && "st-minor"]} data-st={r.id} data-cat={r.cat}>
+              <p class="meta">
+                <span class="cat">
+                  <i aria-hidden="true" />
+                  {catName(r.cat)}
+                </span>
+                <span class="when">
+                  {r.from} bis {r.to}
+                </span>
+                <span class="org">
+                  {r.org}, {r.place}
+                </span>
+              </p>
+
+              <div class="main">
+                <h2 class="title">
+                  {r.project ? (
+                    <a class="title-link" href={`/projekte/#${r.project}`}>
+                      {r.title}
+                    </a>
+                  ) : (
+                    r.title
+                  )}
+                </h2>
                 <Placeholder>
                   <p class="text story">{r.story}</p>
+                  {r.tasks && (
+                    <ul class="tasks">
+                      {r.tasks.map((t) => (
+                        <li>{t}</li>
+                      ))}
+                    </ul>
+                  )}
                 </Placeholder>
+                {r.milestone && (
+                  <p class="ms-box">
+                    <svg class="ms-flag" viewBox="0 0 16 20" width="16" height="20" aria-hidden="true">
+                      <path d="M2.5 1v18" />
+                      <path d="M3.5 2h10l-3 4 3 4h-10z" />
+                    </svg>
+                    <span>
+                      <strong>Meilenstein: {r.milestone.label}</strong>
+                      {msDate(r) && <span class="ms-date">{msDate(r)}</span>}
+                    </span>
+                  </p>
+                )}
+                {r.visual === "heliostat" && (
+                  <div class="visual">
+                    <Placeholder kind="data" note="KI-Skizze, besser durch echtes Bild ersetzen">
+                      <Heliostat />
+                    </Placeholder>
+                  </div>
+                )}
+                {skills.length > 0 && (
+                  <p class="skills">
+                    Kernkompetenzen:{" "}
+                    {skills.map((s, k) => (
+                      <>
+                        {k > 0 && ", "}
+                        <span class="skill" data-skill={s.id}>
+                          {s.title}
+                        </span>
+                      </>
+                    ))}
+                  </p>
+                )}
+              </div>
+
+              {side && (
+                <div class="side">
+                  {facts.length > 0 && (
+                    <dl class="facts">
+                      {facts.map((f) => (
+                        <div>
+                          <dt>{f.label}</dt>
+                          <dd>{f.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  )}
+                  {r.tools && r.tools.length > 0 && (
+                    <div class="sw">
+                    <p class="tools-lbl" id={`sw-${r.id}`}>
+                      Software
+                    </p>
+                    <ul class="tools" aria-labelledby={`sw-${r.id}`}>
+                      {r.tools.map((key) => {
+                        const t = tool(key);
+                        return t.svg ? (
+                          <li class="tool">
+                            <span class="tool-logo" aria-hidden="true" set:html={uniqueSvg(t.svg, `wd-${r.id}`)} />
+                            <span class="tool-name">{t.name}</span>
+                          </li>
+                        ) : (
+                          <li class="tool tool-ph" data-placeholder="logo">
+                            <span class="tool-mono" aria-hidden="true">
+                              {t.mono}
+                            </span>
+                            <span class="tool-name">{t.name}</span>
+                            <span class="sr-only"> (Logo-Platzhalter)</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    </div>
+                  )}
+                  {r.visual && r.visual !== "heliostat" && (
+                    <ImagePlaceholder label={r.visual.image} note={r.visual.note} ratio="4 / 3" />
+                  )}
+                </div>
               )}
-            </div>
-          </li>
-        ))
+            </li>
+          );
+        })
       }
     </ol>
   </div>
+
+  <section class="end" aria-label="Weiter">
+    <div class="wrap">
+      <p class="end-line">
+        Die beiden Abschlussarbeiten im Detail stehen unter <a href="/projekte/">Projekte</a>, E-Mail, Telefon und
+        Lebenslauf unter <a href="/kontakt/">Kontakt</a>.
+      </p>
+    </div>
+  </section>
 </Layout>
 
+<script>
+  // Playhead: each station gets its own stretch of scrolling (sequential, for reading); the
+  // playhead moves in real time between the stations' start dates (chronological, for the
+  // eye). The station crossing the reading line (a third of the way down the space left
+  // under the pinned chart) is current: its bar is sun, later rows fade. Before the chart
+  // pins (page top) it is a plain full-strength plan: nothing current, no playhead.
+  const root = document.documentElement;
+  const planWrap = document.querySelector<HTMLElement>("[data-plan]")!;
+  const grid = document.querySelector<HTMLElement>("[data-grid]")!;
+  const list = document.querySelector<HTMLElement>("[data-stations]")!;
+  const scope = document.querySelector<HTMLElement>("[data-scope]")!;
+  const rows = [...document.querySelectorAll<HTMLElement>("[data-row]")];
+  const sts = [...document.querySelectorAll<HTMLElement>("[data-st]")];
+  const head = document.querySelector<HTMLElement>("[data-head]")!;
+  const tag = document.querySelector<HTMLElement>("[data-tag]")!;
+  const todayLbl = document.querySelector<HTMLElement>("[data-today-lbl]")!;
+  const caption = document.querySelector<HTMLElement>("[data-caption]")!;
+  const tracks = [...document.querySelectorAll<HTMLElement>("[data-track]")];
+  const topBar = document.querySelector<HTMLElement>(".top");
+  const tabbar = document.querySelector<HTMLElement>(".tabbar");
+  const rowOf = new Map(rows.map((r) => [r.dataset.row!, r]));
+  const rowAt = sts.map((s) => rowOf.get(s.dataset.st!)!);
+  // the chart's scale as it was built (a static site: the visitor's clock would drift from the
+  // server-rendered bars, year lines and "heute" line)
+  const t0 = Number(planWrap.dataset.t0);
+  const t1 = Number(planWrap.dataset.t1);
+  const todayFrac = Number(planWrap.dataset.today);
+  const phone = matchMedia("(max-width: 47.99rem)");
+  const frac = (v: number) => (Math.min(Math.max(v, t0), t1) - t0) / (t1 - t0);
+  const starts = rowAt.map((r) => Math.max(Number(r.dataset.start), t0));
+  // a station that starts before the axis (the Abitur) has no start date on the chart: while it
+  // is current the playhead stands at its end, and the tag says "bis ..."
+  const early = rowAt.map((r) => Number(r.dataset.start) < t0);
+  const ends = rowAt.map((r) => Number(r.dataset.end));
+  // stations still running today: all of them are current at the page end
+  const ongoing = rowAt.flatMap((r, j) => (r.dataset.now !== undefined ? [j] : []));
+  const restCap = caption.textContent ?? "";
+  const endCap =
+    ongoing.length > 1
+      ? `${ongoing.map((j) => rowAt[j].dataset.name).join(" und ")}, beide bis heute`
+      : rowAt[rowAt.length - 1].dataset.cap!;
+  const months = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
+  const smooth = (x: number) => {
+    const k = Math.min(Math.max(x, 0), 1);
+    return k * k * (3 - 2 * k);
+  };
+
+  const tabH = () => (tabbar && getComputedStyle(tabbar).display !== "none" ? tabbar.offsetHeight : 0);
+  const stickyTop = () => parseFloat(getComputedStyle(planWrap).top) || 0;
+  // where the chart's bottom edge sits while it is pinned
+  const pinnedBottom = () => stickyTop() + planWrap.offsetHeight;
+  const readingLine = (planBottom: number) => planBottom + (innerHeight - tabH() - planBottom) * 0.33;
+  const atEnd = () => scrollY + innerHeight >= root.scrollHeight - 2;
+
+  // ---- pin: a station reached by a click in the chart, a link/hash or keyboard focus stays
+  // current until the reader scrolls on their own. Any scroll away from where the pin's own
+  // scroll came to rest releases it (wheel, keys, scrollbar, find-in-page, autoscroll).
+  let pinned = -1;
+  let pinBy: "focus" | "nav" | null = null;
+  let restY: number | null = null;
+  let settleT = 0;
+  let ready = false;
+  const settle = () => {
+    restY = null;
+    clearTimeout(settleT);
+    if (!ready || pinned < 0) return;
+    settleT = window.setTimeout(() => {
+      if (pinned >= 0) restY = scrollY;
+    }, 250);
+  };
+  const pin = (j: number, by: "focus" | "nav") => {
+    pinned = j;
+    pinBy = by;
+    scope.dataset.pinned = sts[j].dataset.st;
+    settle();
+    schedule();
+  };
+  const unpin = () => {
+    clearTimeout(settleT);
+    restY = null;
+    if (pinned < 0) return;
+    pinned = -1;
+    pinBy = null;
+    delete scope.dataset.pinned;
+    schedule();
+  };
+
+  // Layout numbers: the top bar's real height (the pinned chart tucks 1px under its rule, so
+  // no slit shows), the chart's height for scroll-padding, and the list's bottom padding: just
+  // enough that at the very end the last station's top reaches the reading line.
+  // ---- lane packing: the server guessed the label widths; here the real ones are measured
+  // (at the bold weight of the current station, so nothing moves when it turns current) along
+  // with the flag names, and each station, in date order, goes on the first line of its lane
+  // where its bar, its label and its flag name collide with nothing. A narrow track just gets
+  // more lines. Labels show in full; only one longer than the whole track is cut off.
+  const LBL_GAP = 8; // px between two labels (or two flag names) on a line
+  const BAR_GAP = 3; // px between two bars on a line
+  const PENNANT = 10; // px from a pole to its flag name (0.75rem minus the 2px backing)
+  const FLAG_IN = 3.3; // px a left-hanging flag name stays clear of its pole
+  type Box = { b0: number; b1: number; l0: number; l1: number; f0: number; f1: number; lbl: boolean; flag: boolean };
+  const clear = (a0: number, a1: number, b0: number, b1: number, gap: number) => a1 + gap <= b0 || b1 + gap <= a0;
+  const pack = () => {
+    const W = tracks[0]?.clientWidth ?? 0;
+    if (!W) return;
+    const segsOf = (t: HTMLElement) => [...t.querySelectorAll<HTMLElement>(".seg")];
+    const lblOf = (s: HTMLElement) => s.querySelector<HTMLElement>(".seg-lbl")!;
+    const flagOf = (t: HTMLElement, s: HTMLElement) =>
+      t.querySelector<HTMLElement>(`[data-flag-of="${s.dataset.row}"]`);
+    // measure (all writes, then all reads)
+    const all = tracks.flatMap(segsOf);
+    for (const s of all) {
+      const l = lblOf(s);
+      l.style.maxWidth = "none";
+      l.style.fontWeight = "800";
+    }
+    const lw = new Map(all.map((s) => [s, lblOf(s).getBoundingClientRect().width]));
+    for (const s of all) lblOf(s).style.fontWeight = "";
+
+    for (const t of tracks) {
+      const lines: Box[][] = [];
+      const placed: { s: HTMLElement; f: HTMLElement | null; k: number }[] = [];
+      for (const s of segsOf(t)) {
+        const bl = s.offsetLeft;
+        const bw = s.offsetWidth;
+        const w = lw.get(s)!; // label box incl. its 2px backing on each side
+        const lbl = lblOf(s);
+        // the label starts at the bar; if it would run past the chart's end it moves left
+        // until it ends there; only a label longer than the track is cut off
+        let l0 = Math.max(bl - 2, 0);
+        if (l0 + w > W + 2) l0 = Math.max(0, W + 2 - w);
+        const l1 = Math.min(l0 + w, W + 2);
+        lbl.style.left = `${l0 - bl}px`;
+        lbl.style.right = "auto";
+        lbl.style.maxWidth = w > W + 4 ? `${W + 4}px` : "none";
+        s.classList.remove("seg-right");
+
+        const f = flagOf(t, s);
+        let f0 = 0;
+        let f1 = 0;
+        if (f) {
+          const x = f.offsetLeft;
+          const fw = f.querySelector<HTMLElement>(".flag-lbl")!.getBoundingClientRect().width;
+          const left = fw > 0 && x + PENNANT + fw > W + 2;
+          f.classList.toggle("flag-left", left);
+          f0 = left ? x - FLAG_IN - fw : x;
+          f1 = left ? x + PENNANT : x + PENNANT + fw;
+        }
+        const box: Box = { b0: bl, b1: bl + bw, l0, l1, f0, f1, lbl: w > 0, flag: !!f };
+        let k = lines.findIndex((ln) =>
+          ln.every(
+            (o) =>
+              clear(box.b0, box.b1, o.b0, o.b1, BAR_GAP) &&
+              (!box.lbl || !o.lbl || clear(box.l0, box.l1, o.l0, o.l1, LBL_GAP)) &&
+              (!box.flag || !o.flag || clear(box.f0, box.f1, o.f0, o.f1, LBL_GAP)),
+          ),
+        );
+        if (k < 0) k = lines.push([]) - 1;
+        lines[k].push(box);
+        placed.push({ s, f, k });
+      }
+      const flagLine = lines.map((ln) => ln.some((o) => o.flag));
+      for (const { s, f, k } of placed) {
+        const fb = flagLine.slice(0, k).filter(Boolean).length;
+        for (const el of [s, f]) {
+          el?.style.setProperty("--line", String(k));
+          el?.style.setProperty("--fb", String(fb));
+        }
+      }
+      t.style.setProperty("--lines", String(lines.length));
+      t.style.setProperty("--flag-lines", String(flagLine.filter(Boolean).length));
+    }
+  };
+
+  let spTop = 0;
+  let spBottom = 0;
+  const layout = () => {
+    pack();
+    settle(); // a pin re-settles after layout moves things
+    if (topBar) root.style.setProperty("--top-bar-h", `${topBar.getBoundingClientRect().height}px`);
+    root.style.setProperty("--plan-h", `${planWrap.offsetHeight}px`);
+    const rs = getComputedStyle(root);
+    spTop = parseFloat(rs.scrollPaddingTop) || 0;
+    spBottom = parseFloat(rs.scrollPaddingBottom) || 0;
+    // (measured around the current padding rather than resetting it, so the scroll position
+    // at the page end isn't clamped on resize)
+    const pad = parseFloat(getComputedStyle(list).paddingBottom) || 0;
+    const last = sts[sts.length - 1];
+    const lastTop = last.getBoundingClientRect().top + scrollY;
+    // At the very end the last station's top stands a little above the reading line (so it is
+    // current on its own before the end state).
+    const pb = pinnedBottom();
+    const line = readingLine(pb);
+    const endTop = line - Math.min(64, (line - pb) / 2);
+    const need = lastTop - endTop + root.clientHeight - (root.scrollHeight - pad);
+    const padNew = Math.max(0, Math.ceil(need));
+    list.style.paddingBottom = `${padNew}px`;
+    // The chart's sticky scope can end early (negative margin on the list, given back to the
+    // scope), so the chart scrolls away above the last station rather than covering it.
+    // Phones: the scope ends at the last station's top (the chart fades out, see update).
+    // Wider screens: where the last station and the closing band are taller than the room
+    // under the pinned chart, the chart gives way just enough that at the very end the last
+    // station's title stands fully visible below it, clear of the fade under the chart.
+    let tail = 0;
+    if (phone.matches) tail = last.offsetHeight + padNew;
+    else {
+      const title = last.querySelector<HTMLElement>(".title") ?? last;
+      const maxScroll = root.scrollHeight - root.clientHeight;
+      const titleAtEnd = title.getBoundingClientRect().top + scrollY - maxScroll;
+      const push = pb + 32 - titleAtEnd;
+      if (push > 0) tail = Math.ceil(list.getBoundingClientRect().bottom + scrollY - maxScroll - (pb - push));
+    }
+    list.style.marginBottom = `${-tail}px`;
+    scope.style.marginBottom = `${tail}px`;
+    schedule();
+  };
+
+  let key = "";
+  const update = () => {
+    // where the page is too short to keep the chart pinned over the last station (phones, and
+    // tablets/small laptops at the very end), the last station pushes the chart off: it fades
+    // out within its first 32px of travel, so a half-cut chart never shows.
+    const pushed = stickyTop() - planWrap.getBoundingClientRect().top;
+    const fade = pushed > 0.5 ? Math.max(0, 1 - pushed / 32) : 1;
+    planWrap.style.opacity = fade < 1 ? String(fade) : "";
+    planWrap.classList.toggle("is-gone", fade === 0);
+    const planBottom = planWrap.getBoundingClientRect().bottom;
+    const end = atEnd();
+    // how far the page has scrolled since the chart pinned (negative before)
+    const since = stickyTop() - scope.getBoundingClientRect().top;
+    // at rest: the chart hasn't pinned yet, nothing is pinned, and this isn't the page end
+    const rest = pinned < 0 && !end && since < -0.5;
+    // When the chart pins, the first station(s) may already have passed the reading line (tall
+    // screens, a short first station). The line then starts at the first station's top and
+    // sinks to its usual place at half the scroll speed, so each station still gets its turn.
+    let line = readingLine(planBottom);
+    const firstAtPin = sts[0].getBoundingClientRect().top + Math.max(since, 0);
+    if (firstAtPin < line) line = Math.min(line, firstAtPin + 1 + Math.max(since, 0) * 0.5);
+
+    let i = 0;
+    let t = t0;
+    let cur: number[] = [];
+    if (pinned >= 0) {
+      i = pinned;
+      t = early[i] ? ends[i] : starts[i];
+      cur = [i];
+    } else if (!rest) {
+      sts.forEach((s, j) => {
+        if (s.getBoundingClientRect().top <= line) i = j;
+      });
+      if (end) {
+        // the end is today
+        i = sts.length - 1;
+        t = todayFrac;
+        cur = ongoing.includes(i) ? ongoing : [i];
+      } else if (early[i]) {
+        t = ends[i];
+        cur = [i];
+      } else {
+        const box = sts[i].getBoundingClientRect();
+        const last = i === sts.length - 1;
+        if (last) {
+          // the last station runs up to today over the scroll left to the page end
+          const topAtEnd = box.top - (root.scrollHeight - innerHeight - scrollY);
+          const k = (line - box.top) / Math.max(line - topAtEnd, 1);
+          t = starts[i] + (todayFrac - starts[i]) * smooth(k);
+        } else {
+          const k = (line - box.top) / Math.max(box.height, 1);
+          t = starts[i] + (starts[i + 1] - starts[i]) * smooth((k - 0.55) / 0.45);
+        }
+        cur = [i];
+      }
+    }
+
+    // line unclamped, the tag clamped so it always stays fully inside the track
+    const w = grid.clientWidth;
+    const x = frac(t) * w;
+    head.style.left = `${x}px`;
+    if (cur.length === 1 && early[cur[0]]) {
+      // the end month of a station that ends at t (an end counts up to the end of its month)
+      const e = Math.round(ends[cur[0]] * 12) - 1;
+      tag.textContent = `bis ${months[((e % 12) + 12) % 12]} ${Math.floor(e / 12)}`;
+    } else {
+      const m = Math.min(Math.floor((t - Math.floor(t)) * 12 + 1e-6), 11);
+      tag.textContent = `${months[m]} ${Math.floor(t)}`;
+    }
+    const tw = tag.offsetWidth;
+    const tx = Math.min(Math.max(x, tw / 2), w - tw / 2);
+    tag.style.left = `${tx}px`;
+    // "heute" steps aside while the tag is within ~60px of it
+    const g = grid.getBoundingClientRect();
+    const hb = todayLbl.getBoundingClientRect();
+    todayLbl.classList.toggle(
+      "is-hidden",
+      !rest && tx + tw / 2 + 60 > hb.left - g.left && tx - tw / 2 - 60 < hb.right - g.left,
+    );
+
+    // A focused chart row must never scroll the page (the root scroll-padding reserves the
+    // pinned chart, so a row inside it would count as hidden). Each row's scroll area is moved
+    // into the middle of the free space below the chart, wherever the row is right now.
+    const mid = (spTop + innerHeight - spBottom) / 2;
+    for (const r of rows) {
+      const b = r.getBoundingClientRect();
+      r.style.scrollMarginTop = `${b.top - (mid - b.height / 2)}px`;
+      r.style.scrollMarginBottom = `${mid + b.height / 2 - b.bottom}px`;
+    }
+
+    const k = `${rest}|${cur.join(",")}`;
+    if (k !== key) {
+      key = k;
+      scope.classList.toggle("is-rest", rest);
+      sts.forEach((s, j) => s.classList.toggle("is-cur", cur.includes(j)));
+      caption.textContent = rest ? restCap : cur.length > 1 ? endCap : rowAt[cur[0]].dataset.cap!;
+    }
+    const curIds = new Set(cur.map((j) => sts[j].dataset.st));
+    for (const r of rows) {
+      const isCur = curIds.has(r.dataset.row);
+      r.classList.toggle("is-cur", isCur);
+      r.classList.toggle("is-future", !rest && !isCur && Number(r.dataset.start) > t + 0.005);
+    }
+  };
+
+  let raf = 0;
+  function schedule() {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(update);
+  }
+  addEventListener(
+    "scroll",
+    () => {
+      schedule();
+      if (pinned < 0) return;
+      if (restY === null) settle();
+      else if (Math.abs(scrollY - restY) > 4) unpin();
+    },
+    { passive: true },
+  );
+  addEventListener("resize", layout);
+  new ResizeObserver(layout).observe(planWrap);
+  const loaded =
+    document.readyState === "complete" ? Promise.resolve() : new Promise((r) => addEventListener("load", r, { once: true }));
+  Promise.all([document.fonts?.ready, loaded]).then(() => {
+    ready = true;
+    layout();
+  });
+  // a late web font changes the label widths
+  document.fonts?.addEventListener?.("loadingdone", layout);
+  layout();
+  update();
+
+  // the reader's own scrolling releases a pin at once (Tab's scroll-into-view does not)
+  const scrollKeys = new Set(["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "]);
+  addEventListener("wheel", unpin, { passive: true });
+  addEventListener("touchmove", unpin, { passive: true });
+  addEventListener("keydown", (e) => {
+    if (scrollKeys.has(e.key) && !(e.target as HTMLElement).closest?.("input, textarea, select")) unpin();
+  });
+
+  sts.forEach((s, j) => s.addEventListener("focusin", () => pin(j, "focus")));
+  // focus leaving the stations (e.g. wrapping round to the skip link) ends a focus pin
+  list.addEventListener("focusout", (e) => {
+    const to = e.relatedTarget as Node | null;
+    if (pinBy === "focus" && !(to && list.contains(to))) unpin();
+  });
+
+  const pinById = (id: string) => {
+    const j = sts.findIndex((s) => s.dataset.st === id);
+    if (j >= 0) pin(j, "nav");
+    else unpin();
+  };
+  const fromHash = () => pinById(decodeURIComponent(location.hash.slice(1)));
+  for (const r of rows) r.addEventListener("click", () => pinById(r.dataset.row!));
+  // Back/Forward: the browser would restore a scroll position saved before layout, the pin
+  // and the list's bottom space moved things; instead the station is scrolled into place
+  // exactly as a click in the chart puts it (scroll-padding under the pinned chart). History
+  // entries without a station get their own saved position back.
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  let saveT = 0;
+  addEventListener(
+    "scroll",
+    () => {
+      clearTimeout(saveT);
+      saveT = window.setTimeout(() => history.replaceState({ ...(history.state ?? {}), wdY: scrollY }, ""), 200);
+    },
+    { passive: true },
+  );
+  const toStation = (e?: PopStateEvent) => {
+    const el = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    if (el && sts.includes(el)) el.scrollIntoView({ block: "start" });
+    else if (typeof e?.state?.wdY === "number") scrollTo(0, e.state.wdY);
+    fromHash();
+  };
+  // typed hashes, in-page links, Back/Forward: the same as a fresh load with that hash
+  addEventListener("hashchange", () => toStation());
+  addEventListener("popstate", toStation);
+  if (location.hash) fromHash();
+
+  // pointing at a row picks out its station (marked in the gutter only if it is actually in
+  // view below the chart), and a skill name the rows that fed it
+  const peek = (els: Iterable<Element | null>, on: boolean) => {
+    for (const el of els) el?.classList.toggle("is-peek", on);
+  };
+  const inView = (el: HTMLElement) => {
+    const b = el.getBoundingClientRect();
+    const top = planWrap.getBoundingClientRect().bottom;
+    return b.bottom > top + 24 && b.top < innerHeight - tabH() - 24;
+  };
+  for (const r of rows) {
+    const st = document.getElementById(r.dataset.row!);
+    const on = () => peek([r, st && inView(st) ? st : null], true);
+    const off = () => peek([r, st], false);
+    r.addEventListener("pointerenter", on);
+    r.addEventListener("pointerleave", off);
+    r.addEventListener("focus", on);
+    r.addEventListener("blur", off);
+  }
+  for (const c of document.querySelectorAll<HTMLElement>("[data-skill]")) {
+    const fed = rows.filter((r) => r.dataset.skills!.split(" ").includes(c.dataset.skill!));
+    c.addEventListener("pointerenter", () => peek(fed, true));
+    c.addEventListener("pointerleave", () => peek(fed, false));
+  }
+</script>
+
 <style>
-  .page {
+  /* ---------- page head ---------- */
+  .page-head {
     padding-top: 2.5rem;
+    padding-bottom: 1.25rem;
   }
 
   @media (min-width: 64rem) {
-    .page {
-      padding-top: 4rem;
-    }
-    /* the axis sticks to the top here: keep anchored/focused rows below it
-       (:root outranks the plain html rule in global.css) */
-    :global(:root) {
-      scroll-padding-top: 7.5rem;
+    .page-head {
+      padding-top: 3rem;
     }
   }
 
-  /* dates column width, shared by axis and rows so tracks line up with the ticks */
-  .axis-wrap,
-  .row {
-    --when-w: 0rem;
+  .lede {
+    margin-top: 1rem;
+    max-width: 38rem;
+    color: var(--ink-2);
   }
 
-  @media (min-width: 40rem) {
-    .axis-wrap,
-    .row {
-      --when-w: 11rem;
-    }
-  }
-
-  .axis-wrap {
-    margin-top: 2.5rem;
-    padding: 0.75rem 0 0.5rem var(--when-w);
-    background: var(--paper);
-    border-bottom: 1px solid var(--line);
-  }
-
-  @media (min-width: 64rem) {
-    .axis-wrap {
-      position: sticky;
-      top: 0;
-      z-index: 5;
-      /* also cover the gutter, where a :target row draws its marker bar */
-      box-shadow: -1rem 0 0 var(--paper);
-    }
-  }
-
-  .legend {
+  .key {
+    margin-top: 1rem;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem 1.25rem;
-    font-size: 0.875rem;
+    gap: 0.4rem 1.5rem;
+    font-size: 0.8125rem;
     color: var(--ink-2);
   }
 
-  .legend span {
+  .key span {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
+    gap: 0.5rem;
   }
 
-  .sw {
+  /* the same pennant as on the chart */
+  .k-flag {
+    display: inline-block;
+    width: 0.75rem;
+    height: 0.9rem;
+    border-left: 1.5px solid var(--ink);
+    position: relative;
+  }
+  .k-flag::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0.6rem;
+    height: 0.5rem;
+    background: var(--ink);
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+  }
+  .k-cur {
     display: inline-block;
     width: 1.5rem;
-    height: 0.625rem;
+    height: 0.5rem;
+    border-radius: 2px;
+    background: var(--c-edu);
+    box-shadow:
+      0 0 0 2px var(--bg),
+      0 0 0 3.5px var(--ink);
+    margin: 0 0.2rem;
+  }
+  :global(html:not(.js)) .js-key {
+    display: none;
   }
 
-  .sw-beruf {
-    background: var(--navy);
+  /* category colours (tokens in global.css): lanes, bars, station tags */
+  [data-cat="ausbildung"] {
+    --c: var(--c-edu);
+  }
+  [data-cat="arbeiten"] {
+    --c: var(--c-thesis);
+  }
+  [data-cat="praxis"] {
+    --c: var(--c-work);
   }
 
-  .sw-ausb {
-    background: var(--pinstripe);
-    box-shadow: inset 0 0 0 1px var(--navy);
+  /* ---------- the plan: pinned under the top bar (with JS) ---------- */
+  .plan-wrap {
+    --lbl: 0rem; /* lane label column; phones have none */
+    --bar: 6px;
+    /* one line of a lane: label zone, bar, gap; --fx extra below a line with a flag, --drop how
+       far a flag pole reaches below the bar top */
+    --lz: 0.3rem;
+    --gap: 0.15rem;
+    --drop: 0.6rem;
+    --fx: 0.5rem;
+    --pitch: calc(var(--lz) + var(--bar) + var(--gap));
+    background: var(--bg);
+    border-bottom: 1px solid color-mix(in srgb, var(--ink) 25%, transparent);
+    padding: 0.375rem 0 0.5rem;
   }
 
-  .sw-now {
-    width: 0;
-    height: 1rem;
-    border-left: 2px solid var(--navy);
+  /* 1px under the top bar's rule (the bar paints above), so no slit can open between them */
+  :global(html.js) .plan-wrap {
+    position: sticky;
+    top: calc(var(--top-bar-h, calc(var(--top-h) + 1.5px)) - 1px);
+    z-index: 30;
+  }
+  /* faded out while the last station pushes it off (script, phones) */
+  .plan-wrap.is-gone {
+    visibility: hidden;
   }
 
-  .axis {
-    position: relative;
-    height: 1.25rem;
-    margin-top: 0.9rem;
-    font-size: 0.75rem;
-    color: var(--ink-2);
-  }
-
-  .axis span {
+  /* text below fades out under the chart instead of being sliced */
+  :global(html.js) .plan-wrap::after {
+    content: "";
     position: absolute;
-    top: 0;
-    transform: translateX(-50%);
-    white-space: nowrap;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 28px;
+    margin-top: 1px;
+    background: linear-gradient(var(--bg), color-mix(in srgb, var(--bg) 0%, transparent));
+    pointer-events: none;
   }
 
-  .axis span:first-child {
-    transform: none;
+  @media (min-width: 48rem) {
+    .plan-wrap {
+      --lbl: 11.5rem;
+      --bar: 8px;
+      --lz: 1.25rem;
+      --gap: 0.4rem;
+      --drop: 0.85rem;
+      --fx: 0.8rem;
+      padding: 0.5rem 0 0.625rem;
+    }
   }
 
-  /* narrow phones: every second year is enough */
-  @media (max-width: 26rem) {
-    .axis .odd {
+  @media (min-width: 64rem) {
+    :global(html.js) .plan-wrap {
+      top: 0;
+    }
+  }
+
+  /* without JS the lines are packed from an estimate of the label widths, which only holds
+     on wide screens (at 768-1279px labels collided): below 80rem the chart is left out, the
+     station list below is the content */
+  @media (max-width: 79.99rem) {
+    :global(html:not(.js)) .plan-wrap {
       display: none;
     }
   }
 
-  .list {
-    margin-top: 0.5rem;
+  /* anchors and focus land below the pinned chart (and the top bar on phones) */
+  :global(html.js:root) {
+    scroll-padding-top: calc(var(--top-h) + var(--plan-h, 15rem) + 1rem);
+  }
+  @media (min-width: 64rem) {
+    :global(html.js:root) {
+      scroll-padding-top: calc(var(--plan-h, 16rem) + 1rem);
+    }
   }
 
-  .row {
-    display: grid;
-    grid-template-columns: var(--when-w) minmax(0, 1fr);
-    padding: 1.75rem 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .when {
-    font-size: 0.875rem;
-    color: var(--ink-2);
-    padding-top: 0.2rem;
-    grid-column: 1 / -1;
-  }
-
-  .body {
-    grid-column: 1 / -1;
-  }
-
-  /* reached via a link from the home skill hub: mark the row it points to */
-  /* (a navy bar in the gutter; a tint would hide the sky-wash track) */
-  .row {
+  .plan {
     position: relative;
   }
 
-  .row:target::before {
+  .axis {
+    display: grid;
+    grid-template-columns: var(--lbl) minmax(0, 1fr);
+    height: 1.125rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+
+  .axis-track {
+    grid-column: 2;
+    position: relative;
+    height: 100%;
+  }
+
+  .year {
+    position: absolute;
+    bottom: 0.25rem;
+    padding-left: 0.3rem;
+    line-height: 1;
+  }
+
+  /* the top strip of the body holds the playhead's date tag and "heute" */
+  .body {
+    position: relative;
+    border-top: 1.5px solid var(--ink);
+    padding-top: calc(0.9rem + 4px);
+  }
+
+  /* year lines, "heute" and the playhead share the track column. The grid is no stacking
+     context of its own, so its pieces layer with the lanes: year lines under the bars, the
+     "heute" line and the playhead over the bars but under the labels (z 2, with a page-coloured
+     backing), the date tag and "heute" on top of everything. */
+  .grid {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--lbl);
+    right: 0;
+    pointer-events: none;
+  }
+
+  .grid i {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-left: 1px solid var(--line);
+  }
+
+  .today {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-left: 1.5px dashed var(--ink-2);
+    z-index: 1;
+  }
+
+  .today-lbl,
+  .head-tag {
+    position: absolute;
+    top: 0;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  /* right-aligned to the dashed line, at its top end */
+  .today-lbl {
+    transform: translateX(calc(-100% - 4px));
+    color: var(--ink);
+    padding: 1px 0;
+    z-index: 3;
+  }
+  .today-lbl.is-hidden {
+    visibility: hidden;
+  }
+
+  /* the playhead's date, at the top of its line (clamped inside the track by the script) */
+  .head-tag {
+    transform: translateX(-50%);
+    padding: 1px 5px;
+    background: var(--ink);
+    color: var(--paper);
+    font-weight: 700;
+    z-index: 4;
+    display: none;
+  }
+
+  .playhead {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-left: 1.5px solid var(--ink);
+    z-index: 1;
+    display: none;
+  }
+
+  :global(html.js) .playhead,
+  :global(html.js) .head-tag {
+    display: block;
+    transition: opacity 0.25s;
+  }
+  /* at rest (page top) the chart is a plain plan: no playhead */
+  .scope.is-rest .playhead,
+  .scope.is-rest .head-tag {
+    opacity: 0;
+  }
+
+  /* ---------- lanes: the category on the left, its stations on as many lines as they need ---------- */
+  .lane {
+    display: grid;
+    grid-template-columns: var(--lbl) minmax(0, 1fr);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .lane:last-child {
+    border-bottom: 0;
+  }
+
+  /* phones: the lane's name, small, at its start above its bars */
+  .lane-lbl {
+    grid-column: 1 / -1;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    width: max-content;
+    margin-top: 0.2rem;
+    padding-right: 3px;
+    background: var(--bg);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+  .lane-lbl small {
+    display: none;
+  }
+
+  .lane-lbl i {
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 2px;
+    background: var(--c);
+  }
+
+  @media (min-width: 48rem) {
+    .lane-lbl {
+      grid-column: 1;
+      align-items: flex-start;
+      gap: 0.55rem;
+      width: auto;
+      margin-top: 0;
+      padding: 0.5rem 1rem 0.5rem 0;
+      background: none;
+      font-size: 0.875rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+    .lane-lbl small {
+      display: block;
+      margin-top: 0.1rem;
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: var(--ink-2);
+    }
+    .lane-lbl i {
+      width: 0.75rem;
+      height: 0.75rem;
+      margin-top: 0.15rem;
+    }
+  }
+
+  /* Each station sits on a line (--line, set by the packing, --fb = lines with flags above it).
+     A line is the label zone (--lz), the bar and a gap; a line with a flag gets --fx more room
+     below for the flag and its name. */
+  .lane-track {
+    grid-column: 2;
+    position: relative;
+    min-width: 0;
+    margin: 0.2rem 0;
+    height: calc(var(--lines) * var(--pitch) + var(--flag-lines) * var(--fx));
+  }
+
+  /* the station: a link covering its label and bar */
+  .seg {
+    position: absolute;
+    top: calc(var(--line) * var(--pitch) + var(--fb) * var(--fx));
+    height: calc(var(--lz) + var(--bar));
+    min-width: 0.4rem;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .seg:focus-visible {
+    outline-offset: 2px;
+  }
+
+  .seg-lbl {
+    display: none;
+  }
+
+  /* labels sit on a page-coloured backing above the grid lines and the playhead, with 2px
+     clear between their descenders and the current station's ring */
+  @media (min-width: 48rem) {
+    .seg-lbl {
+      display: block;
+      position: absolute;
+      z-index: 2;
+      left: -2px;
+      top: 0;
+      max-width: var(--lbl-max);
+      padding: 0 2px;
+      background: var(--bg);
+      font-size: 0.75rem;
+      font-weight: 600;
+      line-height: 1.15;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color 0.25s;
+    }
+    .seg-right .seg-lbl {
+      left: auto;
+      right: -2px;
+    }
+  }
+
+  .bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--bar);
+    border-radius: 2px;
+    background: var(--c);
+    transition:
+      opacity 0.25s,
+      box-shadow 0.2s;
+  }
+
+  /* milestone: a filled pennant on a pole that hangs from the bar, its short name beside it */
+  .flag {
+    position: absolute;
+    top: calc(var(--line) * var(--pitch) + var(--fb) * var(--fx) + var(--lz));
+    height: calc(var(--bar) + var(--drop));
+    border-left: 1.5px solid var(--ink);
+    z-index: 2;
+  }
+
+  .flag::after {
     content: "";
     position: absolute;
-    left: -0.75rem;
-    top: 1rem;
-    bottom: 1rem;
-    border-left: 4px solid var(--navy);
+    left: 0;
+    bottom: 0;
+    width: 0.6rem;
+    height: 0.5rem;
+    background: var(--ink);
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
   }
 
-  @media (min-width: 40rem) {
-    .when {
-      grid-column: 1;
+  .flag-lbl {
+    display: none;
+  }
+
+  @media (min-width: 48rem) {
+    .flag-lbl {
+      display: block;
+      position: absolute;
+      left: calc(0.75rem - 2px);
+      bottom: -0.2rem;
+      padding: 0 2px;
+      background: var(--bg);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
     }
-    .body {
-      grid-column: 2;
+    /* near the chart's right edge the flag's name sits left of the pole */
+    .flag-left .flag-lbl {
+      left: auto;
+      right: 0.3rem;
     }
   }
 
-  /* one title size for every full row; the theses stand out by linking to their case study */
+  /* ---------- states (JS): the station being read gets an ink ring, later ones are pale; at
+     rest everything is at full strength. Flags stay filled: the playhead shows progress. ---------- */
+  .seg.is-future .bar {
+    opacity: 0.3;
+  }
+  .seg.is-future .seg-lbl {
+    color: var(--ink-3);
+  }
+  .seg.is-cur .bar {
+    opacity: 1;
+    box-shadow:
+      0 0 0 2px var(--bg),
+      0 0 0 3.5px var(--ink);
+  }
+  .seg.is-cur .seg-lbl {
+    font-weight: 800;
+  }
+
+  /* pointed at (the bar, or a skill name below): a dashed ring, so it never looks current */
+  .seg.is-peek .bar {
+    opacity: 1;
+    outline: 1.5px dashed var(--ink);
+    outline-offset: 3px;
+  }
+  .seg.is-peek .seg-lbl {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  /* phones: the chart has no labels, so one line names the current station */
+  .plan-cap {
+    display: none;
+  }
+
+  @media (max-width: 47.99rem) {
+    :global(html.js) .plan-cap {
+      display: block;
+      margin-top: 0.375rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      line-height: 1.3;
+      color: var(--ink);
+      /* up to two lines, never cut off; two lines reserved so the chart height stays put */
+      min-height: 2.6em;
+    }
+  }
+
+  /* the chart's sticky scope (its bottom is set by the script); flow-root keeps the list's
+     negative margin from collapsing through it */
+  .scope {
+    display: flow-root;
+  }
+
+  /* ---------- stations: meta | story, tasks, milestone | facts, software, picture ---------- */
+  .stations {
+    padding-top: 1rem;
+    /* with JS, the script sets exactly the room the last station needs to reach the reading line */
+    padding-bottom: 2rem;
+  }
+
+  .st {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 0;
+    padding: 3rem 0;
+  }
+
+  .st + .st {
+    border-top: 1px solid var(--line);
+  }
+
+  .st-minor {
+    padding: 1.5rem 0;
+  }
+
+  /* phones: the title first, then the meta line, then the rest */
+  .main {
+    display: contents;
+  }
   .title {
-    font-size: 1.25rem;
+    order: 1;
+  }
+  .meta {
+    order: 2;
+  }
+  .main > :global(*:not(.title)) {
+    order: 3;
+  }
+  .side {
+    order: 4;
+  }
+
+  @media (min-width: 48rem) {
+    .st {
+      grid-template-columns: 11.5rem minmax(0, 1fr);
+      grid-template-areas:
+        "meta main"
+        "meta side";
+      column-gap: 2.5rem;
+    }
+    .main {
+      display: block;
+      grid-area: main;
+      min-width: 0;
+    }
+    .meta {
+      grid-area: meta;
+    }
+    .side {
+      grid-area: side;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .st {
+      grid-template-columns: 11.5rem minmax(0, 1fr) 16rem;
+      grid-template-areas: "meta main side";
+    }
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem 0.5rem;
+    margin-top: 0.6rem;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 48rem) {
+    .meta {
+      display: grid;
+      gap: 0.3rem;
+      margin-top: 0.2rem;
+    }
+  }
+
+  .cat {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
     font-weight: 700;
-    line-height: 1.3;
+    color: var(--ink);
+  }
+
+  .cat i {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 2px;
+    background: var(--c);
+  }
+
+  .when {
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* the station's colour, once more, as a short bar above its title */
+  .title {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    hyphens: auto;
+    overflow-wrap: anywhere;
+  }
+
+  .title::before {
+    content: "";
+    display: block;
+    width: 2.5rem;
+    height: 6px;
+    border-radius: 2px;
+    margin-bottom: 0.9rem;
+    background: var(--c);
+  }
+
+  .st-minor .title {
+    font-size: 1.3125rem;
+  }
+
+  .st-minor .title::before {
+    width: 1.5rem;
+    height: 4px;
+    margin-bottom: 0.6rem;
   }
 
   .title-link {
-    color: var(--navy);
+    color: inherit;
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 0.18em;
@@ -263,77 +1436,287 @@ const todayPct = pct(todayFrac);
 
   .title-link:hover {
     text-decoration-thickness: 2px;
-    text-decoration-color: var(--navy);
+    text-decoration-color: var(--ink);
   }
 
-  .org {
-    color: var(--ink-2);
-  }
-
-  /* each track carries a thin "heute" line, so ongoing stations visibly touch today */
-  .track {
-    position: relative;
-    height: 0.75rem;
-    margin: 0.9rem 0;
-    background: var(--sky-wash);
-  }
-
-  .track::after {
-    content: "";
-    position: absolute;
-    left: var(--today);
-    top: -0.25rem;
-    bottom: -0.25rem;
-    border-left: 2px solid var(--navy);
-    transform: translateX(-1px);
-  }
-
-  .bar {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    min-width: 5px;
-  }
-
-  .bar-beruf {
-    background: var(--navy);
-  }
-
-  .bar-ausb {
-    background: var(--pinstripe);
-    box-shadow: inset 0 0 0 1px var(--navy);
+  .main > :global(.ph-block) {
+    margin-top: 1rem;
   }
 
   .story {
-    max-width: var(--measure);
+    font-size: 1.1875rem;
+    transition: color 0.3s;
   }
 
-  /* minor stations: one line and a thin track, no story. They happened,
-     but they shouldn't get the same room as the main ones. */
-  .row-minor {
-    padding: 0.9rem 0;
+  .st-minor .story {
+    font-size: 1.0625rem;
   }
 
-  .row-minor .when {
-    padding-top: 0;
+  .tasks {
+    margin-top: 0.9rem;
+    display: grid;
+    gap: 0.45rem;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    list-style: none;
+    transition: color 0.3s;
   }
 
-  .row-minor .title {
-    font-size: 1rem;
-    font-weight: 400;
+  .tasks li {
+    position: relative;
+    padding-left: 1.1rem;
   }
 
-  .org-inline {
+  /* a short dash in the station's colour */
+  .tasks li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.68em;
+    width: 0.5rem;
+    height: 2px;
+    background: var(--c);
+  }
+
+  /* always the middle column's width; the label, then the date */
+  .ms-box {
+    margin-top: 1.25rem;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.9rem;
+    background: var(--paper);
+    border-left: 3px solid var(--ink);
+    font-size: 0.9375rem;
+    line-height: 1.35;
+  }
+
+  .ms-box strong {
+    display: block;
+    font-weight: 700;
+  }
+
+  .ms-date {
+    display: block;
+    font-size: 0.8125rem;
     color: var(--ink-2);
   }
 
-  .row-minor .track {
-    height: 0.375rem;
-    margin: 0.5rem 0 0;
+  .ms-flag {
+    flex: none;
+  }
+  .ms-flag path:first-child {
+    stroke: var(--ink);
+    stroke-width: 1.75;
+  }
+  .ms-flag path:last-child {
+    fill: var(--ink);
   }
 
-  .row-minor .track::after {
-    top: -0.2rem;
-    bottom: -0.2rem;
+  .visual {
+    margin-top: 1.5rem;
+    max-width: 24rem;
+  }
+
+  .skills {
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+
+  /* pointing at a skill picks out the stations that fed it */
+  .skill {
+    cursor: default;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    transition: text-decoration-color 0.2s;
+  }
+
+  .skill:hover {
+    text-decoration-color: var(--ink-2);
+  }
+
+  /* ---------- side: facts, software, picture ---------- */
+  .side {
+    display: grid;
+    gap: 1.25rem;
+    align-content: start;
+    margin-top: 1.5rem;
+    min-width: 0;
+  }
+
+  /* tablets: the side sits under the story, facts and software on the left, the picture on
+     the right, so a station doesn't grow by a full-width picture */
+  @media (min-width: 48rem) and (max-width: 63.99rem) {
+    .side {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 1.5rem;
+    }
+    .side > :global(.img-ph) {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .side {
+      margin-top: 0.2rem;
+    }
+  }
+
+  .facts {
+    border-top: 1.5px solid var(--ink);
+    font-size: 0.875rem;
+    line-height: 1.35;
+  }
+
+  .facts div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .facts dt {
+    color: var(--ink-2);
+  }
+
+  .facts dd {
+    font-weight: 700;
+    text-align: right;
+  }
+
+  .tools-lbl {
+    margin-bottom: 0.6rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+
+  .tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem 0.75rem;
+    list-style: none;
+  }
+
+  /* wide enough that two-word names break once, between the words */
+  .tool {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    width: 4.75rem;
+    text-align: center;
+  }
+
+  .tool-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.25rem;
+    max-width: 100%;
+  }
+
+  .tool-logo :global(svg) {
+    display: block;
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+  }
+
+  .tool-name {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    line-height: 1.25;
+    color: var(--ink-2);
+    text-wrap: balance;
+  }
+
+  /* no free logo: dashed magenta monogram = marked logo placeholder */
+  .tool-mono {
+    display: grid;
+    place-items: center;
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding: 0 0.15rem;
+    border: 1.5px dashed var(--ph);
+    border-radius: 4px;
+    color: var(--ph);
+    font-size: 0.8125rem;
+    font-weight: 800;
+  }
+
+  /* with JS the stories you're not reading step back (by colour, still 4.5:1); titles, dates
+     and facts stay put, and at rest (page top) nothing steps back */
+  :global(html.js) .scope:not(.is-rest) .st:not(.is-cur):not(.is-peek) .story,
+  :global(html.js) .scope:not(.is-rest) .st:not(.is-cur):not(.is-peek) .tasks {
+    color: var(--ink-3);
+  }
+
+  /* reached via a link, or pointed at from the plan while in view: an ink bar in the gutter,
+     clear of the placeholder's dashed rule at -0.75rem */
+  .st.is-peek::before,
+  .st:target::before {
+    content: "";
+    position: absolute;
+    left: -1.15rem;
+    top: 3rem;
+    bottom: 3rem;
+    border-left: 3px solid var(--ink);
+  }
+  .st-minor.is-peek::before,
+  .st-minor:target::before {
+    top: 1.5rem;
+    bottom: 1.5rem;
+  }
+  @media (min-width: 40rem) {
+    .st.is-peek::before,
+    .st:target::before {
+      left: -1.5rem;
+    }
+  }
+
+  /* ---------- ending: the band runs to the page end ---------- */
+  :global(main.content#inhalt) {
+    padding-bottom: 0;
+  }
+
+  .end {
+    background: var(--wash);
+    border-top: 1.5px solid var(--ink);
+    padding: 2rem 0 calc(1.5rem + 4.75rem + env(safe-area-inset-bottom));
+  }
+
+  @media (min-width: 64rem) {
+    .end {
+      padding: 3rem 0;
+    }
+  }
+
+  .end-line {
+    font-family: var(--serif);
+    font-size: clamp(1.25rem, 1rem + 0.8vw, 1.625rem);
+    line-height: 1.4;
+    max-width: 38rem;
+  }
+
+  .end-line a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+    text-decoration-color: var(--steel);
+  }
+
+  .end-line a:hover {
+    text-decoration-thickness: 2px;
+    text-decoration-color: var(--ink);
   }
 </style>

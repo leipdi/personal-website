@@ -60,7 +60,7 @@ const languages = byLevel("Sprachen");
       <section class="wide" aria-labelledby="k-meth">
         <h2 id="k-meth" class="h2">Kernkompetenzen und wo sie herkommen</h2>
         <Placeholder kind="vorschlag" note="Kompetenzen wie auf der Startseite, Zuordnung von CV-Methoden und Stationen">
-          <dl class="pairs">
+          <dl class="pairs pairs-stack">
             {
               topSkills.map((sk) => {
                 const terms = competencies.filter((c) => c.skill === sk.id).map((c) => c.name);
@@ -116,7 +116,7 @@ const languages = byLevel("Sprachen");
 
   @media (min-width: 64rem) {
     .page {
-      padding-top: 4rem;
+      padding-top: 3rem;
     }
   }
 
@@ -141,11 +141,14 @@ const languages = byLevel("Sprachen");
     }
   }
 
+  /* section heads: quiet grotesk labels, not display */
   .h2 {
-    font-size: 1.125rem;
+    font-size: 1.25rem;
     font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.2;
     padding-bottom: 0.6rem;
-    border-bottom: 2px solid var(--navy);
+    border-bottom: 1.5px solid var(--ink);
   }
 
   /* levels: small level word, large skill names */
@@ -216,6 +219,10 @@ const languages = byLevel("Sprachen");
     .pairs dd {
       margin-top: 0;
     }
+    /* core skills: the sources sit right under the skill name and its CV terms, one column */
+    .pairs-stack > div {
+      display: block;
+    }
   }
 
   .terms {
@@ -227,12 +234,19 @@ const languages = byLevel("Sprachen");
     color: var(--ink-2);
   }
 
-  .where li + li {
-    margin-top: 0.15rem;
+  .pairs-stack dd {
+    margin-top: 0.35rem;
+  }
+
+  /* the sources as one run of links, directly under the skill */
+  .where {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem 1.25rem;
   }
 
   /* reached via a link from the home skill hub: mark the row it points to
-     (a navy bar in the gutter, it doesn't shift the row) */
+     (an ink bar in the gutter, it doesn't shift the row) */
   .pairs > div {
     position: relative;
   }
@@ -243,7 +257,7 @@ const languages = byLevel("Sprachen");
     left: -0.75rem;
     top: 0.6rem;
     bottom: 0.6rem;
-    border-left: 4px solid var(--navy);
+    border-left: 4px solid var(--ink);
   }
 
   .others {

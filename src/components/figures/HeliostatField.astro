@@ -1,0 +1,328 @@
+---
+// Home hero: a heliostat field seen from the side, with the page's text in its sky (slot).
+// The pointer is the sun; every mirror turns so the light lands on the receiver (the
+// geometry of the owner's DLR thesis). Without a pointer the sun drifts slowly along a
+// day arc, kept clear of the text and inside the visible slice; with prefers-reduced-motion
+// it stays put until moved. Without JS the field is the server-rendered picture at the
+// resting sun position.
+import { FIELD, ROWS, SUN_START, fieldEfficiency, f1, poses, rayOpacity, receiverGlow } from "../../lib/heliostat";
+
+const front = ROWS.length - 1;
+const start = poses(SUN_START.x, SUN_START.y);
+const glow = receiverGlow(fieldEfficiency(start, SUN_START.y));
+const { tower: T, receiver: R, ground } = FIELD;
+---
+
+<div class="field-wrap" data-field>
+  <svg
+    class="field"
+    viewBox={`0 0 ${FIELD.w} ${FIELD.h}`}
+    preserveAspectRatio="xMaxYMax slice"
+    aria-hidden="true"
+    data-field-svg
+  >
+    <defs>
+      <radialGradient id="hf-halo">
+        <stop offset="0" stop-color="var(--sun)" stop-opacity="0.55"></stop>
+        <stop offset="1" stop-color="var(--sun)" stop-opacity="0"></stop>
+      </radialGradient>
+    </defs>
+
+    <!-- light first, so posts, mirrors and tower sit on top of it.
+         Incoming (sun to mirror): thin dashed steel, front row only (all rows made a moiré fan
+         at the sun). Reflected (mirror to receiver): sun, for every row. -->
+    <g class="rays-in">
+      {
+        start
+          .filter((m) => m.row === front)
+          .map((m) => <line x1={SUN_START.x} y1={SUN_START.y} x2={f1(m.px)} y2={f1(m.py)} />)
+      }
+    </g>
+    <g class="rays-out">
+      {
+        start.map((m) => (
+          <line x1={f1(m.px)} y1={f1(m.py)} x2={R.x} y2={R.y} style={`opacity:${rayOpacity(m).toFixed(2)}`} />
+        ))
+      }
+    </g>
+
+    <circle class="halo" cx={SUN_START.x} cy={SUN_START.y} r="70" data-halo></circle>
+    <circle class="sun" cx={SUN_START.x} cy={SUN_START.y} r="20" data-sun></circle>
+
+    <line class="ground" x1="0" x2={FIELD.w} y1={ground} y2={ground}></line>
+    <g class="posts">
+      {start.map((m) => <line class={`r${m.row}`} x1={m.px} x2={m.px} y1={m.base} y2={m.py} />)}
+    </g>
+    <g class="mirrors">
+      {start.map((m) => <line class={`r${m.row}`} x1={f1(m.x1)} y1={f1(m.y1)} x2={f1(m.x2)} y2={f1(m.y2)} />)}
+    </g>
+
+    <rect class="tower" x={T.x} y={T.top} width={T.w} height={ground - T.top}></rect>
+    <circle
+      class="rec-glow"
+      cx={R.x}
+      cy={R.y}
+      r={f1(glow.r)}
+      style={`opacity:${glow.opacity.toFixed(2)}`}
+      data-rec
+    ></circle>
+    <rect class="receiver" x={R.x - 20} y={R.y - 16} width="40" height="32"></rect>
+  </svg>
+
+  <div class="field-text" data-field-text>
+    <slot />
+  </div>
+</div>
+
+<script>
+  import { FIELD, ROWS, SUN_START, clampSun, fieldEfficiency, poses, rayOpacity, receiverGlow } from "../../lib/heliostat";
+
+  const FRONT = ROWS.length - 1;
+
+  for (const wrap of document.querySelectorAll<HTMLElement>("[data-field]")) {
+    const svg = wrap.querySelector<SVGSVGElement>("[data-field-svg]")!;
+    const text = wrap.querySelector<HTMLElement>("[data-field-text]")!;
+    const inRays = [...svg.querySelectorAll<SVGLineElement>(".rays-in line")];
+    const outRays = [...svg.querySelectorAll<SVGLineElement>(".rays-out line")];
+    const mirrors = [...svg.querySelectorAll<SVGLineElement>(".mirrors line")];
+    const sun = svg.querySelector<SVGCircleElement>("[data-sun]")!;
+    const halo = svg.querySelector<SVGCircleElement>("[data-halo]")!;
+    const rec = svg.querySelector<SVGCircleElement>("[data-rec]")!;
+    const set = (el: Element, a: Record<string, number | string>) => {
+      for (const k in a) el.setAttribute(k, typeof a[k] === "number" ? (a[k] as number).toFixed(1) : String(a[k]));
+    };
+
+    let cur = { ...SUN_START };
+    const place = (x: number, y: number) => {
+      cur = clampSun(x, y);
+      const p = poses(cur.x, cur.y);
+      let k = 0;
+      p.forEach((m, i) => {
+        set(mirrors[i], { x1: m.x1, y1: m.y1, x2: m.x2, y2: m.y2 });
+        if (m.row === FRONT) set(inRays[k++], { x1: cur.x, y1: cur.y });
+        outRays[i].style.opacity = rayOpacity(m).toFixed(2);
+      });
+      set(sun, { cx: cur.x, cy: cur.y });
+      set(halo, { cx: cur.x, cy: cur.y });
+      const g = receiverGlow(fieldEfficiency(p, cur.y));
+      set(rec, { r: g.r });
+      rec.style.opacity = g.opacity.toFixed(2);
+    };
+
+    // screen x -> viewBox x (handles the "slice" crop on narrow screens)
+    const toFieldX = (clientX: number) => {
+      const m = svg.getScreenCTM();
+      return m ? new DOMPoint(clientX, 0).matrixTransform(m.inverse()).x : null;
+    };
+
+    // pointer -> viewBox coordinates
+    const toField = (e: PointerEvent) => {
+      const m = svg.getScreenCTM();
+      if (!m) return null;
+      return new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+    };
+
+    // The drift range: what is visible of the viewBox, minus the text where it overlays the
+    // field (>= 48rem; below that the text sits above the field). Recomputed on resize.
+    const MARGIN = 60; // sun radius plus air, in viewBox units
+    let lo = 320;
+    let hi = FIELD.last + 60;
+    const measure = () => {
+      const box = svg.getBoundingClientRect();
+      const visL = toFieldX(box.left);
+      const visR = toFieldX(box.right);
+      if (visL === null || visR === null) return;
+      let textR = -Infinity;
+      if (matchMedia("(min-width: 48rem)").matches) {
+        // the right edge of the actual words, not of the full-width block
+        for (const el of text.querySelectorAll("h1, p")) {
+          const r = document.createRange();
+          r.selectNodeContents(el);
+          const right = toFieldX(r.getBoundingClientRect().right);
+          if (right !== null) textR = Math.max(textR, right);
+        }
+      }
+      const top = FIELD.last + 60;
+      const right = Math.min(top, visR - MARGIN);
+      lo = Math.max(visL, textR) + MARGIN;
+      hi = right;
+      // too little room beside the text: drift within what is visible
+      if (hi - lo < 120) {
+        lo = visL + MARGIN;
+        hi = right;
+      }
+      if (hi < lo) hi = lo;
+    };
+    measure();
+    let resizeRaf = 0;
+    addEventListener("resize", () => {
+      cancelAnimationFrame(resizeRaf);
+      resizeRaf = requestAnimationFrame(measure);
+    });
+    document.fonts?.ready.then(measure);
+
+    let active = false;
+    let raf = 0;
+    const follow = (e: PointerEvent) => {
+      const pt = toField(e);
+      if (!pt) return;
+      active = true;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => place(pt.x, pt.y));
+    };
+    wrap.addEventListener("pointermove", follow);
+    wrap.addEventListener("pointerdown", follow);
+    wrap.addEventListener("pointerleave", () => {
+      active = false;
+      lastT = 0;
+    });
+
+    // idle: the sun drifts along a flat day arc between lo and hi, starting from wherever it
+    // was left (if that is outside the range, it travels back in rather than jumping)
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+    let lastT = 0;
+    let visible = true;
+    new IntersectionObserver(([en]) => (visible = en.isIntersecting)).observe(wrap);
+    let dir = 1;
+    const drift = (t: number) => {
+      if (!active && visible && !reduce.matches) {
+        const dt = lastT ? Math.min(t - lastT, 50) : 0;
+        if (cur.x >= hi) dir = -1;
+        else if (cur.x <= lo) dir = 1;
+        let x = cur.x + dir * dt * 0.02; // ~20 viewBox units per second
+        if (cur.x >= lo && cur.x <= hi) x = Math.min(Math.max(x, lo), hi);
+        // the arc: highest in the middle of the range, lower at both ends
+        const k = hi > lo ? Math.min(Math.max((x - lo) / (hi - lo), 0), 1) : 0.5;
+        const target = 70 + 143 * (2 * k - 1) ** 2;
+        // ease toward the arc, so handing over from the pointer doesn't jump
+        const y = cur.y + (target - cur.y) * Math.min(1, dt * 0.004);
+        place(x, y);
+      }
+      lastT = t;
+      requestAnimationFrame(drift);
+    };
+    requestAnimationFrame(drift);
+  }
+</script>
+
+<style>
+  /* phones: text first, the field in its own strip below (overlaying it made the
+     cropped tower collide with the text) */
+  .field-wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    touch-action: pan-y;
+  }
+
+  /* the crosshair promises that the sun follows the pointer, which needs JS */
+  :global(html.js) .field-wrap {
+    cursor: crosshair;
+  }
+
+  .field {
+    order: 2;
+    display: block;
+    width: 100%;
+    height: 17rem;
+    margin-top: 0.5rem;
+  }
+
+  .field-text {
+    order: 1;
+    position: relative;
+    pointer-events: none;
+  }
+
+  /* wider: the text sits in the field's sky */
+  @media (min-width: 48rem) {
+    .field-wrap {
+      display: block;
+      /* never wider than the viewBox's 1440:560, or "slice" would crop the sky (and the
+         sun) off the top on wide screens */
+      height: max(clamp(27rem, 72vh, 38rem), calc(100vw * 560 / 1440));
+    }
+    .field {
+      position: absolute;
+      inset: 0;
+      height: 100%;
+      margin: 0;
+    }
+  }
+
+  /* links inside the text stay clickable */
+  .field-text :global(a) {
+    pointer-events: auto;
+  }
+
+  /* incoming light: thin, dashed, quiet steel, so the sun-coloured reflected rays read as the light that arrives */
+  .rays-in line {
+    stroke: var(--steel);
+    stroke-width: 1;
+    stroke-dasharray: 3 6;
+    stroke-opacity: 0.45;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .rays-out line {
+    stroke: var(--sun);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .halo {
+    fill: url(#hf-halo);
+  }
+
+  .sun {
+    fill: var(--sun);
+  }
+
+  .ground {
+    stroke: var(--ink);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .posts line {
+    stroke: var(--ink);
+    stroke-width: 3;
+  }
+
+  .mirrors line {
+    stroke: var(--steel);
+    stroke-width: 6;
+    stroke-linecap: round;
+  }
+
+  /* back rows: lighter steel, thinner posts, so they recede */
+  .posts .r1 {
+    stroke: var(--steel);
+    stroke-width: 2;
+  }
+
+  .posts .r0 {
+    stroke: var(--line);
+    stroke-width: 1.5;
+  }
+
+  .mirrors .r1 {
+    stroke: #a3aeb9;
+    stroke-width: 4.5;
+  }
+
+  .mirrors .r0 {
+    stroke: #bcc5cf;
+    stroke-width: 3.5;
+  }
+
+  .tower,
+  .receiver {
+    fill: var(--ink);
+  }
+
+  .rec-glow {
+    fill: url(#hf-halo);
+  }
+</style>

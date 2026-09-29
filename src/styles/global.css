@@ -1,78 +1,80 @@
 @import "tailwindcss";
 
 @theme {
+  --color-bg: var(--bg);
   --color-paper: var(--paper);
-  --color-sky: var(--sky);
-  --color-sky-wash: var(--sky-wash);
-  --color-navy: var(--navy);
+  --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
-  --color-ink-sky: var(--ink-sky);
   --color-steel: var(--steel);
-  --color-signal: var(--signal);
+  --color-sun: var(--sun);
   --color-line: var(--line);
 
-  --font-sans: "Archivo", "Helvetica Neue", Arial, sans-serif;
-  --font-serif: "Source Serif 4", Georgia, serif;
+  --font-sans: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Newsreader", Georgia, serif;
 }
 
 :root {
   color-scheme: light;
 
-  /* Palette taken from the portrait: backdrop blue + pinstripe-suit navy.
-     Fixed light theme, deliberately no dark-mode override. */
-  --paper: #ffffff;
-  --sky: #adc2dc; /* sampled from the photo backdrop, identity field */
-  --sky-wash: #e8eef6; /* light tint for bands and empty scale segments */
-  --navy: #1e253f; /* ink, 15.1:1 on paper, 8.3:1 on sky */
-  --ink-2: #4a5570; /* secondary text on paper, 7.4:1 */
-  --ink-sky: #2b3a5c; /* secondary text on sky, 6.2:1 */
-  --steel: #51709b; /* second data series, 5.1:1 on paper */
-  --signal: #f3c318; /* fill only, always paired with navy outline/text */
+  /* v4 "Stahl + Sonnengelb" (owner's pick, 2026-09-26): cool steel paper, steel-navy ink,
+     one sun yellow. Fixed light theme, deliberately no dark-mode override. */
+  --bg: #f4f6f8; /* page */
+  --paper: #ffffff; /* raised surfaces: skill boxes, figure panels */
+  --ink: #0f1b2d; /* text and structure, 16.6:1 on --bg */
+  --ink-2: #4f5d6e; /* secondary text, 6.2:1 on --bg */
+  --ink-3: #64707d; /* stepped-back text (Werdegang steps not being read), 4.66:1 on --bg */
+  --steel: #7d8b99; /* mirrors, ghost lines, inactive marks (never text) */
+  --line: #cfd6de; /* hairlines */
+  --wash: #e7ebf0; /* quiet band */
+  --steel-soft: #dde3ea; /* neutral light fill: text selection, the AM model's lead area */
+  /* Sun yellow means light: the hero's sun and rays, the current station, the break-even point.
+     Nothing else (links, nav, hover states stay ink). Fill only, always with ink text or an
+     ink outline on top (ink on sun 9:1). */
+  --sun: #f2a900;
+  /* Werdegang categories (owner's pick, 2026-09-28: "Kobalt / Senf / Petrol"), validated with
+     the dataviz palette checker on --bg: lightness band, chroma, colour-blind separation and
+     normal-vision distance pass; Senf is under 3:1 against the page, so it is never used for
+     text and every coloured mark is labelled. */
+  --c-edu: #2f55c7; /* Ausbildung */
+  --c-thesis: #c98500; /* Abschlussarbeiten */
+  --c-work: #0e9384; /* Praxis */
   /* Placeholder marker for AI-drafted content (components/Placeholder, ImagePlaceholder).
-     Not part of the palette: it should look like scaffolding. 7.4:1 on paper. */
+     Not part of the palette: it should look like scaffolding. 7:1 on --bg. */
   --ph: #a3175f;
-  --line: #d3dce8;
 
-  /* Ausbildung = navy pinstripe, Beruf = solid navy */
-  --pinstripe: repeating-linear-gradient(
-    -55deg,
-    var(--navy) 0 1.5px,
-    var(--sky-wash) 1.5px 5px
-  );
-
-  --sans: "Archivo", "Helvetica Neue", Arial, sans-serif;
-  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --serif: "Newsreader", Georgia, "Times New Roman", serif;
   --wrap: 72rem; /* content grid width */
   --gutter: 1.25rem;
   --measure: 38rem; /* long-prose column */
+  --top-h: 3.5rem; /* top bar height on phones (sticky) */
 }
 
 html {
-  background: var(--paper);
+  background: var(--bg);
   -webkit-text-size-adjust: 100%;
-  /* keep focused/anchored elements clear of the sticky top bar (3.25rem) and the
-     fixed bottom tab bar (3.75rem + border + safe area) on phones and tablets */
-  scroll-padding-top: 4rem;
+  /* keep focused/anchored elements clear of the sticky top bar and the fixed bottom tab bar */
+  scroll-padding-top: 4.5rem;
   scroll-padding-bottom: calc(4.75rem + env(safe-area-inset-bottom));
 }
 
-/* desktop: top bar is static and there is no tab bar (declared after the base rule) */
+/* desktop: the top bar is static and there is no tab bar (declared after the base rule) */
 @media (min-width: 64rem) {
   html {
-    scroll-padding-top: 1rem;
+    scroll-padding-top: 1.5rem;
     scroll-padding-bottom: 1rem;
   }
 }
 
 body {
-  background: var(--paper);
-  color: var(--navy);
+  background: var(--bg);
+  color: var(--ink);
   font-family: var(--sans);
   font-size: 17px;
-  line-height: 1.6;
+  line-height: 1.55;
 }
 
-/* Long reading text: a real text face, clearly distinct from the Archivo UI/display type */
+/* Long reading text */
 .text {
   font-family: var(--serif);
   font-size: 1.1875rem;
@@ -94,18 +96,16 @@ body {
   }
 }
 
-/* Condensed display cut, Archivo's width axis does the work */
+/* Heavy grotesk for the name, page titles and section heads */
 .display {
-  font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
-  font-stretch: 68%;
+  font-family: var(--sans);
   font-weight: 800;
-  letter-spacing: -0.01em;
-  line-height: 0.92;
+  letter-spacing: -0.035em;
+  line-height: 0.95;
 }
 
-/* page titles: the one place (with the name and the e-mail) the condensed cut is used */
 .page-title {
-  font-size: clamp(3rem, 2rem + 4vw, 4.5rem);
+  font-size: clamp(2.75rem, 1.75rem + 4vw, 4.75rem);
 }
 
 .tnum {
@@ -113,24 +113,24 @@ body {
 }
 
 .prose-link {
-  color: var(--navy);
+  color: var(--ink);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
   text-decoration-color: var(--steel);
 }
 .prose-link:hover {
-  text-decoration-thickness: 2px;
-  text-decoration-color: var(--navy);
+  text-decoration-thickness: 3px;
+  text-decoration-color: var(--ink);
 }
 
 ::selection {
-  background: var(--sky);
-  color: var(--navy);
+  background: var(--steel-soft);
+  color: var(--ink);
 }
 
 :focus-visible {
-  outline: 2px solid var(--navy);
+  outline: 2px solid var(--ink);
   outline-offset: 3px;
   border-radius: 2px;
 }
@@ -141,5 +141,6 @@ body {
   *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
