@@ -52,11 +52,27 @@ const { title, description } = Astro.props;
             }
           </ul>
         </nav>
+        <!-- phones: the sections and the CV behind one small menu (the bar has no room) -->
+        <details class="top-menu" data-menu>
+          <summary>Menü</summary>
+          <ul>
+            {
+              nav.map((n) => (
+                <li>
+                  <a href={n.href}>{n.label}</a>
+                </li>
+              ))
+            }
+            <li class="top-menu-cv">
+              <a href={cvPdf} target="_blank" rel="noreferrer">Lebenslauf (PDF)</a>
+            </li>
+          </ul>
+        </details>
         <a href={cvPdf} target="_blank" rel="noreferrer" class="top-cv">Lebenslauf (PDF)</a>
       </div>
     </header>
 
-    <main id="inhalt" class="content">
+    <main id="inhalt" class="content" tabindex="-1">
       <slot />
     </main>
 
@@ -86,6 +102,46 @@ const { title, description } = Astro.props;
       );
       addEventListener("resize", mark);
       mark();
+
+      // the phone menu closes when a section is picked, on Escape, or on a tap elsewhere
+      const menu = document.querySelector<HTMLDetailsElement>("[data-menu]");
+      if (menu) {
+        menu.addEventListener("click", (e) => {
+          if ((e.target as HTMLElement).closest("a")) menu.open = false;
+        });
+        document.addEventListener("click", (e) => {
+          if (menu.open && !menu.contains(e.target as Node)) menu.open = false;
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && menu.open) {
+            menu.open = false;
+            menu.querySelector("summary")?.focus();
+          }
+        });
+        // also when focus leaves it, or the page scrolls on (it would cover the pinned chart)
+        menu.addEventListener("focusout", (e) => {
+          if (!menu.contains(e.relatedTarget as Node | null)) menu.open = false;
+        });
+        let openY = 0;
+        menu.addEventListener("toggle", () => (openY = scrollY));
+        addEventListener(
+          "scroll",
+          () => {
+            if (menu.open && Math.abs(scrollY - openY) > 40) menu.open = false;
+          },
+          { passive: true },
+        );
+      }
+
+      // the bar's name stays hidden while the hero's big name is on screen
+      const top = document.querySelector<HTMLElement>(".top");
+      const heroName = document.getElementById("name");
+      if (top && heroName) {
+        // (the last entry: after Back one batch can hold a stale "visible" before the real state)
+        new IntersectionObserver((es) => top.classList.toggle("is-hero", es[es.length - 1].isIntersecting), {
+          rootMargin: `-${top.offsetHeight}px 0px 0px 0px`,
+        }).observe(heroName);
+      }
     </script>
   </body>
 </html>
@@ -101,8 +157,9 @@ const { title, description } = Astro.props;
     text-align: center;
   }
 
+  /* fixed, so focusing it doesn't scroll the page to the top */
   .skip {
-    position: absolute;
+    position: fixed;
     left: 1rem;
     top: -4rem;
     z-index: 100;
@@ -112,6 +169,11 @@ const { title, description } = Astro.props;
   }
   .skip:focus {
     top: 1rem;
+  }
+
+  /* the skip link moves focus to main (tabindex -1); no ring around the whole page */
+  .content:focus {
+    outline: none;
   }
 
 
@@ -125,6 +187,14 @@ const { title, description } = Astro.props;
     border-bottom: 1.5px solid var(--ink);
   }
 
+  /* The bar sits inside the page's top scroll padding, so the browser took its own links as
+     hidden and scrolled the page up to reveal them on keyboard focus. A negative scroll
+     margin puts their scroll area below the padding: focus in the bar never moves the page. */
+  .top :global(a),
+  .top :global(summary) {
+    scroll-margin-top: -6rem;
+  }
+
   .top-in {
     display: flex;
     align-items: center;
@@ -133,18 +203,101 @@ const { title, description } = Astro.props;
     min-height: var(--top-h);
   }
 
+  /* in the serif of the hero name; hidden while that big name is on screen (script), so
+     the name doesn't show twice in the first screen */
   .top-name {
-    font-size: 1.25rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
+    font-family: var(--serif);
+    font-optical-sizing: auto;
+    font-size: 1.375rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
     line-height: 1;
     color: var(--ink);
     text-decoration: none;
     white-space: nowrap;
+    transition: opacity 0.2s, visibility 0.2s;
   }
 
-  /* phones: just the name and the CV; the page is one scroll */
+  .top.is-hero .top-name {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  /* phones: the sections sit in the small menu below (four links do not fit the bar) */
   .top-nav {
+    display: none;
+  }
+
+  .top-menu {
+    position: relative;
+    margin-left: auto;
+  }
+
+  .top-menu summary {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .top-menu summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* a small chevron that turns when open */
+  .top-menu summary::after {
+    content: "";
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-top: -0.2rem;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform 0.15s;
+  }
+
+  .top-menu[open] summary::after {
+    margin-top: 0.15rem;
+    transform: rotate(225deg);
+  }
+
+  .top-menu ul {
+    position: absolute;
+    top: calc(100% + 0.6rem);
+    right: 0;
+    min-width: 12rem;
+    padding: 0.4rem 0;
+    background: var(--paper);
+    border: 1.5px solid var(--ink);
+  }
+
+  .top-menu a {
+    display: block;
+    padding: 0.65rem 1rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .top-menu a:hover,
+  .top-menu a:focus-visible {
+    background: var(--wash);
+  }
+
+  .top-menu-cv {
+    margin-top: 0.4rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid var(--line);
+  }
+
+  /* phones: the CV link lives in the menu */
+  .top-cv {
     display: none;
   }
 
@@ -164,13 +317,10 @@ const { title, description } = Astro.props;
     text-decoration-color: var(--ink);
   }
 
+  /* one page: the bar stays (sticky) on every size, so the section links are always there */
   @media (min-width: 64rem) {
-    .top {
-      position: static;
-    }
-
     .top-in {
-      min-height: 4.25rem;
+      min-height: 3.75rem;
     }
 
     .top-name {
@@ -180,6 +330,14 @@ const { title, description } = Astro.props;
     .top-nav {
       display: block;
       margin-left: auto;
+    }
+
+    .top-menu {
+      display: none;
+    }
+
+    .top-cv {
+      display: inline;
     }
 
     .top-nav ul {
