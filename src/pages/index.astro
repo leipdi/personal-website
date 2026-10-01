@@ -2,22 +2,9 @@
 import Layout from "../layouts/Layout.astro";
 import Placeholder from "../components/Placeholder.astro";
 import HeliostatField from "../components/figures/HeliostatField.astro";
-import { profile, topSkills, type TopSkillId } from "../data/cv";
+import { profile, topSkills } from "../data/cv";
 import { tool, uniqueSvg } from "../data/tools";
 import { cvPdf } from "../data/nav";
-
-// line icons for the box heads (24px grid, drawn at 28px with a 2px stroke)
-const skillIcons: Record<TopSkillId, string> = {
-  // calculator
-  kosten:
-    "M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm2 3h8v3H8V6Zm0 7h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01",
-  // a data table feeding a report: plain, no AI sparkle trope
-  data: "M3 4h11v16H3V4Zm0 5h11M3 14.5h11M8 9v11M17.5 20v-5M21 20V9",
-  // two steps joined by a flow arrow
-  prozesse: "M4 5h5v5H4V5Zm11 9h5v5h-5v-5ZM6.5 10v3a2 2 0 0 0 2 2H15m0 0-2-2m2 2-2 2",
-  // bar chart on a baseline
-  controlling: "M4 20h16M7 16v-5M11 16V8M15 16v-3M19 16V5",
-};
 
 // Long German compounds get soft hyphens for display only (the data keeps the plain word),
 // so a narrow box breaks "Bauteilkostenkalkulation" at a word joint instead of overflowing.
@@ -35,98 +22,103 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   <section class="hero" aria-labelledby="name">
     <HeliostatField>
       <div class="wrap hero-text">
-        <h1 id="name" class="display hero-name">Daniel<br />Lenski</h1>
+        <h1 id="name" class="hero-name">Daniel<br />Lenski</h1>
         <p class="hero-role">{profile.role}<br />{profile.location}</p>
+        <p class="hero-claim">„{profile.claim}“</p>
+        <div class="hero-photo">
+          <img src="/img/daniel-lenski.jpg" alt="Porträt von Daniel Lenski" width="400" height="400" />
+        </div>
       </div>
     </HeliostatField>
-    <div class="wrap intro">
-      <p class="intro-claim">„{profile.claim}“</p>
-      <div class="intro-photo">
-        <img src="/img/daniel-lenski.jpg" alt="Porträt von Daniel Lenski" width="400" height="400" />
-      </div>
-    </div>
   </section>
 
-  <!-- Skill hub: one box per core skill: what he did with it (proof), the software, where it comes from -->
+  <!-- Skill hub: a banner line, then one box per core skill in a row that scrolls sideways.
+       Each box: picture with title and proof lines on it, then software and where it comes from -->
   <section class="hub" aria-labelledby="h-hub">
-    <div class="wrap">
-      <h2 id="h-hub" class="hub-title">Kernkompetenzen</h2>
-      <Placeholder
-        kind="vorschlag"
-        note="Belegzeilen und Zuordnung von Stationen und Software KI-abgeleitet; gestrichelte Logos sind Logo-Platzhalter"
-      >
-        <ul class="hub-grid">
-          {
-            topSkills.map((s) => (
-              <li class="skill" aria-labelledby={`sk-${s.id}`}>
+    <div class="hub-banner">
+      <div class="wrap">
+        <h2 id="h-hub" class="hub-title">Diese vier Bereiche zeichnen mich aus.</h2>
+      </div>
+    </div>
+    <Placeholder
+      kind="vorschlag"
+      note="Belegzeilen und Zuordnung von Stationen und Software KI-abgeleitet; gestrichelte Logos sind Logo-Platzhalter; das Controlling-Bild ist ein Testbild"
+    >
+      <div class="wrap hub-bar">
+        <div class="hub-arrows">
+          <button type="button" class="hub-arrow" data-hub-step="-1" aria-label="Vorherige Kompetenz" aria-disabled="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+          </button>
+          <button type="button" class="hub-arrow" data-hub-step="1" aria-label="Nächste Kompetenz">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+          </button>
+        </div>
+      </div>
+      <div class="hub-scroll" data-hub-row>
+      <ul class="hub-row" aria-label="Kernkompetenzen">
+        {
+          topSkills.map((s) => (
+            <li class="skill" aria-labelledby={`sk-${s.id}`}>
+              <div class="skill-media">
+                {s.image ? (
+                  <img class="skill-img" src={s.image.src} alt="" width="500" height="333" loading="lazy" decoding="async" />
+                ) : (
+                  <p class="skill-img skill-img-ph" data-placeholder="bild">
+                    <strong>Bildplatzhalter</strong>
+                    <span>{s.imageIdea}</span>
+                  </p>
+                )}
                 <div class="skill-body">
-                  <div class="skill-head">
-                    <svg
-                      class="skill-ico"
-                      aria-hidden="true"
-                      viewBox="0 0 24 24"
-                      width="28"
-                      height="28"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path d={skillIcons[s.id]} />
-                    </svg>
-                    <h3 id={`sk-${s.id}`} class="skill-title">
-                      {displayTitle(s.title)}
-                    </h3>
-                  </div>
+                  <h3 id={`sk-${s.id}`} class="skill-title">
+                    {displayTitle(s.title)}
+                  </h3>
                   <ul class="text skill-proof">
                     {s.proof.map((line) => (
                       <li>{line}</li>
                     ))}
                   </ul>
                 </div>
-                <div class="skill-foot">
-                  <p class="lbl">
-                    Software
-                  </p>
-                  {s.tools.length > 0 && (
-                    <ul class="tools">
-                      {s.tools.map((key) => {
-                        const t = tool(key);
-                        return t.svg ? (
-                          <li class="tool">
-                            <span class="tool-logo" aria-hidden="true" set:html={uniqueSvg(t.svg, s.id)} />
-                            <span class="tool-name">{t.name}</span>
-                          </li>
-                        ) : (
-                          <li class="tool tool-ph" data-placeholder="logo">
-                            <span class="tool-mono" aria-hidden="true">
-                              {t.mono}
-                            </span>
-                            <span class="tool-name">{t.name}</span>
-                            <span class="sr-only"> (Logo-Platzhalter)</span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-                  {s.toolsQuestion && <p class="tools-open">{s.toolsQuestion}</p>}
-                  <p class="skill-src">
-                    <span class="lbl">Gelernt bei</span>{" "}
-                    {s.learned.map((l, i) => (
-                      <>
-                        {i > 0 && ", "}
-                        <a href={l.href}>{l.label}</a>
-                      </>
-                    ))}
-                  </p>
-                </div>
-              </li>
-            ))
-          }
-        </ul>
-      </Placeholder>
-    </div>
+              </div>
+              <div class="skill-foot">
+                <p class="lbl">Software</p>
+                {s.tools.length > 0 && (
+                  <ul class="tools">
+                    {s.tools.map((key) => {
+                      const t = tool(key);
+                      return t.svg ? (
+                        <li class="tool">
+                          <span class="tool-logo" aria-hidden="true" set:html={uniqueSvg(t.svg, s.id)} />
+                          <span class="tool-name">{t.name}</span>
+                        </li>
+                      ) : (
+                        <li class="tool tool-ph" data-placeholder="logo">
+                          <span class="tool-mono" aria-hidden="true">
+                            {t.mono}
+                          </span>
+                          <span class="tool-name">{t.name}</span>
+                          <span class="sr-only"> (Logo-Platzhalter)</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+                {s.toolsQuestion && <p class="tools-open">{s.toolsQuestion}</p>}
+                <p class="skill-src">
+                  <span class="lbl">Gelernt bei</span>{" "}
+                  {s.learned.map((l, i) => (
+                    <>
+                      {i > 0 && ", "}
+                      <a href={l.href}>{l.label}</a>
+                    </>
+                  ))}
+                </p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+      </div>
+    </Placeholder>
   </section>
 
   <section class="end" aria-labelledby="h-end">
@@ -144,6 +136,47 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   </section>
 </Layout>
 
+<script>
+  // arrow buttons for the skill row (trackpad, touch and Shift + wheel scroll it natively)
+  const row = document.querySelector<HTMLElement>("[data-hub-row]");
+  const arrows = [...document.querySelectorAll<HTMLButtonElement>("[data-hub-step]")];
+  if (row && arrows.length) {
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+    const step = () => {
+      const card = row.querySelector<HTMLElement>(".skill");
+      const list = row.firstElementChild as HTMLElement;
+      return card ? card.offsetWidth + parseFloat(getComputedStyle(list).columnGap || "0") : row.clientWidth;
+    };
+    const behavior = (): ScrollBehavior => (reduce.matches ? "auto" : "smooth");
+    for (const b of arrows) {
+      b.addEventListener("click", () => {
+        if (b.getAttribute("aria-disabled") === "true") return;
+        row.scrollBy({ left: Number(b.dataset.hubStep) * step(), behavior: behavior() });
+      });
+    }
+    // Tab into a box that is only partly visible: bring the whole box in (the browser
+    // only scrolls when the focused link is fully hidden)
+    row.addEventListener("focusin", (e) => {
+      const box = (e.target as HTMLElement).closest<HTMLElement>(".skill");
+      if (!box) return;
+      const r = box.getBoundingClientRect();
+      const v = row.getBoundingClientRect();
+      const edge = parseFloat(getComputedStyle(row.firstElementChild as HTMLElement).paddingLeft || "0");
+      if (r.left < v.left + edge - 1 || r.right > v.right) {
+        row.scrollBy({ left: r.left - v.left - edge, behavior: behavior() });
+      }
+    });
+    const update = () => {
+      const max = row.scrollWidth - row.clientWidth;
+      arrows[0].setAttribute("aria-disabled", String(row.scrollLeft < 4));
+      arrows[1].setAttribute("aria-disabled", String(row.scrollLeft > max - 4));
+    };
+    row.addEventListener("scroll", update, { passive: true });
+    addEventListener("resize", update);
+    update();
+  }
+</script>
+
 
 <style>
   /* ---------- hero: the heliostat field, name and role in its sky ---------- */
@@ -151,10 +184,14 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     padding-top: clamp(1.75rem, 1rem + 3vw, 3.5rem);
   }
 
+  /* the name in the content serif (owner's pick 2026-10-01, the heavy grotesk read clunky) */
   .hero-name {
+    font-family: var(--serif);
+    font-optical-sizing: auto;
     font-size: clamp(3.5rem, 1.5rem + 9vw, 9rem);
-    line-height: 0.86;
-    letter-spacing: -0.05em;
+    font-weight: 500;
+    line-height: 0.88;
+    letter-spacing: -0.02em;
     color: var(--ink);
   }
 
@@ -166,103 +203,197 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     color: var(--ink-2);
   }
 
-  /* ---------- intro under the ground line: claim and portrait side by side ---------- */
-  .intro {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: "claim photo";
-    align-items: start;
-    gap: 1.25rem;
-    padding-top: 1.75rem;
-    padding-bottom: 2.5rem;
-  }
-
-  /* small phones: a claim squeezed beside the portrait ran to 12 lines; stack them */
-  @media (max-width: 25.99rem) {
-    .intro {
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-areas:
-        "claim"
-        "photo";
-    }
-  }
-
-  .intro-claim {
-    grid-area: claim;
+  .hero-claim {
+    margin-top: 1.5rem;
     font-family: var(--serif);
     font-optical-sizing: auto;
-    font-size: clamp(1.375rem, 1rem + 1.5vw, 2.25rem);
-    line-height: 1.25;
+    font-size: clamp(1.25rem, 1rem + 0.9vw, 1.75rem);
+    line-height: 1.3;
     letter-spacing: -0.01em;
-    /* short measure, and no single word left hanging on the last line */
-    max-width: 22em;
+    max-width: 24em;
     text-wrap: pretty;
   }
 
-  .intro-photo {
-    grid-area: photo;
-    width: clamp(6.5rem, 26vw, 12.5rem);
+  /* The portrait dissolves into the page: multiplied onto the steel paper (the field wraps
+     it in an isolated group on a --bg backing), square edges and suit faded out by a soft
+     mask. Phones: between the text and the field strip; wider: in the middle of the sky,
+     between the text and the mirrors, behind the rays. */
+  .hero-photo {
+    width: min(15rem, 70vw);
     aspect-ratio: 1;
-    overflow: hidden;
-    border: 1.5px solid var(--ink);
-    background: var(--paper);
+    margin: 0.5rem auto -1.5rem;
+    mix-blend-mode: multiply;
+    -webkit-mask-image: radial-gradient(closest-side at 47% 40%, #000 35%, transparent 100%);
+    mask-image: radial-gradient(closest-side at 47% 40%, #000 35%, transparent 100%);
+    pointer-events: none;
+    user-select: none;
   }
 
-  /* the source JPEG has a light 1-2px column at its left edge: shift it out of the frame */
-  .intro-photo img {
+  .hero-photo img {
     display: block;
-    width: calc(100% + 3px);
-    max-width: none;
+    width: 100%;
     height: auto;
-    margin-left: -3px;
   }
 
   @media (min-width: 48rem) {
-    /* close under the ground line, so name, field and claim read as one screen */
-    .intro {
-      column-gap: 3rem;
-      padding-top: 1.25rem;
-      padding-bottom: 3.5rem;
+    /* the text stands on the ground line, like the field beside it */
+    .hero-text {
+      padding-bottom: 1.5rem;
+    }
+    /* ends left of the mirrors, which start at about 49% of the page width */
+    .hero-claim {
+      max-width: min(24em, calc(46vw - max(var(--gutter), (100vw - var(--wrap)) / 2)));
+    }
+    .hero-photo {
+      position: absolute;
+      z-index: -1;
+      top: 50%;
+      left: 54%;
+      width: clamp(13rem, 24vw, 24rem);
+      margin: 0;
+      transform: translate(-50%, -62%);
     }
   }
 
-  /* ---------- skill hub: white boxes on the steel page, just an even frame ---------- */
+  /* ---------- skill hub: banner line, then the boxes in a row that scrolls sideways ---------- */
   .hub {
-    padding: 3rem 0 4rem;
-    border-top: 1.5px solid var(--ink);
+    /* no top rule: the field's ground line closes the hero */
+    padding-bottom: 4rem;
+    /* where the content column starts: the row and the placeholder tag line up with it */
+    --edge: max(var(--gutter), calc((100% - var(--wrap)) / 2));
   }
 
-  /* section head: a quiet grotesk label, not display */
-  .hub-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    letter-spacing: 0;
-    line-height: 1.2;
-    color: var(--ink);
-    margin-bottom: 1.25rem;
+  .hub-banner {
+    background: var(--wash);
+    padding: 2.5rem 0 2.25rem;
+    margin-bottom: 1.75rem;
   }
 
-  .hub-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.25rem 1.5rem;
-  }
-
-  @media (min-width: 44rem) {
-    .hub-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+  @media (min-width: 48rem) {
+    .hub-banner {
+      padding: 3.25rem 0 3rem;
     }
   }
 
-  /* each box is a 2-row subgrid (body, footer): footers start level across a row;
-     minmax(0, 1fr): a long title can never widen the box past its grid cell */
+  .hub-title {
+    font-family: var(--serif);
+    font-optical-sizing: auto;
+    font-weight: 500;
+    font-size: clamp(2rem, 1.2rem + 3vw, 3.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    max-width: 20em;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+
+  /* the placeholder wrapper spans the full width here (the row bleeds to the window
+     edge), so its tag and dashed rule are pulled in to the content column */
+  .hub > :global(.ph-block) > :global(.ph-head) {
+    padding-inline: var(--edge);
+  }
+  .hub > :global(.ph-block::before) {
+    left: calc(var(--edge) - 0.75rem);
+  }
+
+  /* only the arrows (JS); the next box peeking in is the scroll cue, no instruction label */
+  .hub-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+  }
+
+  @media (min-width: 48rem) {
+    .hub-bar {
+      margin-top: 0.5rem;
+    }
+  }
+
+  .hub-arrows {
+    display: none;
+    gap: 0.5rem;
+  }
+
+  /* the arrows need JS */
+  /* arrows only with JS and only where there is a mouse-sized screen; on phones the row
+     is swiped, and the arrow row would push the boxes below the fold */
+  @media (min-width: 48rem) {
+    :global(html.js) .hub-arrows {
+      display: flex;
+    }
+  }
+
+  .hub-arrow {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    /* square, like the site's rules and bars (round arrows read as a stock carousel) */
+    border: 1.5px solid var(--ink);
+    border-radius: 0;
+    background: var(--paper);
+    color: var(--ink);
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+  }
+
+  .hub-arrow svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .hub-arrow:hover:not([aria-disabled="true"]) {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  /* aria-disabled, not disabled: a disabled button would drop keyboard focus at the end */
+  .hub-arrow[aria-disabled="true"] {
+    border-color: rgb(15 27 45 / 0.3);
+    color: rgb(15 27 45 / 0.3);
+    cursor: default;
+  }
+
+  /* One row of boxes from the content edge out to the window edge; the next box peeks in,
+     so the row reads as scrollable. Two grid rows (picture with text, footer), each box a
+     subgrid over both, so footers start level. */
+  /* positioned, so absolutely placed bits inside (the sr-only logo notes) are clipped by
+     the scroller instead of widening the page; z-index 1 keeps the boxes above the
+     placeholder's dashed rule when they scroll past it */
+  .hub-scroll {
+    position: relative;
+    z-index: 1;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--edge);
+    scrollbar-width: thin;
+    scrollbar-color: var(--ink-3) transparent;
+  }
+
+  /* the side padding sits on the list, not the scroller: a scroller's own end padding
+     isn't scrollable, so the last box would stay cut off at the window edge */
+  .hub-row {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: min(23rem, 84vw);
+    grid-template-rows: auto auto;
+    gap: 0 1.25rem;
+    width: max-content;
+    padding: 1rem var(--edge) 1.25rem;
+  }
+
   .skill {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
     grid-row: span 2;
     grid-template-rows: subgrid;
     row-gap: 0;
     min-width: 0;
+    scroll-snap-align: start;
     background: var(--paper);
     border: 1px solid var(--line);
     border-radius: 3px;
@@ -275,55 +406,98 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     border-color: var(--ink);
   }
 
+  /* The picture fills the upper part; title and proof lines sit on it in white, on an ink
+     veil that belongs to the text block (owner's pick 2026-10-01, variant "Text im Bild").
+     The top padding keeps a strip of picture clear even in the fullest box; the subgrid
+     row gives every box the height of the fullest, so shorter boxes show more picture. */
+  .skill-media {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding-top: 6rem;
+    color: #fff;
+  }
+
+  @media (min-width: 48rem) {
+    .skill-media {
+      padding-top: 9rem;
+    }
+  }
+
+  .skill-img {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* no picture yet: magenta stripes with what it could show, in the part the veil leaves clear */
+  .skill-img-ph {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    padding: 1.5rem 1rem 0;
+    background: repeating-linear-gradient(135deg, #fbeaf4 0 10px, #fff 10px 20px);
+    color: var(--ph);
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    text-align: center;
+  }
+
+  /* The veil fades in over the first 3.5rem, then holds at 0.72, light enough for the
+     picture to show through. Worst case (white under it) white text still has ~6:1;
+     a soft shadow helps over busy spots. */
   .skill-body {
     min-width: 0;
-    padding: 1.1rem 1.1rem 1.25rem;
+    padding: 4.5rem 1.25rem 1.4rem;
+    background: linear-gradient(
+      to top,
+      rgb(15 27 45 / 0.8) 0%,
+      rgb(15 27 45 / 0.72) calc(100% - 3.5rem),
+      rgb(15 27 45 / 0) 100%
+    );
+    text-shadow: 0 1px 3px rgb(15 27 45 / 0.6);
+  }
+
+  @media (min-width: 44rem) {
+    .skill-body {
+      padding: 4.5rem 1.5rem 1.5rem;
+    }
   }
 
   .skill-foot {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.9rem;
-    padding: 1rem 1.1rem 1.1rem;
+    gap: 0.75rem;
+    padding: 0.9rem 1.25rem 1rem;
     border-top: 1px solid var(--line);
-  }
-
-  @media (min-width: 44rem) {
-    .skill-body {
-      padding: 1.35rem 1.5rem 1.5rem;
-    }
-    .skill-foot {
-      padding: 1.1rem 1.5rem 1.2rem;
-    }
-  }
-
-  .skill-head {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.7rem;
-    margin-bottom: 0.9rem;
-  }
-
-  .skill-ico {
-    flex: none;
-    width: 1.75rem;
-    height: 1.75rem;
-    color: var(--ink);
   }
 
   .skill-title {
     min-width: 0;
+    margin-bottom: 0.75rem;
     font-family: var(--serif);
     font-optical-sizing: auto;
     font-weight: 600;
-    font-size: 1.5rem;
+    font-size: 1.625rem;
     letter-spacing: normal;
-    line-height: 1.15;
-    padding-top: 0;
-    color: var(--ink);
+    line-height: 1.1;
+    color: #fff;
     hyphens: manual;
     overflow-wrap: anywhere;
+  }
+
+  /* small phones: keep "Bauteilkostenkalkulation" on one line */
+  @media (max-width: 24.99rem) {
+    .skill-title {
+      font-size: 1.375rem;
+    }
   }
 
   .skill-proof {
@@ -331,7 +505,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     padding-left: 1.15rem;
     font-size: 1.0625rem;
     line-height: 1.5;
-    max-width: 36rem;
+    color: #fff;
   }
 
   .skill-proof li {
@@ -343,7 +517,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   }
 
   .skill-proof li::marker {
-    color: var(--ink-2);
+    color: rgb(255 255 255 / 0.7);
   }
 
   .lbl {
@@ -365,8 +539,12 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     gap: 1.1rem 0.5rem;
   }
 
+  /* all logos of a box share one row (the fullest box set every footer's height
+     through the subgrid when four logos wrapped to two rows) */
   .tools > li {
-    flex: 0 0 6rem;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 6rem;
   }
 
   .tool {
@@ -388,7 +566,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 3.25rem;
+    height: 2.75rem;
     max-width: 100%;
   }
 
@@ -403,8 +581,8 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   .tool-mono {
     display: grid;
     place-items: center;
-    min-width: 3.25rem;
-    height: 3.25rem;
+    min-width: 2.75rem;
+    height: 2.75rem;
     padding: 0 0.2rem;
     border: 1.5px dashed var(--ph);
     border-radius: 4px;

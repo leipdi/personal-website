@@ -16,7 +16,7 @@ const { tower: T, receiver: R, ground } = FIELD;
 <div class="field-wrap" data-field>
   <svg
     class="field"
-    viewBox={`0 0 ${FIELD.w} ${FIELD.h}`}
+    viewBox={`${FIELD.x0} 0 ${FIELD.w - FIELD.x0} ${FIELD.h}`}
     preserveAspectRatio="xMaxYMax slice"
     aria-hidden="true"
     data-field-svg
@@ -49,7 +49,7 @@ const { tower: T, receiver: R, ground } = FIELD;
     <circle class="halo" cx={SUN_START.x} cy={SUN_START.y} r="70" data-halo></circle>
     <circle class="sun" cx={SUN_START.x} cy={SUN_START.y} r="20" data-sun></circle>
 
-    <line class="ground" x1="0" x2={FIELD.w} y1={ground} y2={ground}></line>
+    <line class="ground" x1={FIELD.x0} x2={FIELD.w} y1={ground} y2={ground}></line>
     <g class="posts">
       {start.map((m) => <line class={`r${m.row}`} x1={m.px} x2={m.px} y1={m.base} y2={m.py} />)}
     </g>
@@ -134,11 +134,15 @@ const { tower: T, receiver: R, ground } = FIELD;
       if (visL === null || visR === null) return;
       let textR = -Infinity;
       if (matchMedia("(min-width: 48rem)").matches) {
-        // the right edge of the actual words, not of the full-width block
-        for (const el of text.querySelectorAll("h1, p")) {
-          const r = document.createRange();
-          r.selectNodeContents(el);
-          const right = toFieldX(r.getBoundingClientRect().right);
+        // the right edge of the actual words and the portrait, not of the full-width block
+        for (const el of text.querySelectorAll("h1, p, img")) {
+          let rect = el.getBoundingClientRect();
+          if (el.tagName !== "IMG") {
+            const r = document.createRange();
+            r.selectNodeContents(el);
+            rect = r.getBoundingClientRect();
+          }
+          const right = toFieldX(rect.right);
           if (right !== null) textR = Math.max(textR, right);
         }
       }
@@ -214,6 +218,10 @@ const { tower: T, receiver: R, ground } = FIELD;
     flex-direction: column;
     overflow: hidden;
     touch-action: pan-y;
+    /* its own stacking group on the page colour, so slotted content can sit behind the
+       field (z-index -1) and still blend onto the paper */
+    isolation: isolate;
+    background: var(--bg);
   }
 
   /* the crosshair promises that the sun follows the pointer, which needs JS */
@@ -225,7 +233,7 @@ const { tower: T, receiver: R, ground } = FIELD;
     order: 2;
     display: block;
     width: 100%;
-    height: 17rem;
+    height: 13rem;
     margin-top: 0.5rem;
   }
 
@@ -236,17 +244,20 @@ const { tower: T, receiver: R, ground } = FIELD;
   }
 
   /* wider: the text sits in the field's sky */
+  /* The text sets the height; the SVG keeps the viewBox's full aspect (1920:502) at the
+     bottom, so its scale follows the page width only and a tall text block doesn't blow
+     the field up */
   @media (min-width: 48rem) {
     .field-wrap {
       display: block;
-      /* never wider than the viewBox's 1440:560, or "slice" would crop the sky (and the
-         sun) off the top on wide screens */
-      height: max(clamp(27rem, 72vh, 38rem), calc(100vw * 560 / 1440));
     }
     .field {
       position: absolute;
-      inset: 0;
-      height: 100%;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1920 / 502;
       margin: 0;
     }
   }

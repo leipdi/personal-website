@@ -396,32 +396,34 @@ export type TopSkill = {
   tools: string[]; // Schlüssel aus src/data/tools.ts (Logo oder Logo-Platzhalter)
   toolsQuestion?: string;
   learned: { label: string; href: string }[];
+  // Bild der Box (Startseite, Text liegt darauf). Ohne image zeigt die Box einen
+  // Bildplatzhalter mit imageIdea (KI-Vorschlag, was das Bild zeigen könnte).
+  image?: { src: string; test?: true }; // test: Testbild von Daniel, wird noch ersetzt
+  imageIdea: string;
 };
 
 // Reihenfolge und Auswahl der Boxen: Vorgabe von Daniel (2026-09-25). Belegzeilen und
-// Zuordnungen bleiben KI-Entwurf.
+// Zuordnungen bleiben KI-Entwurf. Seit 2026-10-01 nur zwei kurze Belegzeilen je Box (die Box
+// liegt auf einem Bild und soll ganz auf den Schirm passen); Details stehen auf /werdegang/.
 export const topSkills: TopSkill[] = [
   {
     id: "kosten",
     title: "Bauteilkostenkalkulation",
     proof: [
-      "Bottom-Up-Kostenmodell für die Stahlkonstruktion von Heliostaten",
-      "Komplette Produktionslinie mit Arbeitsgängen, Materialkosten und Zeitabschätzungen abgebildet",
-      "Grundlage: echte CAD-Daten aus Autodesk Inventor, Kalkulation von Hand in Excel",
-      "Bachelorarbeit am DLR 2024, veröffentlicht bei der SolarPACES Conference",
+      "Bottom-Up-Kostenmodell für den Stahlbau von Heliostaten",
+      "Bachelorarbeit am DLR, veröffentlicht bei SolarPACES",
     ],
     // Software laut Daniel (2026-09-25): CAD in Inventor, Kalkulation per Hand in Excel
     tools: ["Autodesk Inventor", "Excel"],
     learned: [{ label: "Bachelorarbeit am DLR", href: "/projekte/#heliostat" }],
+    imageIdea: "Heliostat-Stahlbau oder das CAD-Modell",
   },
   {
     id: "data",
     title: "Data & AI",
     proof: [
-      "ETL-Strecken und Berichte in Power BI und Jedox, für Kunden und intern",
+      "ETL-Strecken und Berichte in Power BI und Jedox",
       "Selbst konzipierte Schulung zu Copilot in Power BI",
-      "Praktikum bei ATVISIO, seit 2026",
-      "Privat eigene Projekte mit Claude automatisiert (Cowork, Code)",
     ],
     // Python und Jedox auf Wunsch von Daniel (2026-09-25) nicht als Software-Logo
     tools: ["Power BI", "MSSQL", "Copilot in Power BI", "Claude"],
@@ -429,15 +431,14 @@ export const topSkills: TopSkill[] = [
       { label: "Praktikum BI Consulting (ATVISIO)", href: "/projekte/#bi-consulting" },
       { label: "SQL Grundkurs (LinkedIn Learning)", href: "/kenntnisse/#z-sql" },
     ],
+    imageIdea: "Ein Power-BI-Bericht auf dem Bildschirm",
   },
   {
     id: "prozesse",
     title: "Prozesse und Projekte",
     proof: [
-      "Timebutler als neues Zeiterfassungssystem eingeführt, Kolleg:innen geschult (IGH Infotec, 2023–2024)",
-      "Kundentermine vor- und nachbereitet (Praktikum Projektmanagement)",
-      "SAP-Tabellen in Kundensystemen gepflegt",
-      "Beratung in Produktions- und Logistikfragen",
+      "Timebutler eingeführt, Kolleg:innen geschult",
+      "Kundentermine vor- und nachbereitet",
     ],
     tools: ["Timebutler", "SAP"],
     learned: [
@@ -445,18 +446,21 @@ export const topSkills: TopSkill[] = [
       { label: "Praktikum Projektmanagement (IGH Infotec)", href: "/werdegang/#praktikum-pm" },
       { label: "Lean Six Sigma Yellow Belt", href: "/kenntnisse/#z-lean-six-sigma" },
     ],
+    imageIdea: "Eine Schulung oder ein Kundentermin",
   },
   {
     id: "controlling",
     title: "Controlling",
     proof: [
       "Ein Jahr Mitarbeitercontrolling und Monatsabschlüsse",
-      "Mit Excel und Pivot-Tabellen",
-      "Werkstudent Finanzen & Controlling bei IGH Infotec (2023–2024)",
+      "Mit Excel und Pivot-Tabellen, bei IGH Infotec",
     ],
     tools: ["Excel"],
     learned: [
       { label: "Werkstudent Finanzen & Controlling (IGH Infotec)", href: "/werdegang/#werkstudent-controlling" },
     ],
+    // Testbild von Daniel (2026-10-01), noch nicht das endgültige
+    image: { src: "/img/kompetenzen/controlling.webp", test: true },
+    imageIdea: "Monatsabschluss: Zahlen, Tabellen, Taschenrechner",
   },
 ];
