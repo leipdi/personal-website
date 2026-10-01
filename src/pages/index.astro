@@ -33,27 +33,31 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     </HeliostatField>
   </section>
 
-  <!-- Kernkompetenzen: the four names as the heading (one per line), then one panel per skill. While
-       scrolling, each panel pins and the next slides up over it (stacking cards); the covered
-       one steps back. Panel: text on paper (title, proof lines, software, where it comes
-       from, a link to the next) beside an uncovered photo in one steel treatment. -->
+  <!-- Kernkompetenzen: one full-height card per skill. While scrolling, each card pins and the
+       next slides up over it (stacking cards); on desktop a sticky index of the four names
+       beside them shows which one is on. Card: the photo large on top (one steel treatment),
+       the text below on paper (title, proof lines | software, where it comes from, the next). -->
   <section id="kompetenzen" class="kk" aria-labelledby="h-kk">
     <div class="wrap">
-      <h2 id="h-kk" class="kk-title">
-        <span class="sr-only">Kernkompetenzen: </span>
-        {
-          topSkills.map((s, i) => (
-            <>
-              <a href={`#kk-${s.id}`}>{displayTitle(s.title)}</a>
-              {i < topSkills.length - 1 && <span class="sr-only">, </span>}
-            </>
-          ))
-        }
-      </h2>
+      <h2 id="h-kk" class="display page-title kk-head">Kern&shy;kompetenzen</h2>
       <Placeholder
         kind="vorschlag"
         note="Belegzeilen und Zuordnung von Stationen und Software KI-abgeleitet; gestrichelte Logos sind Logo-Platzhalter; das Controlling-Bild ist ein Testbild"
       >
+        <div class="kk-grid">
+        <nav class="kk-index" aria-label="Die vier Kernkompetenzen">
+          <ol>
+            {
+              topSkills.map((s, i) => (
+                <li>
+                  <a href={`#kk-${s.id}`} data-kk-name={i}>
+                    {displayTitle(s.title)}
+                  </a>
+                </li>
+              ))
+            }
+          </ol>
+        </nav>
         <ol class="kk-stack" data-kk>
           {
             topSkills.map((s, i) => {
@@ -62,6 +66,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
                 <li class="panel" id={`kk-${s.id}`} data-kk-panel aria-labelledby={`sk-${s.id}`}>
                   <div class="panel-in" data-kk-card>
                     <div class="panel-text">
+                      <div class="panel-main">
                       <h3 id={`sk-${s.id}`} class="panel-title">
                         {displayTitle(s.title)}
                       </h3>
@@ -70,6 +75,8 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
                           <li>{line}</li>
                         ))}
                       </ul>
+                      </div>
+                      <div class="panel-side">
                       <div class="panel-meta">
                         {s.tools.length > 0 && (
                           <ul class="tools" aria-label="Software">
@@ -104,13 +111,15 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
                         </p>
                       </div>
                       <a class="panel-next" href={next ? `#kk-${next.id}` : "#werdegang"}>
-                        <span>
-                          Weiter: <span class="nobr">{next ? next.title : "Werdegang"}</span>
+                        Weiter:{" "}
+                        <span class="nobr">
+                          {next ? next.title : "Werdegang"}
+                          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                            <path d="M12 5v14m-6-6 6 6 6-6" />
+                          </svg>
                         </span>
-                        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                          <path d="M12 5v14m-6-6 6 6 6-6" />
-                        </svg>
                       </a>
+                      </div>
                     </div>
                     <div class="panel-photo">
                       {s.image ? (
@@ -128,6 +137,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
             })
           }
         </ol>
+        </div>
       </Placeholder>
     </div>
   </section>
@@ -142,11 +152,13 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   // scrolls up over it. The script sets each panel's sticky top (the card pinned centred in
   // the space under the top bar; a card taller than that pins by its bottom edge, so none of
   // it is ever out of reach) and lets the covered card step back and fade out as the next
-  // one comes up. Nothing moves with reduced motion.
+  // one comes up (no scaling: a scaled card left a sliver above the incoming one). Nothing
+  // moves with reduced motion.
   const stack = document.querySelector<HTMLElement>("[data-kk]");
   const panels = [...document.querySelectorAll<HTMLElement>("[data-kk-panel]")];
   if (stack && panels.length) {
     const cards = panels.map((p) => p.querySelector<HTMLElement>("[data-kk-card]")!);
+    const names = [...document.querySelectorAll<HTMLAnchorElement>("[data-kk-name]")];
     const topBar = document.querySelector<HTMLElement>(".top");
     const reduce = matchMedia("(prefers-reduced-motion: reduce)");
     let base = 0;
@@ -157,14 +169,18 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
       // the sticky top bar on phones; static from 64rem
       base = topBar && getComputedStyle(topBar).position === "sticky" ? topBar.getBoundingClientRect().height : 0;
       const free = innerHeight - base;
+      // every card fills the free height (minus the panel's padding), so it covers the last one
+      const pad = parseFloat(getComputedStyle(panels[0]).paddingTop) * 2 || 0;
+      stack.style.setProperty("--kk-free", `${Math.round(free - pad)}px`);
+      stack.closest("section")?.style.setProperty("--kk-base", `${Math.round(base)}px`);
       heights = panels.map((p) => p.offsetHeight);
       sticks = heights.map((h) => (h <= free ? base + (free - h) / 2 : innerHeight - h));
       // an anchor to a panel lands where it has just pinned (natural top at its sticky top),
       // not at the page's scroll padding, where the next card would already cover it
-      const pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+      const sp = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
       panels.forEach((p, i) => {
         p.style.setProperty("--stick", `${Math.round(sticks[i])}px`);
-        p.style.scrollMarginTop = `${Math.max(0, Math.round(sticks[i] - pad))}px`;
+        p.style.scrollMarginTop = `${Math.round(sticks[i] - sp)}px`;
       });
       update();
     };
@@ -183,13 +199,16 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     };
 
     const update = () => {
+      // the index marks the card on show: the next one counts once it is a third over the last
+      let cur = 0;
+      for (let i = 1; i < panels.length; i++) if (covered(i - 1) >= 0.35) cur = i;
+      names.forEach((a, i) => (i === cur ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current")));
       cards.forEach((card, i) => {
         const k = reduce.matches ? 0 : covered(i);
         // the incoming card slides over an opaque card (like a sheet laid on top); it fades
         // over the last 40 %, so it is gone before its title strip is all that shows
         // (a half-transparent card cut by the incoming edge read as a rendering bug)
         const fade = Math.max((k - 0.6) / 0.4, 0);
-        card.style.transform = k > 0 ? `scale(${(1 - 0.03 * k).toFixed(4)})` : "";
         card.style.opacity = k > 0 ? (1 - fade).toFixed(3) : "";
       });
     };
@@ -212,6 +231,24 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
         scrollTo({ top: natural(i) - sticks[i], behavior: "auto" });
       });
     });
+
+    const toPanel = (i: number) => scrollTo({ top: natural(i) - sticks[i], behavior: reduce.matches ? "auto" : "smooth" });
+    document.addEventListener("click", (e) => {
+      const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#kk-"]');
+      if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      const i = panels.findIndex((p) => `#${p.id}` === a.getAttribute("href"));
+      if (i < 0) return;
+      e.preventDefault();
+      if (location.hash !== a.getAttribute("href")) history.pushState(null, "", a.getAttribute("href"));
+      toPanel(i);
+    });
+    // typed hashes and Back/Forward between card hashes
+    const fromHash = () => {
+      const i = panels.findIndex((p) => `#${p.id}` === location.hash);
+      if (i >= 0) toPanel(i);
+    };
+    addEventListener("hashchange", fromHash);
+    addEventListener("popstate", fromHash);
 
     let raf = 0;
     addEventListener(
@@ -243,14 +280,17 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
 <style>
   /* ---------- hero: the heliostat field, name and role in its sky ---------- */
   .hero-text {
-    padding-top: clamp(1.75rem, 1rem + 3vw, 3.5rem);
+    /* the name's size and the top padding, shared with the portrait that lines up with it */
+    --fs: clamp(3.5rem, 1.5rem + 9vw, 9rem);
+    --pt: clamp(1.75rem, 1rem + 3vw, 3.5rem);
+    padding-top: var(--pt);
   }
 
   /* the name in the content serif (owner's pick 2026-10-01, the heavy grotesk read clunky) */
   .hero-name {
     font-family: var(--serif);
     font-optical-sizing: auto;
-    font-size: clamp(3.5rem, 1.5rem + 9vw, 9rem);
+    font-size: var(--fs);
     font-weight: 500;
     line-height: 0.88;
     letter-spacing: -0.02em;
@@ -277,7 +317,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   }
 
   /* The portrait in the same language as the Kernkompetenzen photos: a hard-edged square
-     with the ink frame, greyscale multiplied onto the steel tone (a soft-masked colour
+     with the ink frame, in the ink/steel duotone (a soft-masked colour
      circle read as an avatar). Phones: between the text and the field strip; wider: in
      the middle of the sky, between the text and the mirrors. */
   /* phones: top right, beside the name (between claim and field it pushed the field below
@@ -302,37 +342,32 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     max-width: none;
     height: auto;
     margin-left: -3px;
-    filter: grayscale(1) contrast(1.08);
-    mix-blend-mode: multiply;
+    filter: url(#duo);
   }
 
   @media (min-width: 48rem) {
     /* the text stands on the ground line, like the field beside it */
     .hero-text {
+      position: relative;
       padding-bottom: 1.5rem;
     }
     /* ends left of the mirrors, which start at about 49% of the page width */
     .hero-claim {
       max-width: min(24em, calc(46vw - max(var(--gutter), (100vw - var(--wrap)) / 2)));
     }
-    /* behind the field layer, so the pointer sun and its rays always draw over it */
+    /* Lined up with the name: its top on the cap height of "Daniel", its bottom on the
+       baseline of "Lenski" (a hard frame floating free in the sky related to nothing).
+       Behind the field layer, so the pointer sun and its rays draw over it. */
     .hero-photo {
       z-index: -1;
-      top: 50%;
+      top: calc(var(--pt) - 0.04 * var(--fs));
       right: auto;
-      left: 54%;
-      width: clamp(10rem, 17vw, 16rem);
-      transform: translate(-50%, -62%);
+      left: 52%;
+      width: auto;
+      height: calc(1.59 * var(--fs));
     }
   }
 
-  /* 48-56rem: the role line and "Lenski" reach about 44% of the width */
-  @media (min-width: 48rem) and (max-width: 55.99rem) {
-    .hero-photo {
-      left: 64%;
-      width: 9rem;
-    }
-  }
 
   /* ---------- Kernkompetenzen: the names as heading, then stacking panels ---------- */
   .kk {
@@ -346,32 +381,57 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     }
   }
 
-  /* the four names are the heading, one per line: the content itself, each a link to its
-     panel, underlined only on hover (four resting underlines read like a wiki paragraph) */
-  .kk-title {
-    margin-bottom: 2.5rem;
+  .kk-head {
+    margin-bottom: 2rem;
+  }
+
+  /* Desktop: a sticky index of the four names beside the cards; the one on show in ink.
+     Phones: the cards alone (the index would only repeat their titles). */
+  .kk-index {
+    display: none;
+  }
+
+  @media (min-width: 64rem) {
+    .kk-grid {
+      display: grid;
+      grid-template-columns: 14rem minmax(0, 1fr);
+      column-gap: 2.5rem;
+      align-items: start;
+    }
+    .kk-index {
+      display: block;
+      position: sticky;
+      top: calc(var(--kk-base, 4rem) + 2rem);
+    }
+  }
+
+  .kk-index ol {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .kk-index a {
+    display: block;
+    padding-left: 0.9rem;
+    border-left: 3px solid transparent;
     font-family: var(--serif);
     font-optical-sizing: auto;
     font-weight: 500;
-    font-size: clamp(1.875rem, 1.2rem + 2.4vw, 3.25rem);
-    line-height: 1.12;
-    letter-spacing: -0.02em;
-  }
-
-  .kk-title a {
-    display: block;
-    width: fit-content;
-    max-width: 100%;
-    color: var(--ink);
+    font-size: 1.375rem;
+    line-height: 1.2;
+    color: var(--ink-3);
     text-decoration: none;
-    text-underline-offset: 0.12em;
     hyphens: manual;
+    transition: color 0.2s, border-color 0.2s;
   }
 
-  .kk-title a:hover {
-    text-decoration: underline;
-    text-decoration-thickness: 3px;
-    text-decoration-color: var(--ink);
+  .kk-index a:hover {
+    color: var(--ink);
+  }
+
+  .kk-index a[aria-current="true"] {
+    color: var(--ink);
+    border-left-color: var(--ink);
   }
 
   /* Without JS the panels simply follow each other. With JS each one is sticky at the
@@ -396,9 +456,11 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     padding: 0.75rem 0;
   }
 
-  /* the card that steps back when the next panel covers it */
+  /* the card that steps back when the next panel covers it; with JS it fills the free
+     height under the top bar (--kk-free), so it really covers the one before */
   .panel-in {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     width: 100%;
     background: var(--paper);
     border: 1px solid var(--line);
@@ -408,10 +470,12 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
 
   /* the edge of a card sliding up: the structure rule, not a shadow */
   :global(html.js) .panel-in {
+    min-height: var(--kk-free, auto);
     border-top: 1.5px solid var(--ink);
   }
 
-  /* text on paper beside the uncovered photo (phones: photo on top) */
+  /* the text on top, the photo below taking what the text leaves: an incoming card covers
+     the photo first, so the words stay readable longest */
   .panel-text {
     display: flex;
     flex-direction: column;
@@ -420,24 +484,34 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   }
 
   .panel-photo {
-    order: -1;
+    order: 1;
+    flex: 1 0 auto;
     position: relative;
     isolation: isolate;
-    aspect-ratio: 16 / 10;
+    min-height: 11rem;
     overflow: hidden;
     background: var(--steel-soft);
-    border-bottom: 1.5px solid var(--ink);
+    border-top: 1.5px solid var(--ink);
   }
 
-  /* one treatment for every photo: greyscale, multiplied onto the steel tone, so four
+  :global(html:not(.js)) .panel-photo {
+    aspect-ratio: 16 / 10;
+  }
+
+  .panel-photo img,
+  .panel-ph {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* one treatment for every photo: the ink/steel duotone (#duo in Layout.astro), so four
      different pictures read as one set and stay inside the palette */
   .panel-photo img {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    filter: grayscale(1) contrast(1.08);
-    mix-blend-mode: multiply;
+    filter: url(#duo);
   }
 
   /* no picture yet: magenta stripes with what it could show */
@@ -531,10 +605,8 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
 
   /* the way on: a real link to the next panel (the last one leads to Werdegang) */
   .panel-next {
-    display: inline-flex;
-    align-items: center;
+    display: inline-block;
     align-self: flex-start;
-    gap: 0.4rem;
     margin-top: 1.25rem;
     padding: 0.35rem 0;
     font-weight: 600;
@@ -551,7 +623,9 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   }
 
   .panel-next svg {
-    flex: none;
+    display: inline-block;
+    margin-left: 0.3rem;
+    vertical-align: -0.2em;
     fill: none;
     stroke: currentColor;
     stroke-width: 2;
@@ -566,20 +640,19 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     }
   }
 
-  /* wide: text left (2 parts), photo right (3 parts), an ink rule between them */
+  /* wide: the text below the photo in two columns: title and proof lines | software,
+     where it comes from and the way on */
   @media (min-width: 56rem) {
-    .panel-in {
-      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-      min-height: min(26rem, calc(100svh - 6rem));
-    }
     .panel-text {
-      padding: 2.25rem 2.25rem 2rem;
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      column-gap: 2.5rem;
+      padding: 1.75rem 2rem 1.75rem;
     }
-    .panel-photo {
-      order: 0;
-      aspect-ratio: auto;
-      border-bottom: 0;
-      border-left: 1.5px solid var(--ink);
+    .panel-side .panel-meta {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
     }
     .panel-proof {
       font-size: 1.125rem;

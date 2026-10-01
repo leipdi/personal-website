@@ -126,6 +126,9 @@ const { tower: T, receiver: R, ground } = FIELD;
     // field (>= 48rem; below that the text sits above the field). Recomputed on resize.
     const MARGIN = 60; // sun radius plus air, in viewBox units
     let lo = 320;
+    // the right edge of the name, role and claim (not the portrait): the pointer sun stays right
+    // of it, so it never sits in the words with its rays running across them
+    let wordsR = -Infinity;
     let hi = FIELD.last + 60;
     const measure = () => {
       const box = svg.getBoundingClientRect();
@@ -133,6 +136,7 @@ const { tower: T, receiver: R, ground } = FIELD;
       const visR = toFieldX(box.right);
       if (visL === null || visR === null) return;
       let textR = -Infinity;
+      wordsR = -Infinity;
       if (matchMedia("(min-width: 48rem)").matches) {
         // the right edge of the actual words and the portrait, not of the full-width block
         for (const el of text.querySelectorAll("h1, p, img")) {
@@ -144,9 +148,12 @@ const { tower: T, receiver: R, ground } = FIELD;
           }
           const right = toFieldX(rect.right);
           if (right !== null) textR = Math.max(textR, right);
+          if (right !== null && el.tagName !== "IMG") wordsR = Math.max(wordsR, right);
         }
       }
-      const top = FIELD.last + 60;
+      // the drift stops well left of the tower, so the sun's halo and the receiver's glow
+      // never merge into one yellow blob
+      const top = FIELD.last - 60;
       const right = Math.min(top, visR - MARGIN);
       lo = Math.max(visL, textR) + MARGIN;
       hi = right;
@@ -172,7 +179,9 @@ const { tower: T, receiver: R, ground } = FIELD;
       if (!pt) return;
       active = true;
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => place(pt.x, pt.y));
+      // (75: the sun's halo, r 70, stays off the words too)
+      const x = wordsR > -Infinity ? Math.max(pt.x, wordsR + 75) : pt.x;
+      raf = requestAnimationFrame(() => place(x, pt.y));
     };
     wrap.addEventListener("pointermove", follow);
     wrap.addEventListener("pointerdown", follow);

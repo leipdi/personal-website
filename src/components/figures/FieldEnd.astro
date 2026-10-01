@@ -1,30 +1,47 @@
 ---
-// The page's last line: the hero's heliostat field once more, small and still, with the sun
-// low on the horizon at the left (evening, the end of the page). It closes the page on the
-// device it opened with: the ground line. Server-rendered only, decorative.
+// The page's end: the hero's heliostat field once more, smaller and quieter, with the sun on the horizon
+// (evening, the end of the page). It closes the page on the device it opened with, the
+// ground line. With JS the sun sinks the last bit as the page reaches its end and the
+// mirrors follow it, as in the hero; not with reduced motion. Above it one sign-off line.
 import { FIELD, ROWS, f1, poses, rayOpacity } from "../../lib/heliostat";
 
-// wider than the hero's picture (more empty ground on the left), so the field draws small
+// wider than the hero's picture (more empty ground on the left)
 const X0 = -1400;
-// a low sun just left of the field, sitting on the horizon (inside the part phones still show)
-const SUN = { x: 230, y: FIELD.ground - 16 };
+// server render / no JS: the sun low on the horizon left of the field
+const SUN = { x: 230, y: FIELD.ground - 30 };
 const pose = poses(SUN.x, Math.min(SUN.y, FIELD.sunMaxY));
 const { tower: T, receiver: R, ground } = FIELD;
 const front = ROWS.length - 1;
-// from just above the receiver to the ground line
+// from above the receiver to the ground line
 const top = R.y - 40;
 const W = FIELD.w - X0;
 const H = FIELD.h - top;
+
+// "Stand" = the build date (a static site: rebuild to move it)
+const months = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+const now = new Date();
+const stand = `${months[now.getMonth()]} ${now.getFullYear()}`;
 ---
 
-<div class="field-end" aria-hidden="true">
-  <svg viewBox={`${X0} ${top} ${W} ${H}`} preserveAspectRatio="xMaxYMax slice" style={`aspect-ratio:${W} / ${H}`}>
+<div class="field-end" data-field-end>
+  <p class="wrap sign-off">
+    <span>Stand: {stand}</span>
+    <a class="prose-link" href="#top">Nach oben</a>
+  </p>
+  <svg viewBox={`${X0} ${top} ${W} ${H}`} preserveAspectRatio="xMaxYMax slice" aria-hidden="true" data-end-svg>
     <defs>
       <clipPath id="fe-sky">
         <rect x={X0} y={top} width={W} height={ground - top}></rect>
       </clipPath>
+      <radialGradient id="fe-halo">
+        <stop offset="0" stop-color="var(--sun)" stop-opacity="0.5"></stop>
+        <stop offset="1" stop-color="var(--sun)" stop-opacity="0"></stop>
+      </radialGradient>
     </defs>
-    <circle class="sun" cx={SUN.x} cy={SUN.y} r="26" clip-path="url(#fe-sky)"></circle>
+    <g clip-path="url(#fe-sky)">
+      <circle class="halo" cx={SUN.x} cy={SUN.y} r="80" data-end-halo></circle>
+      <circle class="sun" cx={SUN.x} cy={SUN.y} r="30" data-end-sun></circle>
+    </g>
     <g class="rays">
       {
         pose
@@ -46,22 +63,94 @@ const H = FIELD.h - top;
   </svg>
 </div>
 
+<script>
+  import { FIELD, ROWS, poses, rayOpacity } from "../../lib/heliostat";
+
+  const wrap = document.querySelector<HTMLElement>("[data-field-end]");
+  const svg = wrap?.querySelector<SVGSVGElement>("[data-end-svg]");
+  if (wrap && svg) {
+    const sun = svg.querySelector<SVGCircleElement>("[data-end-sun]")!;
+    const halo = svg.querySelector<SVGCircleElement>("[data-end-halo]")!;
+    const mirrors = [...svg.querySelectorAll<SVGLineElement>(".mirrors line")];
+    const rays = [...svg.querySelectorAll<SVGLineElement>(".rays line")];
+    const front = ROWS.length - 1;
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+    const set = (el: Element, a: Record<string, number>) => {
+      for (const k in a) el.setAttribute(k, a[k].toFixed(1));
+    };
+    // the sun sits a fifth of the way into the visible slice (phones crop the empty left)
+    let sx = 230;
+    const measure = () => {
+      const m = svg.getScreenCTM();
+      if (!m) return;
+      const box = svg.getBoundingClientRect();
+      const inv = m.inverse();
+      const l = new DOMPoint(box.left, 0).matrixTransform(inv).x;
+      const r = new DOMPoint(box.right, 0).matrixTransform(inv).x;
+      // left of the field where there is room, otherwise just inside the slice (on narrow
+      // screens the slice starts right of the field's first mirror, and the sun sets behind it)
+      sx = Math.max(l + (r - l) * 0.12, Math.min(l + (r - l) * 0.2, FIELD.first - 120));
+      update();
+    };
+    const update = () => {
+      // 0 when the field comes into view, 1 at the page end: the sun sinks from 60 to 12 above
+      // the ground
+      const b = svg.getBoundingClientRect();
+      const k = reduce.matches ? 0.5 : Math.min(Math.max((innerHeight - b.top) / Math.max(b.height, 1), 0), 1);
+      const sy = FIELD.ground - 60 + 48 * k;
+      set(sun, { cx: sx, cy: sy });
+      set(halo, { cx: sx, cy: sy });
+      const p = poses(sx, Math.min(sy, FIELD.sunMaxY));
+      let j = 0;
+      p.forEach((m, i) => {
+        set(mirrors[i], { x1: m.x1, y1: m.y1, x2: m.x2, y2: m.y2 });
+        // evening: the reflected light fades as the sun goes down
+        if (m.row === front) rays[j++].style.opacity = (rayOpacity(m) * (1 - 0.6 * k)).toFixed(2);
+      });
+    };
+    let raf = 0;
+    addEventListener(
+      "scroll",
+      () => {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(update);
+      },
+      { passive: true },
+    );
+    addEventListener("resize", measure);
+    measure();
+  }
+</script>
+
 <style>
   .field-end {
     margin-top: 4rem;
     overflow: hidden;
   }
 
+  .sign-off {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 2rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.9375rem;
+    color: var(--ink-2);
+  }
+
   .field-end svg {
     display: block;
     width: 100%;
-    height: auto;
-    /* full aspect on wide screens; phones keep a minimum height and crop the empty left */
-    min-height: 6rem;
+    /* drawn smaller than the hero's field: the ending echoes the opening, it doesn't outdo it */
+    height: clamp(9rem, 26vh, 14rem);
   }
 
   .sun {
     fill: var(--sun);
+  }
+
+  .halo {
+    fill: url(#fe-halo);
   }
 
   .rays line {

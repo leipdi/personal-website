@@ -2,8 +2,7 @@
 import Placeholder from "../Placeholder.astro";
 import ImagePlaceholder from "../ImagePlaceholder.astro";
 import Heliostat from "../figures/Heliostat.astro";
-import { career, topSkills } from "../../data/cv";
-import { tool, uniqueSvg } from "../../data/tools";
+import { career } from "../../data/cv";
 import { toFrac, todayFrac } from "../../lib/dates";
 
 // Werdegang as a project plan (owner, 2026-09-28): a Gantt chart pinned under the top bar with
@@ -124,12 +123,6 @@ const lanes = cats.map((c) => {
   return { ...c, items, nLines: lines.length, nFlag: flagLine.filter(Boolean).length };
 });
 
-// Which core skills a station fed: the hub's "Gelernt bei" links point at it (by id or case study)
-const skillsOf = (r: Row) =>
-  topSkills.filter((s) =>
-    s.learned.some((l) => l.href.endsWith(`#${r.id}`) || (r.project && l.href.endsWith(`#${r.project}`))),
-  );
-
 // how long a job or thesis ran (months, counted inclusively), or since when it runs
 const duration = (r: Row) => {
   if (r.kind === "ausbildung") return null;
@@ -205,9 +198,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
                           data-now={r.to === "heute" ? "" : undefined}
                           data-cap={capOf(r)}
                           data-name={name(r)}
-                          data-skills={skillsOf(r)
-                            .map((s) => s.id)
-                            .join(" ")}
                           aria-label={`${catName(r.cat)}: ${r.title}, ${r.from} bis ${r.to}`}
                         >
                           <span class="seg-lbl">{name(r)}</span>
@@ -239,12 +229,33 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     <ol class="wrap stations" data-stations>
       {
         rows.map((r) => {
-          const skills = skillsOf(r);
           const dur = duration(r);
-          const facts = [...(dur ? [{ label: "Dauer", value: dur }] : []), ...(r.facts ?? [])];
-          const side = facts.length > 0 || r.tools?.length || (r.visual && r.visual !== "heliostat");
+          // a thesis' submission date is one more fact (the chart's flag shows every milestone)
+          const ms = r.milestone && msDate(r) && /^Abgabe/.test(r.milestone.label) ? [{ label: "Abgabe", value: msDate(r)! }] : [];
+          const facts = [...(dur ? [{ label: "Dauer", value: dur }] : []), ...(r.facts ?? []), ...ms];
+          // minor stations are one row: dates, title, place and their one fact
+          if (r.minor)
+            return (
+              <li id={r.id} class="st st-minor" data-st={r.id} data-cat={r.cat}>
+                <span class="when">
+                  <i aria-hidden="true" />
+                  <span class="sr-only">{catName(r.cat)}: </span>
+                  {r.from} bis {r.to}
+                </span>
+                <h3 class="title">{r.title}</h3>
+                <span class="org">
+                  {r.org}, {r.place}
+                  {r.facts?.map((f) => (
+                    <span class="minor-fact">
+                      {f.label} {f.value}
+                    </span>
+                  ))}
+                </span>
+              </li>
+            );
+          const side = facts.length > 0 || (r.visual && r.visual !== "heliostat");
           return (
-            <li id={r.id} class:list={["st", r.minor && "st-minor"]} data-st={r.id} data-cat={r.cat}>
+            <li id={r.id} class="st" data-st={r.id} data-cat={r.cat}>
               <p class="meta">
                 <span class="cat">
                   <i aria-hidden="true" />
@@ -263,44 +274,19 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
                 <Placeholder>
                   <p class="text story">{r.story}</p>
                   {r.tasks && (
-                    <ul class="tasks">
+                    <ul class="text tasks">
                       {r.tasks.map((t) => (
                         <li>{t}</li>
                       ))}
                     </ul>
                   )}
                 </Placeholder>
-                {r.milestone && (
-                  <p class="ms-box">
-                    <svg class="ms-flag" viewBox="0 0 16 20" width="16" height="20" aria-hidden="true">
-                      <path d="M2.5 1v18" />
-                      <path d="M3.5 2h10l-3 4 3 4h-10z" />
-                    </svg>
-                    <span>
-                      <strong>Meilenstein: {r.milestone.label}</strong>
-                      {msDate(r) && <span class="ms-date">{msDate(r)}</span>}
-                    </span>
-                  </p>
-                )}
                 {r.visual === "heliostat" && (
                   <div class="visual">
                     <Placeholder kind="data" note="KI-Skizze, besser durch echtes Bild ersetzen">
                       <Heliostat />
                     </Placeholder>
                   </div>
-                )}
-                {skills.length > 0 && (
-                  <p class="skills">
-                    Kernkompetenzen:{" "}
-                    {skills.map((s, k) => (
-                      <>
-                        {k > 0 && ", "}
-                        <span class="skill" data-skill={s.id}>
-                          {s.title}
-                        </span>
-                      </>
-                    ))}
-                  </p>
                 )}
               </div>
 
@@ -315,32 +301,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
                         </div>
                       ))}
                     </dl>
-                  )}
-                  {r.tools && r.tools.length > 0 && (
-                    <div class="sw">
-                    <p class="tools-lbl" id={`sw-${r.id}`}>
-                      Software
-                    </p>
-                    <ul class="tools" aria-labelledby={`sw-${r.id}`}>
-                      {r.tools.map((key) => {
-                        const t = tool(key);
-                        return t.svg ? (
-                          <li class="tool">
-                            <span class="tool-logo" aria-hidden="true" set:html={uniqueSvg(t.svg, `wd-${r.id}`)} />
-                            <span class="tool-name">{t.name}</span>
-                          </li>
-                        ) : (
-                          <li class="tool tool-ph" data-placeholder="logo">
-                            <span class="tool-mono" aria-hidden="true">
-                              {t.mono}
-                            </span>
-                            <span class="tool-name">{t.name}</span>
-                            <span class="sr-only"> (Logo-Platzhalter)</span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                    </div>
                   )}
                   {r.visual && r.visual !== "heliostat" && (
                     <ImagePlaceholder label={r.visual.image} note={r.visual.note} ratio="4 / 3" />
@@ -800,7 +760,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   }
 
   // pointing at a row picks out its station (marked in the gutter only if it is actually in
-  // view below the chart), and a skill name the rows that fed it
+  // view below the chart)
   const peek = (els: Iterable<Element | null>, on: boolean) => {
     for (const el of els) el?.classList.toggle("is-peek", on);
   };
@@ -832,11 +792,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
       ),
     );
     r.addEventListener("blur", off);
-  }
-  for (const c of document.querySelectorAll<HTMLElement>("[data-skill]")) {
-    const fed = rows.filter((r) => r.dataset.skills!.split(" ").includes(c.dataset.skill!));
-    c.addEventListener("pointerenter", () => peek(fed, true));
-    c.addEventListener("pointerleave", () => peek(fed, false));
   }
 </script>
 
@@ -896,7 +851,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     display: inline-block;
     width: 1.5rem;
     height: 0.5rem;
-    border-radius: 2px;
     background: var(--c-edu);
     box-shadow:
       0 0 0 2px var(--bg),
@@ -942,7 +896,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   }
   /* faded out while the last station pushes it off (script, phones) */
   .plan-wrap.is-gone {
-    visibility: hidden;
+    pointer-events: none;
   }
 
   /* text below fades out under the chart instead of being sliced */
@@ -970,7 +924,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     }
   }
 
-
   /* without JS the lines are packed from an estimate of the label widths, which only holds
      on wide screens (at 768-1279px labels collided): below 80rem the chart is left out, the
      station list below is the content */
@@ -985,7 +938,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   :global(html.js) .stations > li {
     scroll-margin-top: var(--plan-h, 15rem);
   }
-
 
   .plan {
     position: relative;
@@ -1227,7 +1179,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     right: 0;
     bottom: 0;
     height: var(--bar);
-    border-radius: 2px;
     background: var(--c);
     transition:
       opacity 0.25s,
@@ -1280,8 +1231,11 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
 
   /* ---------- states (JS): the station being read gets an ink ring, later ones are pale; at
      rest everything is at full strength. Flags stay filled: the playhead shows progress. ---------- */
+  /* later stations: an outline in their colour, not a pale tint (three pastels read as
+     disabled UI) */
   .seg.is-future .bar {
-    opacity: 0.3;
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--c);
   }
   .seg.is-future .seg-lbl {
     color: var(--ink-3);
@@ -1296,7 +1250,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     font-weight: 800;
   }
 
-  /* pointed at (the bar, or a skill name below): a dashed ring, so it never looks current */
+  /* pointed at: a dashed ring, so it never looks current */
   .seg.is-peek .bar {
     opacity: 1;
     outline: 1.5px dashed var(--ink);
@@ -1351,8 +1305,52 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     border-top: 1px solid var(--line);
   }
 
-  .st-minor {
-    padding: 1.5rem 0;
+  /* minor stations: one row (dates | title | place and fact); .st.st-minor so the station
+     grid rules (later in the file, same weight) don't take over */
+  .st.st-minor {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.2rem 1rem;
+    /* a little taller than the text needs: each station gets its stretch of scrolling */
+    padding: 2rem 0;
+  }
+
+  .st-minor .when {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.875rem;
+  }
+
+  .st-minor .when i {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 2px;
+    background: var(--c);
+  }
+
+  .st-minor .org {
+    font-size: 0.875rem;
+    color: var(--ink-2);
+  }
+
+  .minor-fact::before {
+    content: ", ";
+  }
+
+  .st.st-minor .title {
+    order: 0;
+  }
+
+  @media (min-width: 48rem) {
+    .st.st-minor {
+      display: grid;
+      /* a fixed title column, so the places line up across the minor rows */
+      grid-template-columns: 11.5rem 19rem minmax(0, 1fr);
+      grid-template-areas: none;
+      column-gap: 2.5rem;
+    }
   }
 
   /* phones: the title first, then the meta line, then the rest */
@@ -1439,7 +1437,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     font-variant-numeric: tabular-nums;
   }
 
-  /* the station's colour, once more, as a short bar above its title */
   .title {
     font-family: var(--serif);
     font-weight: 600;
@@ -1450,24 +1447,9 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     overflow-wrap: anywhere;
   }
 
-  .title::before {
-    content: "";
-    display: block;
-    width: 2.5rem;
-    height: 6px;
-    border-radius: 2px;
-    margin-bottom: 0.9rem;
-    background: var(--c);
-  }
-
-  .st-minor .title {
-    font-size: 1.3125rem;
-  }
-
-  .st-minor .title::before {
-    width: 1.5rem;
-    height: 4px;
-    margin-bottom: 0.6rem;
+  .st.st-minor .title {
+    font-size: 1.1875rem;
+    hyphens: manual;
   }
 
   .main > :global(.ph-block) {
@@ -1483,92 +1465,25 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     font-size: 1.0625rem;
   }
 
+  /* the same list as in the Kernkompetenzen cards: serif, plain discs */
   .tasks {
     margin-top: 0.9rem;
     display: grid;
-    gap: 0.45rem;
-    font-size: 0.9375rem;
+    gap: 0.35rem;
+    padding-left: 1.15rem;
+    list-style: disc;
+    font-size: 1.0625rem;
     line-height: 1.5;
-    list-style: none;
     transition: color 0.3s;
   }
 
-  .tasks li {
-    position: relative;
-    padding-left: 1.1rem;
-  }
-
-  /* a short dash in the station's colour */
-  .tasks li::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0.68em;
-    width: 0.5rem;
-    height: 2px;
-    background: var(--c);
-  }
-
-  /* always the middle column's width; the label, then the date */
-  .ms-box {
-    margin-top: 1.25rem;
-    display: flex;
-    width: 100%;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.65rem 0.9rem;
-    background: var(--paper);
-    border-left: 3px solid var(--ink);
-    font-size: 0.9375rem;
-    line-height: 1.35;
-  }
-
-  .ms-box strong {
-    display: block;
-    font-weight: 700;
-  }
-
-  .ms-date {
-    display: block;
-    font-size: 0.8125rem;
+  .tasks li::marker {
     color: var(--ink-2);
-  }
-
-  .ms-flag {
-    flex: none;
-  }
-  .ms-flag path:first-child {
-    stroke: var(--ink);
-    stroke-width: 1.75;
-  }
-  .ms-flag path:last-child {
-    fill: var(--ink);
   }
 
   .visual {
     margin-top: 1.5rem;
     max-width: 24rem;
-  }
-
-  .skills {
-    margin-top: 1rem;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    color: var(--ink-2);
-  }
-
-  /* pointing at a skill picks out the stations that fed it */
-  .skill {
-    cursor: default;
-    text-decoration: underline;
-    text-decoration-color: transparent;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.2em;
-    transition: text-decoration-color 0.2s;
-  }
-
-  .skill:hover {
-    text-decoration-color: var(--ink-2);
   }
 
   /* ---------- side: facts, software, picture ---------- */
@@ -1623,67 +1538,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     text-align: right;
   }
 
-  .tools-lbl {
-    margin-bottom: 0.6rem;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--ink-2);
-  }
-
-  .tools {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.9rem 0.75rem;
-    list-style: none;
-  }
-
-  /* wide enough that two-word names break once, between the words */
-  .tool {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.35rem;
-    width: 4.75rem;
-    text-align: center;
-  }
-
-  .tool-logo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 2.25rem;
-    max-width: 100%;
-  }
-
-  .tool-logo :global(svg) {
-    display: block;
-    height: 100%;
-    width: auto;
-    max-width: 100%;
-  }
-
-  .tool-name {
-    font-size: 0.6875rem;
-    font-weight: 500;
-    line-height: 1.25;
-    color: var(--ink-2);
-    text-wrap: balance;
-  }
-
-  /* no free logo: dashed magenta monogram = marked logo placeholder */
-  .tool-mono {
-    display: grid;
-    place-items: center;
-    min-width: 2.25rem;
-    height: 2.25rem;
-    padding: 0 0.15rem;
-    border: 1.5px dashed var(--ph);
-    border-radius: 4px;
-    color: var(--ph);
-    font-size: 0.8125rem;
-    font-weight: 800;
-  }
-
   /* with JS the stories you're not reading step back (by colour, still 4.5:1); titles, dates
      and facts stay put, and at rest (page top) nothing steps back */
   :global(html.js) .scope:not(.is-rest) .st:not(.is-cur):not(.is-peek) .story,
@@ -1704,8 +1558,8 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   }
   .st-minor.is-peek::before,
   .st-minor:target::before {
-    top: 1.5rem;
-    bottom: 1.5rem;
+    top: 1.25rem;
+    bottom: 1.25rem;
   }
   @media (min-width: 40rem) {
     .st.is-peek::before,
