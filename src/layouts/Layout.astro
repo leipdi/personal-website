@@ -31,6 +31,19 @@ const { title, description } = Astro.props;
   <body id="top">
     <a href="#inhalt" class="skip">Zum Inhalt springen</a>
 
+    <!-- one photo treatment for the page: a duotone from a lifted ink (--ink-2) to the steel
+         paper (--bg), so every photo reads as one set and none turns into a dark slab -->
+    <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">
+      <filter id="duo" color-interpolation-filters="sRGB">
+        <feColorMatrix type="saturate" values="0"></feColorMatrix>
+        <feComponentTransfer>
+          <feFuncR type="table" tableValues="0.31 0.957"></feFuncR>
+          <feFuncG type="table" tableValues="0.365 0.965"></feFuncG>
+          <feFuncB type="table" tableValues="0.431 0.973"></feFuncB>
+        </feComponentTransfer>
+      </filter>
+    </svg>
+
     <!-- remove once every Placeholder / ImagePlaceholder is replaced -->
     <p class="draft-note">
       Entwurf: Magenta markierte Stellen sind KI-Platzhalter (Texte, Daten, Bildideen) und werden noch ersetzt.
@@ -155,6 +168,13 @@ const { title, description } = Astro.props;
     line-height: 1.4;
     padding: 0.4rem 1.25rem;
     text-align: center;
+  }
+
+  .defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
   }
 
   /* fixed, so focusing it doesn't scroll the page to the top */

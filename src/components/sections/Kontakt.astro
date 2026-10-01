@@ -14,13 +14,12 @@ const liPath = profile.linkedin.slice(liCut);
 
 <section id="kontakt" class="sec" aria-labelledby="h-kontakt">
   <div class="wrap page">
-    <!-- the e-mail is the heading: a separate "Kontakt" title sat on it as a smaller slab -->
-    <h2 id="h-kontakt" class="mail-h">
-      <span class="sr-only">Kontakt: </span>
-      <a class="display mail" href={`mailto:${profile.email}`}>
-        {user}<wbr />@{domain}
-      </a>
-    </h2>
+    <h2 id="h-kontakt" class="display page-title">Kontakt</h2>
+
+    <!-- the page's one heavy grotesk moment: the e-mail, set apart from the serif titles -->
+    <a class="mail" href={`mailto:${profile.email}`}>
+      {user}<wbr />@{domain}
+    </a>
 
     <div class="card-row">
       <!-- a letterhead, not a form: the details speak for themselves without labels -->
@@ -66,8 +65,12 @@ const liPath = profile.linkedin.slice(liCut);
 
   .mail {
     display: inline-block;
+    margin-top: 2rem;
+    font-family: var(--sans);
+    font-weight: 800;
+    letter-spacing: -0.045em;
     /* capped so it stays on one line in the 72rem column on the widest screens */
-    font-size: clamp(2.25rem, 0.9rem + 5.6vw, 5.75rem);
+    font-size: clamp(2rem, 0.8rem + 4.6vw, 5.25rem);
     line-height: 1;
     color: var(--ink);
     text-decoration: underline;
