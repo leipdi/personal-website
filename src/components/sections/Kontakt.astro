@@ -1,0 +1,158 @@
+---
+import Placeholder from "../Placeholder.astro";
+import ImagePlaceholder from "../ImagePlaceholder.astro";
+import { profile, notes } from "../../data/cv";
+import { cvPdf } from "../../data/nav";
+
+const [user, domain] = profile.email.split("@");
+// break only after "linkedin.com/in/", never inside the handle (it has hyphens)
+const liCut = profile.linkedin.lastIndexOf("/") + 1;
+const liHost = profile.linkedin.slice(0, liCut);
+const liPath = profile.linkedin.slice(liCut);
+---
+
+<section id="kontakt" class="sec" aria-labelledby="h-kontakt">
+  <div class="wrap page">
+    <h2 id="h-kontakt" class="display page-title">Kontakt</h2>
+
+    <a class="display mail" href={`mailto:${profile.email}`}>
+      {user}<wbr />@{domain}
+    </a>
+
+    <div class="card-row">
+      <!-- a letterhead, not a form: the details speak for themselves without labels -->
+      <address class="letterhead">
+        <strong>{profile.name}</strong>
+        <span>{profile.role}</span>
+        <span>{profile.location}</span>
+        <a class="prose-link" href={`tel:${profile.phone.replace(/\s/g, "")}`}>{profile.phone}</a>
+        <a class="prose-link" href={profile.linkedinUrl} target="_blank" rel="noreferrer"
+          >{liHost}<wbr /><span class="nobr">{liPath}</span></a
+        >
+        <a class="cv" href={cvPdf} target="_blank" rel="noreferrer">Lebenslauf als PDF</a>
+      </address>
+
+      <section class="off" aria-labelledby="h-off">
+        <h3 id="h-off" class="h2">Neben dem Job</h3>
+        <Placeholder>
+          <div class="text">
+            {notes.map((n) => <p>{n}</p>)}
+          </div>
+        </Placeholder>
+        <div class="off-pics">
+          <ImagePlaceholder label="Beim Pfeifen als Schiedsrichter" ratio="4 / 3" />
+          <ImagePlaceholder label="Ein selbst gedrucktes 3D-Druck-Teil" ratio="4 / 3" />
+        </div>
+      </section>
+    </div>
+  </div>
+</section>
+
+<style>
+  .page {
+    padding-top: 2.5rem;
+  }
+
+  @media (min-width: 64rem) {
+    .page {
+      padding-top: 3rem;
+    }
+  }
+
+  .mail {
+    display: inline-block;
+    font-size: clamp(2.25rem, 0.9rem + 5.6vw, 6.5rem);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--ink);
+    letter-spacing: -0.045em;
+    text-decoration: underline;
+    text-decoration-thickness: 0.07em;
+    text-underline-offset: 0.12em;
+    text-decoration-color: var(--steel);
+    overflow-wrap: anywhere;
+  }
+
+  .mail:hover {
+    text-decoration-thickness: 0.14em;
+    text-decoration-color: var(--ink);
+  }
+
+  .card-row {
+    margin-top: 3rem;
+    display: grid;
+    gap: 3.5rem;
+  }
+
+  @media (min-width: 56rem) {
+    .card-row {
+      margin-top: 4.5rem;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 5rem;
+      /* the "Neben dem Job" column (text + two pictures) is much taller: don't stretch the address to match */
+      align-items: start;
+    }
+  }
+
+  /* one type style for the whole block: grotesk, the name in 700, the rest 400 */
+  .letterhead {
+    font-family: var(--sans);
+    font-size: 1.125rem;
+    font-weight: 400;
+    line-height: 1.5;
+    font-style: normal;
+    display: grid;
+    align-content: start;
+    justify-items: start;
+    gap: 0.15rem;
+  }
+
+  .letterhead strong {
+    font-weight: 700;
+  }
+
+  .nobr {
+    white-space: nowrap;
+  }
+
+  .cv {
+    margin-top: 1.5rem;
+    font-family: var(--sans);
+    font-size: 1rem;
+    background: var(--ink);
+    color: var(--paper);
+    border: 2px solid var(--ink);
+    padding: 0.8rem 1.25rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .cv:hover {
+    background: var(--ink-2);
+    border-color: var(--ink-2);
+    color: var(--paper);
+  }
+
+  /* section head: a quiet grotesk label, not display */
+  .h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.2;
+  }
+
+  .off .text {
+    margin-top: 0.5rem;
+  }
+
+  .off-pics {
+    margin-top: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 1rem;
+  }
+
+  .off p + p {
+    margin-top: 0.75rem;
+  }
+</style>

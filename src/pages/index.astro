@@ -2,9 +2,11 @@
 import Layout from "../layouts/Layout.astro";
 import Placeholder from "../components/Placeholder.astro";
 import HeliostatField from "../components/figures/HeliostatField.astro";
+import Werdegang from "../components/sections/Werdegang.astro";
+import Kenntnisse from "../components/sections/Kenntnisse.astro";
+import Kontakt from "../components/sections/Kontakt.astro";
 import { profile, topSkills } from "../data/cv";
 import { tool, uniqueSvg } from "../data/tools";
-import { cvPdf } from "../data/nav";
 
 // Long German compounds get soft hyphens for display only (the data keeps the plain word),
 // so a narrow box breaks "Bauteilkostenkalkulation" at a word joint instead of overflowing.
@@ -13,12 +15,11 @@ const titleBreaks: Record<string, string> = {
 };
 const displayTitle = (t: string) => titleBreaks[t] ?? t;
 
-const [mailUser, mailDomain] = profile.email.split("@");
 // neutral and factual (name, role, fields named in the CV): the AI-drafted claim must not end up in search results
 const description = `${profile.name}, ${profile.role}, ${profile.location}. Herstellkostenrechnung, Ökobilanz (LCA) und BI Consulting mit Power BI und Jedox.`;
 ---
 
-<Layout title="Daniel Lenski, Wirtschaftsingenieur" description={description} active="uebersicht">
+<Layout title="Daniel Lenski, Wirtschaftsingenieur" description={description}>
   <section class="hero" aria-labelledby="name">
     <HeliostatField>
       <div class="wrap hero-text">
@@ -32,148 +33,205 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     </HeliostatField>
   </section>
 
-  <!-- Skill hub: a banner line, then one box per core skill in a row that scrolls sideways.
-       Each box: picture with title and proof lines on it, then software and where it comes from -->
-  <section class="hub" aria-labelledby="h-hub">
-    <div class="hub-banner">
-      <div class="wrap">
-        <h2 id="h-hub" class="hub-title">Diese vier Bereiche zeichnen mich aus.</h2>
-      </div>
-    </div>
-    <Placeholder
-      kind="vorschlag"
-      note="Belegzeilen und Zuordnung von Stationen und Software KI-abgeleitet; gestrichelte Logos sind Logo-Platzhalter; das Controlling-Bild ist ein Testbild"
-    >
-      <div class="wrap hub-bar">
-        <div class="hub-arrows">
-          <button type="button" class="hub-arrow" data-hub-step="-1" aria-label="Vorherige Kompetenz" aria-disabled="true">
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
-          </button>
-          <button type="button" class="hub-arrow" data-hub-step="1" aria-label="Nächste Kompetenz">
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
-          </button>
-        </div>
-      </div>
-      <div class="hub-scroll" data-hub-row>
-      <ul class="hub-row" aria-label="Kernkompetenzen">
+  <!-- Kernkompetenzen: the four names as the heading, then one panel per skill. While
+       scrolling, each panel pins and the next slides up over it (stacking cards); the covered
+       one steps back. Panel: text on paper (title, proof lines, software, where it comes
+       from, a link to the next) beside an uncovered photo in one steel treatment. -->
+  <section id="kompetenzen" class="kk" aria-labelledby="h-kk">
+    <div class="wrap">
+      <h2 id="h-kk" class="kk-title">
+        <span class="sr-only">Kernkompetenzen: </span>
         {
-          topSkills.map((s) => (
-            <li class="skill" aria-labelledby={`sk-${s.id}`}>
-              <div class="skill-media">
-                {s.image ? (
-                  <img class="skill-img" src={s.image.src} alt="" width="500" height="333" loading="lazy" decoding="async" />
-                ) : (
-                  <p class="skill-img skill-img-ph" data-placeholder="bild">
-                    <strong>Bildplatzhalter</strong>
-                    <span>{s.imageIdea}</span>
-                  </p>
-                )}
-                <div class="skill-body">
-                  <h3 id={`sk-${s.id}`} class="skill-title">
-                    {displayTitle(s.title)}
-                  </h3>
-                  <ul class="text skill-proof">
-                    {s.proof.map((line) => (
-                      <li>{line}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-              <div class="skill-foot">
-                <p class="lbl">Software</p>
-                {s.tools.length > 0 && (
-                  <ul class="tools">
-                    {s.tools.map((key) => {
-                      const t = tool(key);
-                      return t.svg ? (
-                        <li class="tool">
-                          <span class="tool-logo" aria-hidden="true" set:html={uniqueSvg(t.svg, s.id)} />
-                          <span class="tool-name">{t.name}</span>
-                        </li>
-                      ) : (
-                        <li class="tool tool-ph" data-placeholder="logo">
-                          <span class="tool-mono" aria-hidden="true">
-                            {t.mono}
-                          </span>
-                          <span class="tool-name">{t.name}</span>
-                          <span class="sr-only"> (Logo-Platzhalter)</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-                {s.toolsQuestion && <p class="tools-open">{s.toolsQuestion}</p>}
-                <p class="skill-src">
-                  <span class="lbl">Gelernt bei</span>{" "}
-                  {s.learned.map((l, i) => (
-                    <>
-                      {i > 0 && ", "}
-                      <a href={l.href}>{l.label}</a>
-                    </>
-                  ))}
-                </p>
-              </div>
-            </li>
+          topSkills.map((s, i) => (
+            <>
+              <a href={`#kk-${s.id}`}>{displayTitle(s.title)}</a>
+              {i < topSkills.length - 2 ? ", " : i === topSkills.length - 2 ? " und " : "."}
+            </>
           ))
         }
-      </ul>
-      </div>
-    </Placeholder>
-  </section>
-
-  <section class="end" aria-labelledby="h-end">
-    <div class="wrap end-in">
-      <h2 id="h-end" class="end-line">
-        Am einfachsten per <span class="nobr">E-Mail:</span>{" "}
-        <a class="end-mail" href={`mailto:${profile.email}`}>{mailUser}<wbr />@{mailDomain}</a>
       </h2>
-      <p class="end-links">
-        <a class="prose-link" href={profile.linkedinUrl} target="_blank" rel="noreferrer">LinkedIn</a>
-        <a class="prose-link" href={cvPdf} target="_blank" rel="noreferrer">Lebenslauf (PDF)</a>
-        <a class="prose-link" href="/kontakt/">Alle Kontaktdaten</a>
-      </p>
+      <Placeholder
+        kind="vorschlag"
+        note="Belegzeilen und Zuordnung von Stationen und Software KI-abgeleitet; gestrichelte Logos sind Logo-Platzhalter; das Controlling-Bild ist ein Testbild"
+      >
+        <ol class="kk-stack" data-kk>
+          {
+            topSkills.map((s, i) => {
+              const next = topSkills[i + 1];
+              return (
+                <li class="panel" id={`kk-${s.id}`} data-kk-panel aria-labelledby={`sk-${s.id}`}>
+                  <div class="panel-in" data-kk-card>
+                    <div class="panel-text">
+                      <h3 id={`sk-${s.id}`} class="panel-title">
+                        {displayTitle(s.title)}
+                      </h3>
+                      <ul class="text panel-proof">
+                        {s.proof.map((line) => (
+                          <li>{line}</li>
+                        ))}
+                      </ul>
+                      <div class="panel-meta">
+                        {s.tools.length > 0 && (
+                          <ul class="tools" aria-label="Software">
+                            {s.tools.map((key) => {
+                              const t = tool(key);
+                              return t.svg ? (
+                                <li class="tool">
+                                  <span class="tool-logo" aria-hidden="true" set:html={uniqueSvg(t.svg, s.id)} />
+                                  <span class="tool-name">{t.name}</span>
+                                </li>
+                              ) : (
+                                <li class="tool tool-ph" data-placeholder="logo">
+                                  <span class="tool-mono" aria-hidden="true">
+                                    {t.mono}
+                                  </span>
+                                  <span class="tool-name">{t.name}</span>
+                                  <span class="sr-only"> (Logo-Platzhalter)</span>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                        {s.toolsQuestion && <p class="tools-open">{s.toolsQuestion}</p>}
+                        <p class="skill-src">
+                          <span class="lbl">Gelernt bei</span>{" "}
+                          {s.learned.map((l, k) => (
+                            <>
+                              {k > 0 && ", "}
+                              <a href={l.href}>{l.label}</a>
+                            </>
+                          ))}
+                        </p>
+                      </div>
+                      <a class="panel-next" href={next ? `#kk-${next.id}` : "#werdegang"}>
+                        <span>
+                          Weiter: <span class="nobr">{next ? next.title : "Werdegang"}</span>
+                        </span>
+                        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                          <path d="M12 5v14m-6-6 6 6 6-6" />
+                        </svg>
+                      </a>
+                    </div>
+                    <div class="panel-photo">
+                      {s.image ? (
+                        <img src={s.image.src} alt="" width="500" height="333" loading="lazy" decoding="async" />
+                      ) : (
+                        <p class="panel-ph" data-placeholder="bild">
+                          <strong>Bildplatzhalter</strong>
+                          <span>{s.imageIdea}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </li>
+              );
+            })
+          }
+        </ol>
+      </Placeholder>
     </div>
   </section>
+
+  <Werdegang />
+  <Kenntnisse />
+  <Kontakt />
 </Layout>
 
 <script>
-  // arrow buttons for the skill row (trackpad, touch and Shift + wheel scroll it natively)
-  const row = document.querySelector<HTMLElement>("[data-hub-row]");
-  const arrows = [...document.querySelectorAll<HTMLButtonElement>("[data-hub-step]")];
-  if (row && arrows.length) {
+  // Kernkompetenzen as stacking panels: each panel is sticky (CSS, JS only) and the next one
+  // scrolls up over it. The script sets each panel's sticky top (the card pinned centred in
+  // the space under the top bar; a card taller than that pins by its bottom edge, so none of
+  // it is ever out of reach) and lets the covered card step back and fade out as the next
+  // one comes up. Nothing moves with reduced motion.
+  const stack = document.querySelector<HTMLElement>("[data-kk]");
+  const panels = [...document.querySelectorAll<HTMLElement>("[data-kk-panel]")];
+  if (stack && panels.length) {
+    const cards = panels.map((p) => p.querySelector<HTMLElement>("[data-kk-card]")!);
+    const topBar = document.querySelector<HTMLElement>(".top");
     const reduce = matchMedia("(prefers-reduced-motion: reduce)");
-    const step = () => {
-      const card = row.querySelector<HTMLElement>(".skill");
-      const list = row.firstElementChild as HTMLElement;
-      return card ? card.offsetWidth + parseFloat(getComputedStyle(list).columnGap || "0") : row.clientWidth;
+    let base = 0;
+    let sticks: number[] = [];
+    let heights: number[] = [];
+
+    const layout = () => {
+      // the sticky top bar on phones; static from 64rem
+      base = topBar && getComputedStyle(topBar).position === "sticky" ? topBar.getBoundingClientRect().height : 0;
+      const free = innerHeight - base;
+      heights = panels.map((p) => p.offsetHeight);
+      sticks = heights.map((h) => (h <= free ? base + (free - h) / 2 : innerHeight - h));
+      // an anchor to a panel lands where it has just pinned (natural top at its sticky top),
+      // not at the page's scroll padding, where the next card would already cover it
+      const pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+      panels.forEach((p, i) => {
+        p.style.setProperty("--stick", `${Math.round(sticks[i])}px`);
+        p.style.scrollMarginTop = `${Math.max(0, Math.round(sticks[i] - pad))}px`;
+      });
+      update();
     };
-    const behavior = (): ScrollBehavior => (reduce.matches ? "auto" : "smooth");
-    for (const b of arrows) {
-      b.addEventListener("click", () => {
-        if (b.getAttribute("aria-disabled") === "true") return;
-        row.scrollBy({ left: Number(b.dataset.hubStep) * step(), behavior: behavior() });
+
+    const natural = (i: number) =>
+      stack.getBoundingClientRect().top + scrollY + heights.slice(0, i).reduce((a, h) => a + h, 0);
+
+    // how far the next panel has come up over panel i: 0 when it meets i's bottom, 1 pinned
+    const covered = (i: number) => {
+      const next = panels[i + 1];
+      if (!next) return 0;
+      const from = sticks[i] + heights[i];
+      const to = sticks[i + 1];
+      const t = next.getBoundingClientRect().top;
+      return Math.min(Math.max((from - t) / Math.max(from - to, 1), 0), 1);
+    };
+
+    const update = () => {
+      cards.forEach((card, i) => {
+        const k = reduce.matches ? 0 : covered(i);
+        card.style.transform = k > 0 ? `scale(${(1 - 0.08 * k).toFixed(4)})` : "";
+        card.style.opacity = k > 0 ? (1 - k).toFixed(3) : "";
+      });
+    };
+
+    // Focus in a card that a later one covers (Shift+Tab, or a link the browser thinks is
+    // on screen because its panel is pinned): scroll back to where that panel has just
+    // pinned and the next one still waits below it.
+    // (keyboard focus only: a click or tap on a link focuses it too, and must be left to
+    // scroll to its target)
+    stack.addEventListener("focusin", (e) => {
+      const el = e.target as HTMLElement;
+      if (!el.matches(":focus-visible")) return;
+      const p = el.closest<HTMLElement>("[data-kk-panel]");
+      if (!p) return;
+      const i = panels.indexOf(p);
+      requestAnimationFrame(() => {
+        const r = (e.target as HTMLElement).getBoundingClientRect();
+        const next = panels[i + 1]?.getBoundingClientRect().top ?? Infinity;
+        if (covered(i) === 0 && r.bottom <= next && r.top >= base) return;
+        scrollTo({ top: natural(i) - sticks[i], behavior: "auto" });
+      });
+    });
+
+    let raf = 0;
+    addEventListener(
+      "scroll",
+      () => {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(update);
+      },
+      { passive: true },
+    );
+    addEventListener("resize", layout);
+    document.fonts?.ready.then(layout);
+    new ResizeObserver(layout).observe(stack);
+    layout();
+
+    // a fresh visit to /#kk-…: the browser scrolled before the margins above existed
+    // (a reload or Back restores its saved position instead, see Werdegang)
+    const atLoad = panels.findIndex((p) => `#${p.id}` === location.hash);
+    if (atLoad >= 0 && typeof history.state?.wdY !== "number") {
+      document.fonts?.ready.then(() => {
+        layout();
+        scrollTo(0, natural(atLoad) - sticks[atLoad]);
       });
     }
-    // Tab into a box that is only partly visible: bring the whole box in (the browser
-    // only scrolls when the focused link is fully hidden)
-    row.addEventListener("focusin", (e) => {
-      const box = (e.target as HTMLElement).closest<HTMLElement>(".skill");
-      if (!box) return;
-      const r = box.getBoundingClientRect();
-      const v = row.getBoundingClientRect();
-      const edge = parseFloat(getComputedStyle(row.firstElementChild as HTMLElement).paddingLeft || "0");
-      if (r.left < v.left + edge - 1 || r.right > v.right) {
-        row.scrollBy({ left: r.left - v.left - edge, behavior: behavior() });
-      }
-    });
-    const update = () => {
-      const max = row.scrollWidth - row.clientWidth;
-      arrows[0].setAttribute("aria-disabled", String(row.scrollLeft < 4));
-      arrows[1].setAttribute("aria-disabled", String(row.scrollLeft > max - 4));
-    };
-    row.addEventListener("scroll", update, { passive: true });
-    addEventListener("resize", update);
-    update();
   }
 </script>
 
@@ -255,193 +313,120 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     }
   }
 
-  /* ---------- skill hub: banner line, then the boxes in a row that scrolls sideways ---------- */
-  .hub {
+  /* ---------- Kernkompetenzen: the names as heading, then stacking panels ---------- */
+  .kk {
     /* no top rule: the field's ground line closes the hero */
-    padding-bottom: 4rem;
-    /* where the content column starts: the row and the placeholder tag line up with it */
-    --edge: max(var(--gutter), calc((100% - var(--wrap)) / 2));
-  }
-
-  .hub-banner {
-    background: var(--wash);
-    padding: 2.5rem 0 2.25rem;
-    margin-bottom: 1.75rem;
+    padding: 3rem 0 4rem;
   }
 
   @media (min-width: 48rem) {
-    .hub-banner {
-      padding: 3.25rem 0 3rem;
+    .kk {
+      padding-top: 4rem;
     }
   }
 
-  .hub-title {
+  /* the four names are the heading: the content itself, each a link to its panel */
+  .kk-title {
+    max-width: 22em;
+    margin-bottom: 2rem;
     font-family: var(--serif);
     font-optical-sizing: auto;
     font-weight: 500;
-    font-size: clamp(2rem, 1.2rem + 3vw, 3.5rem);
-    line-height: 1.05;
+    font-size: clamp(1.875rem, 1.2rem + 2.4vw, 3.25rem);
+    line-height: 1.1;
     letter-spacing: -0.02em;
-    max-width: 20em;
+    color: var(--ink-3);
     text-wrap: balance;
+  }
+
+  .kk-title a {
     color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-decoration-color: var(--steel);
+    text-underline-offset: 0.12em;
   }
 
-  /* the placeholder wrapper spans the full width here (the row bleeds to the window
-     edge), so its tag and dashed rule are pulled in to the content column */
-  .hub > :global(.ph-block) > :global(.ph-head) {
-    padding-inline: var(--edge);
-  }
-  .hub > :global(.ph-block::before) {
-    left: calc(var(--edge) - 0.75rem);
+  .kk-title a:hover {
+    text-decoration-thickness: 3px;
+    text-decoration-color: var(--ink);
   }
 
-  /* only the arrows (JS); the next box peeking in is the scroll cue, no instruction label */
-  .hub-bar {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 1rem;
-  }
-
-  @media (min-width: 48rem) {
-    .hub-bar {
-      margin-top: 0.5rem;
-    }
-  }
-
-  .hub-arrows {
-    display: none;
-    gap: 0.5rem;
-  }
-
-  /* the arrows need JS */
-  /* arrows only with JS and only where there is a mouse-sized screen; on phones the row
-     is swiped, and the arrow row would push the boxes below the fold */
-  @media (min-width: 48rem) {
-    :global(html.js) .hub-arrows {
-      display: flex;
-    }
-  }
-
-  .hub-arrow {
+  /* Without JS the panels simply follow each other. With JS each one is sticky at the
+     top the script works out (--stick), and the next one slides up over it. */
+  .kk-stack {
     display: grid;
-    place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    /* square, like the site's rules and bars (round arrows read as a stock carousel) */
-    border: 1.5px solid var(--ink);
-    border-radius: 0;
-    background: var(--paper);
-    color: var(--ink);
-    cursor: pointer;
-    transition: background-color 0.15s, color 0.15s;
+    gap: 1.5rem;
   }
 
-  .hub-arrow svg {
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+  :global(html.js) .kk-stack {
+    gap: 0;
   }
 
-  .hub-arrow:hover:not([aria-disabled="true"]) {
-    background: var(--ink);
-    color: var(--paper);
-  }
-
-  /* aria-disabled, not disabled: a disabled button would drop keyboard focus at the end */
-  .hub-arrow[aria-disabled="true"] {
-    border-color: rgb(15 27 45 / 0.3);
-    color: rgb(15 27 45 / 0.3);
-    cursor: default;
-  }
-
-  /* One row of boxes from the content edge out to the window edge; the next box peeks in,
-     so the row reads as scrollable. Two grid rows (picture with text, footer), each box a
-     subgrid over both, so footers start level. */
-  /* positioned, so absolutely placed bits inside (the sr-only logo notes) are clipped by
-     the scroller instead of widening the page; z-index 1 keeps the boxes above the
-     placeholder's dashed rule when they scroll past it */
-  .hub-scroll {
-    position: relative;
-    z-index: 1;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scroll-snap-type: x mandatory;
-    scroll-padding-inline: var(--edge);
-    scrollbar-width: thin;
-    scrollbar-color: var(--ink-3) transparent;
-  }
-
-  /* the side padding sits on the list, not the scroller: a scroller's own end padding
-     isn't scrollable, so the last box would stay cut off at the window edge */
-  .hub-row {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: min(23rem, 84vw);
-    grid-template-rows: auto auto;
-    gap: 0 1.25rem;
-    width: max-content;
-    padding: 1rem var(--edge) 1.25rem;
-  }
-
-  .skill {
-    display: grid;
-    grid-row: span 2;
-    grid-template-rows: subgrid;
-    row-gap: 0;
+  .panel {
     min-width: 0;
-    scroll-snap-align: start;
+  }
+
+  /* no background of its own: the incoming card itself slides over the pinned one */
+  :global(html.js) .panel {
+    position: sticky;
+    top: var(--stick, 0px);
+    padding: 0.75rem 0;
+  }
+
+  /* the card that steps back when the next panel covers it */
+  .panel-in {
+    display: grid;
+    width: 100%;
     background: var(--paper);
     border: 1px solid var(--line);
-    border-radius: 3px;
-    overflow: hidden;
-    transition: border-color 0.2s;
+    transform-origin: 50% 0;
+    will-change: transform, opacity;
   }
 
-  .skill:hover,
-  .skill:focus-within {
-    border-color: var(--ink);
+  /* the edge of a card sliding up: the structure rule, not a shadow */
+  :global(html.js) .panel-in {
+    border-top: 1.5px solid var(--ink);
   }
 
-  /* The picture fills the upper part; title and proof lines sit on it in white, on an ink
-     veil that belongs to the text block (owner's pick 2026-10-01, variant "Text im Bild").
-     The top padding keeps a strip of picture clear even in the fullest box; the subgrid
-     row gives every box the height of the fullest, so shorter boxes show more picture. */
-  .skill-media {
-    position: relative;
-    isolation: isolate;
+  /* text on paper beside the uncovered photo (phones: photo on top) */
+  .panel-text {
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
-    padding-top: 6rem;
-    color: #fff;
+    min-width: 0;
+    padding: 1.25rem 1.25rem 1.1rem;
   }
 
-  @media (min-width: 48rem) {
-    .skill-media {
-      padding-top: 9rem;
-    }
+  .panel-photo {
+    order: -1;
+    position: relative;
+    isolation: isolate;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: var(--steel-soft);
+    border-bottom: 1.5px solid var(--ink);
   }
 
-  .skill-img {
-    position: absolute;
-    inset: 0;
-    z-index: -2;
+  /* one treatment for every photo: greyscale, multiplied onto the steel tone, so four
+     different pictures read as one set and stay inside the palette */
+  .panel-photo img {
+    display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
+    filter: grayscale(1) contrast(1.08);
+    mix-blend-mode: multiply;
   }
 
-  /* no picture yet: magenta stripes with what it could show, in the part the veil leaves clear */
-  .skill-img-ph {
+  /* no picture yet: magenta stripes with what it could show */
+  .panel-ph {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
     gap: 0.1rem;
-    padding: 1.5rem 1rem 0;
+    height: 100%;
+    padding: 1rem;
     background: repeating-linear-gradient(135deg, #fbeaf4 0 10px, #fff 10px 20px);
     color: var(--ph);
     font-size: 0.8125rem;
@@ -449,86 +434,140 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     text-align: center;
   }
 
-  /* The veil fades in over the first 3.5rem, then holds at 0.72, light enough for the
-     picture to show through. Worst case (white under it) white text still has ~6:1;
-     a soft shadow helps over busy spots. */
-  .skill-body {
-    min-width: 0;
-    padding: 4.5rem 1.25rem 1.4rem;
-    background: linear-gradient(
-      to top,
-      rgb(15 27 45 / 0.8) 0%,
-      rgb(15 27 45 / 0.72) calc(100% - 3.5rem),
-      rgb(15 27 45 / 0) 100%
-    );
-    text-shadow: 0 1px 3px rgb(15 27 45 / 0.6);
-  }
-
-  @media (min-width: 44rem) {
-    .skill-body {
-      padding: 4.5rem 1.5rem 1.5rem;
-    }
-  }
-
-  .skill-foot {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 0.9rem 1.25rem 1rem;
-    border-top: 1px solid var(--line);
-  }
-
-  .skill-title {
-    min-width: 0;
+  .panel-title {
     margin-bottom: 0.75rem;
     font-family: var(--serif);
     font-optical-sizing: auto;
     font-weight: 600;
-    font-size: 1.625rem;
-    letter-spacing: normal;
+    font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.5rem);
     line-height: 1.1;
-    color: #fff;
+    color: var(--ink);
     hyphens: manual;
     overflow-wrap: anywhere;
   }
 
-  /* small phones: keep "Bauteilkostenkalkulation" on one line */
-  @media (max-width: 24.99rem) {
-    .skill-title {
-      font-size: 1.375rem;
-    }
-  }
-
-  .skill-proof {
+  .panel-proof {
     list-style: disc;
     padding-left: 1.15rem;
     font-size: 1.0625rem;
     line-height: 1.5;
-    color: #fff;
   }
 
-  .skill-proof li {
-    padding-left: 0.2rem;
-  }
-
-  .skill-proof li + li {
+  .panel-proof li + li {
     margin-top: 0.35rem;
   }
 
-  .skill-proof li::marker {
-    color: rgb(255 255 255 / 0.7);
+  .panel-proof li::marker {
+    color: var(--ink-2);
+  }
+
+  /* software and where it comes from, folded into the text: small and left-aligned */
+  .panel-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .panel-meta .tools {
+    justify-content: flex-start;
+    gap: 0.75rem 1rem;
+  }
+
+  .panel-meta .tools > li {
+    flex: 0 0 auto;
+    max-width: 6rem;
+  }
+
+  .panel-meta .tool {
+    flex-direction: row;
+    gap: 0.45rem;
+    text-align: left;
+  }
+
+  .panel-meta .tool-logo {
+    height: 1.75rem;
+  }
+
+  .panel-meta .tool-mono {
+    min-width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.6875rem;
+  }
+
+  .panel-meta .skill-src {
+    padding-top: 0;
+    border-top: 0;
+    text-align: left;
+  }
+
+  /* the way on: a real link to the next panel (the last one leads to Werdegang) */
+  .panel-next {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 0.4rem;
+    margin-top: 1.25rem;
+    padding: 0.35rem 0;
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-decoration-color: var(--steel);
+    text-underline-offset: 0.2em;
+  }
+
+  .panel-next:hover {
+    text-decoration-thickness: 3px;
+    text-decoration-color: var(--ink);
+  }
+
+  .panel-next svg {
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* small phones: keep "Bauteilkostenkalkulation" on one line */
+  @media (max-width: 24.99rem) {
+    .panel-title {
+      font-size: 1.375rem;
+    }
+  }
+
+  /* wide: text left (2 parts), photo right (3 parts), an ink rule between them */
+  @media (min-width: 56rem) {
+    .panel-in {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+      min-height: min(32rem, calc(100svh - 6rem));
+    }
+    .panel-text {
+      padding: 2.25rem 2.25rem 2rem;
+    }
+    .panel-photo {
+      order: 0;
+      aspect-ratio: auto;
+      border-bottom: 0;
+      border-left: 1.5px solid var(--ink);
+    }
+    .panel-proof {
+      font-size: 1.125rem;
+    }
+    .panel-next {
+      margin-top: auto;
+      padding-top: 1.5rem;
+    }
   }
 
   .lbl {
     font-size: 0.8125rem;
     font-weight: 700;
     color: var(--ink-2);
-  }
-
-  .skill-foot > .lbl {
-    margin-bottom: -0.35rem;
-    text-align: center;
   }
 
   /* logos with their names centred in the box (owner, 2026-09-25) */
@@ -630,54 +669,4 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     text-decoration-color: var(--ink);
   }
 
-  /* ---------- ending: one line to get in touch, on the quiet wash band ---------- */
-  :global(main.content#inhalt) {
-    padding-bottom: 0;
-  }
-
-  .end {
-    background: var(--wash);
-    border-top: 1.5px solid var(--ink);
-    padding: 2.75rem 0 calc(2.25rem + 4.75rem + env(safe-area-inset-bottom));
-  }
-
-  @media (min-width: 64rem) {
-    .end {
-      padding: 3.5rem 0;
-    }
-  }
-
-  .end-line {
-    font-family: var(--serif);
-    font-weight: 400;
-    font-size: clamp(1.5rem, 1rem + 2vw, 2.25rem);
-    line-height: 1.25;
-    max-width: 30ch;
-  }
-
-  .nobr {
-    white-space: nowrap;
-  }
-
-  .end-mail {
-    display: inline-block;
-    color: var(--ink);
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
-    text-decoration-color: var(--steel);
-    text-underline-offset: 0.18em;
-    overflow-wrap: anywhere;
-  }
-
-  .end-mail:hover {
-    text-decoration-thickness: 5px;
-    text-decoration-color: var(--ink);
-  }
-
-  .end-links {
-    margin-top: 1.25rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.75rem;
-  }
 </style>

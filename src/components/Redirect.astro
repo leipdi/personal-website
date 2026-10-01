@@ -1,0 +1,29 @@
+---
+// The site used to have one page per section; old links (e.g. a shared
+// /werdegang/#bachelorarbeit) land on the same place of the one page. The hash is kept;
+// project anchors from the removed Projekte page map to their stations.
+interface Props {
+  to: string; // section anchor without "#", used when the old link had no hash
+  map?: Record<string, string>;
+  strict?: boolean; // only hashes in map are kept, anything else goes to "to"
+}
+const { to, map = {}, strict = false } = Astro.props;
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <meta http-equiv="refresh" content={`0; url=/#${to}`} />
+    <link rel="canonical" href={`/#${to}`} />
+    <title>Weiterleitung</title>
+    <script is:inline define:vars={{ to, map, strict }}>
+      const h = location.hash.slice(1);
+      location.replace("/#" + (map[h] || (strict ? to : h || to)));
+    </script>
+  </head>
+  <body>
+    <a href={`/#${to}`}>Weiter zur Seite</a>
+  </body>
+</html>
