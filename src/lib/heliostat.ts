@@ -3,8 +3,11 @@
 // heliostat tracks. Shared by the server render (no-JS picture) and the client update.
 
 export const FIELD = {
+  // the viewBox starts left of 0: empty ground that widens the picture, so the field draws
+  // smaller at the same page width (the hero sizes the SVG to this full aspect)
+  x0: -480,
   w: 1440,
-  h: 560,
+  h: 502, // ends just under the ground line, which doubles as the rule closing the hero
   ground: 500,
   tower: { x: 1330, top: 170, w: 22 },
   receiver: { x: 1341, y: 150 },
@@ -47,7 +50,7 @@ export type MirrorPose = {
 };
 
 export function clampSun(x: number, y: number) {
-  return { x: Math.min(Math.max(x, 10), FIELD.w - 10), y: Math.min(Math.max(y, 10), FIELD.sunMaxY) };
+  return { x: Math.min(Math.max(x, FIELD.x0 + 10), FIELD.w - 10), y: Math.min(Math.max(y, 10), FIELD.sunMaxY) };
 }
 
 export function poses(sx: number, sy: number): MirrorPose[] {
