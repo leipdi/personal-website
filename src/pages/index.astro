@@ -33,7 +33,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     </HeliostatField>
   </section>
 
-  <!-- Kernkompetenzen: the four names as the heading, then one panel per skill. While
+  <!-- Kernkompetenzen: the four names as the heading (one per line), then one panel per skill. While
        scrolling, each panel pins and the next slides up over it (stacking cards); the covered
        one steps back. Panel: text on paper (title, proof lines, software, where it comes
        from, a link to the next) beside an uncovered photo in one steel treatment. -->
@@ -45,7 +45,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
           topSkills.map((s, i) => (
             <>
               <a href={`#kk-${s.id}`}>{displayTitle(s.title)}</a>
-              {i < topSkills.length - 2 ? ", " : i === topSkills.length - 2 ? " und " : "."}
+              {i < topSkills.length - 1 && <span class="sr-only">, </span>}
             </>
           ))
         }
@@ -185,8 +185,12 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     const update = () => {
       cards.forEach((card, i) => {
         const k = reduce.matches ? 0 : covered(i);
-        card.style.transform = k > 0 ? `scale(${(1 - 0.08 * k).toFixed(4)})` : "";
-        card.style.opacity = k > 0 ? (1 - k).toFixed(3) : "";
+        // the incoming card slides over an opaque card (like a sheet laid on top); it fades
+        // over the last 40 %, so it is gone before its title strip is all that shows
+        // (a half-transparent card cut by the incoming edge read as a rendering bug)
+        const fade = Math.max((k - 0.6) / 0.4, 0);
+        card.style.transform = k > 0 ? `scale(${(1 - 0.03 * k).toFixed(4)})` : "";
+        card.style.opacity = k > 0 ? (1 - fade).toFixed(3) : "";
       });
     };
 
@@ -272,25 +276,34 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     text-wrap: pretty;
   }
 
-  /* The portrait dissolves into the page: multiplied onto the steel paper (the field wraps
-     it in an isolated group on a --bg backing), square edges and suit faded out by a soft
-     mask. Phones: between the text and the field strip; wider: in the middle of the sky,
-     between the text and the mirrors, behind the rays. */
+  /* The portrait in the same language as the Kernkompetenzen photos: a hard-edged square
+     with the ink frame, greyscale multiplied onto the steel tone (a soft-masked colour
+     circle read as an avatar). Phones: between the text and the field strip; wider: in
+     the middle of the sky, between the text and the mirrors. */
+  /* phones: top right, beside the name (between claim and field it pushed the field below
+     the first screen) */
   .hero-photo {
-    width: min(15rem, 70vw);
+    position: absolute;
+    top: clamp(1.75rem, 1rem + 3vw, 3.5rem);
+    right: var(--gutter);
+    isolation: isolate;
+    width: min(6.5rem, 28vw);
     aspect-ratio: 1;
-    margin: 0.5rem auto -1.5rem;
-    mix-blend-mode: multiply;
-    -webkit-mask-image: radial-gradient(closest-side at 47% 40%, #000 35%, transparent 100%);
-    mask-image: radial-gradient(closest-side at 47% 40%, #000 35%, transparent 100%);
-    pointer-events: none;
-    user-select: none;
+    margin: 0;
+    overflow: hidden;
+    border: 1.5px solid var(--ink);
+    background: var(--steel-soft);
   }
 
+  /* (the source JPEG has a light 1-2px column at its left edge: shifted out of the frame) */
   .hero-photo img {
     display: block;
-    width: 100%;
+    width: calc(100% + 3px);
+    max-width: none;
     height: auto;
+    margin-left: -3px;
+    filter: grayscale(1) contrast(1.08);
+    mix-blend-mode: multiply;
   }
 
   @media (min-width: 48rem) {
@@ -302,14 +315,22 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     .hero-claim {
       max-width: min(24em, calc(46vw - max(var(--gutter), (100vw - var(--wrap)) / 2)));
     }
+    /* behind the field layer, so the pointer sun and its rays always draw over it */
     .hero-photo {
-      position: absolute;
       z-index: -1;
       top: 50%;
+      right: auto;
       left: 54%;
-      width: clamp(13rem, 24vw, 24rem);
-      margin: 0;
+      width: clamp(10rem, 17vw, 16rem);
       transform: translate(-50%, -62%);
+    }
+  }
+
+  /* 48-56rem: the role line and "Lenski" reach about 44% of the width */
+  @media (min-width: 48rem) and (max-width: 55.99rem) {
+    .hero-photo {
+      left: 64%;
+      width: 9rem;
     }
   }
 
@@ -325,29 +346,30 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     }
   }
 
-  /* the four names are the heading: the content itself, each a link to its panel */
+  /* the four names are the heading, one per line: the content itself, each a link to its
+     panel, underlined only on hover (four resting underlines read like a wiki paragraph) */
   .kk-title {
-    max-width: 22em;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
     font-family: var(--serif);
     font-optical-sizing: auto;
     font-weight: 500;
     font-size: clamp(1.875rem, 1.2rem + 2.4vw, 3.25rem);
-    line-height: 1.1;
+    line-height: 1.12;
     letter-spacing: -0.02em;
-    color: var(--ink-3);
-    text-wrap: balance;
   }
 
   .kk-title a {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
     color: var(--ink);
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-decoration-color: var(--steel);
+    text-decoration: none;
     text-underline-offset: 0.12em;
+    hyphens: manual;
   }
 
   .kk-title a:hover {
+    text-decoration: underline;
     text-decoration-thickness: 3px;
     text-decoration-color: var(--ink);
   }
@@ -487,8 +509,12 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     text-align: left;
   }
 
+  /* single-colour logos: next to the grey photos the brand colours were the loudest thing
+     in the section (the placeholder monograms keep their magenta) */
   .panel-meta .tool-logo {
     height: 1.75rem;
+    filter: grayscale(1);
+    opacity: 0.85;
   }
 
   .panel-meta .tool-mono {
@@ -544,7 +570,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   @media (min-width: 56rem) {
     .panel-in {
       grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-      min-height: min(32rem, calc(100svh - 6rem));
+      min-height: min(26rem, calc(100svh - 6rem));
     }
     .panel-text {
       padding: 2.25rem 2.25rem 2rem;
@@ -557,10 +583,6 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     }
     .panel-proof {
       font-size: 1.125rem;
-    }
-    .panel-next {
-      margin-top: auto;
-      padding-top: 1.5rem;
     }
   }
 

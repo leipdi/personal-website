@@ -1,6 +1,5 @@
 ---
-import Placeholder from "../Placeholder.astro";
-import { ratedSkills, competencies, otherCompetencies, certifications, topSkills } from "../../data/cv";
+import { ratedSkills, otherCompetencies, certifications } from "../../data/cv";
 
 // Ledger: the CV's own words are the scale, strongest first, so nothing is drawn that the
 // CV doesn't say. The skills are what matters and are set large; the level word is the
@@ -52,39 +51,6 @@ const languages = byLevel("Sprachen");
         </dl>
       </section>
 
-      <section class="wide" aria-labelledby="k-meth">
-        <h3 id="k-meth" class="h2">Kernkompetenzen und wo sie herkommen</h3>
-        <Placeholder kind="vorschlag" note="Kompetenzen wie auf der Startseite, Zuordnung von CV-Methoden und Stationen">
-          <dl class="pairs pairs-stack">
-            {
-              topSkills.map((sk) => {
-                const terms = competencies.filter((c) => c.skill === sk.id).map((c) => c.name);
-                return (
-                  <div>
-                    <dt>
-                      {sk.title}
-                      {terms.length > 0 && <span class="terms">Im CV: {terms.join(", ")}</span>}
-                    </dt>
-                    <dd>
-                      <ul class="where">
-                        {sk.learned.map((l) => (
-                          <li>
-                            <a class="prose-link" href={l.href}>
-                              {l.label}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    </dd>
-                  </div>
-                );
-              })
-            }
-          </dl>
-        </Placeholder>
-        <p class="others">Außerdem: {otherCompetencies.join(", ")}.</p>
-      </section>
-
       <section class="wide" aria-labelledby="k-cert">
         <h3 id="k-cert" class="h2">Zertifikate</h3>
         <dl class="pairs">
@@ -99,6 +65,9 @@ const languages = byLevel("Sprachen");
             ))
           }
         </dl>
+        <!-- the core skills and where they come from are the Kernkompetenzen panels above;
+             only what has no panel of its own stays here -->
+        <p class="others">Außerdem: {otherCompetencies.join(", ")}.</p>
       </section>
     </div>
   </div>
@@ -107,6 +76,7 @@ const languages = byLevel("Sprachen");
 <style>
   .page {
     padding-top: 2.5rem;
+    padding-bottom: 4rem;
   }
 
   @media (min-width: 64rem) {
@@ -214,33 +184,9 @@ const languages = byLevel("Sprachen");
     .pairs dd {
       margin-top: 0;
     }
-    /* core skills: the sources sit right under the skill name and its CV terms, one column */
-    .pairs-stack > div {
-      display: block;
-    }
   }
 
-  .terms {
-    display: block;
-    margin-top: 0.15rem;
-    font-family: var(--sans);
-    font-weight: 400;
-    font-size: 0.9375rem;
-    color: var(--ink-2);
-  }
-
-  .pairs-stack dd {
-    margin-top: 0.35rem;
-  }
-
-  /* the sources as one run of links, directly under the skill */
-  .where {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.15rem 1.25rem;
-  }
-
-  /* reached via a link from the home skill hub: mark the row it points to
+  /* reached via a link from a Kernkompetenzen panel: mark the row it points to
      (an ink bar in the gutter, it doesn't shift the row) */
   .pairs > div {
     position: relative;
@@ -256,7 +202,7 @@ const languages = byLevel("Sprachen");
   }
 
   .others {
-    margin-top: 1rem;
+    margin-top: 2rem;
     color: var(--ink-2);
   }
 </style>

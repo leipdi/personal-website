@@ -1,6 +1,7 @@
 ---
 import Placeholder from "../Placeholder.astro";
 import ImagePlaceholder from "../ImagePlaceholder.astro";
+import FieldEnd from "../figures/FieldEnd.astro";
 import { profile, notes } from "../../data/cv";
 import { cvPdf } from "../../data/nav";
 
@@ -13,11 +14,13 @@ const liPath = profile.linkedin.slice(liCut);
 
 <section id="kontakt" class="sec" aria-labelledby="h-kontakt">
   <div class="wrap page">
-    <h2 id="h-kontakt" class="display page-title">Kontakt</h2>
-
-    <a class="display mail" href={`mailto:${profile.email}`}>
-      {user}<wbr />@{domain}
-    </a>
+    <!-- the e-mail is the heading: a separate "Kontakt" title sat on it as a smaller slab -->
+    <h2 id="h-kontakt" class="mail-h">
+      <span class="sr-only">Kontakt: </span>
+      <a class="display mail" href={`mailto:${profile.email}`}>
+        {user}<wbr />@{domain}
+      </a>
+    </h2>
 
     <div class="card-row">
       <!-- a letterhead, not a form: the details speak for themselves without labels -->
@@ -46,6 +49,8 @@ const liPath = profile.linkedin.slice(liCut);
       </section>
     </div>
   </div>
+  <!-- the page ends on the device it opened with: the field on its ground line -->
+  <FieldEnd />
 </section>
 
 <style>
@@ -61,11 +66,10 @@ const liPath = profile.linkedin.slice(liCut);
 
   .mail {
     display: inline-block;
-    font-size: clamp(2.25rem, 0.9rem + 5.6vw, 6.5rem);
-    font-weight: 800;
+    /* capped so it stays on one line in the 72rem column on the widest screens */
+    font-size: clamp(2.25rem, 0.9rem + 5.6vw, 5.75rem);
     line-height: 1;
     color: var(--ink);
-    letter-spacing: -0.045em;
     text-decoration: underline;
     text-decoration-thickness: 0.07em;
     text-underline-offset: 0.12em;

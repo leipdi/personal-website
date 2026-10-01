@@ -1,0 +1,113 @@
+---
+// The page's last line: the hero's heliostat field once more, small and still, with the sun
+// low on the horizon at the left (evening, the end of the page). It closes the page on the
+// device it opened with: the ground line. Server-rendered only, decorative.
+import { FIELD, ROWS, f1, poses, rayOpacity } from "../../lib/heliostat";
+
+// wider than the hero's picture (more empty ground on the left), so the field draws small
+const X0 = -1400;
+// a low sun just left of the field, sitting on the horizon (inside the part phones still show)
+const SUN = { x: 230, y: FIELD.ground - 16 };
+const pose = poses(SUN.x, Math.min(SUN.y, FIELD.sunMaxY));
+const { tower: T, receiver: R, ground } = FIELD;
+const front = ROWS.length - 1;
+// from just above the receiver to the ground line
+const top = R.y - 40;
+const W = FIELD.w - X0;
+const H = FIELD.h - top;
+---
+
+<div class="field-end" aria-hidden="true">
+  <svg viewBox={`${X0} ${top} ${W} ${H}`} preserveAspectRatio="xMaxYMax slice" style={`aspect-ratio:${W} / ${H}`}>
+    <defs>
+      <clipPath id="fe-sky">
+        <rect x={X0} y={top} width={W} height={ground - top}></rect>
+      </clipPath>
+    </defs>
+    <circle class="sun" cx={SUN.x} cy={SUN.y} r="26" clip-path="url(#fe-sky)"></circle>
+    <g class="rays">
+      {
+        pose
+          .filter((m) => m.row === front)
+          .map((m) => (
+            <line x1={f1(m.px)} y1={f1(m.py)} x2={R.x} y2={R.y} style={`opacity:${rayOpacity(m).toFixed(2)}`} />
+          ))
+      }
+    </g>
+    <line class="ground" x1={X0} x2={FIELD.w} y1={ground} y2={ground}></line>
+    <g class="posts">
+      {pose.map((m) => <line class={`r${m.row}`} x1={m.px} x2={m.px} y1={m.base} y2={m.py} />)}
+    </g>
+    <g class="mirrors">
+      {pose.map((m) => <line class={`r${m.row}`} x1={f1(m.x1)} y1={f1(m.y1)} x2={f1(m.x2)} y2={f1(m.y2)} />)}
+    </g>
+    <rect class="tower" x={T.x} y={T.top} width={T.w} height={ground - T.top}></rect>
+    <rect class="tower" x={R.x - 20} y={R.y - 16} width="40" height="32"></rect>
+  </svg>
+</div>
+
+<style>
+  .field-end {
+    margin-top: 4rem;
+    overflow: hidden;
+  }
+
+  .field-end svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    /* full aspect on wide screens; phones keep a minimum height and crop the empty left */
+    min-height: 6rem;
+  }
+
+  .sun {
+    fill: var(--sun);
+  }
+
+  .rays line {
+    stroke: var(--sun);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .ground {
+    stroke: var(--ink);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .posts line {
+    stroke: var(--ink);
+    stroke-width: 3;
+  }
+
+  .mirrors line {
+    stroke: var(--steel);
+    stroke-width: 6;
+    stroke-linecap: round;
+  }
+
+  .posts .r1 {
+    stroke: var(--steel);
+    stroke-width: 2;
+  }
+
+  .posts .r0 {
+    stroke: var(--line);
+    stroke-width: 1.5;
+  }
+
+  .mirrors .r1 {
+    stroke: #a3aeb9;
+    stroke-width: 4.5;
+  }
+
+  .mirrors .r0 {
+    stroke: #bcc5cf;
+    stroke-width: 3.5;
+  }
+
+  .tower {
+    fill: var(--ink);
+  }
+</style>

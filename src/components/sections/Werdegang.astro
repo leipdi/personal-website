@@ -816,6 +816,21 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     r.addEventListener("pointerenter", on);
     r.addEventListener("pointerleave", off);
     r.addEventListener("focus", on);
+    // a bar reached by Tab while the chart is still below the fold (or above it): the rows
+    // never scroll the page themselves (scroll margins above), so bring the chart in here
+    // (two frames later: the browser's own focus scroll, held in place by the margins above,
+    // would otherwise undo it)
+    r.addEventListener("focus", () =>
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          const b = r.getBoundingClientRect();
+          const barH = topBar?.getBoundingClientRect().height ?? 0;
+          if (b.top < barH || b.bottom > innerHeight) {
+            scrollTo({ top: planWrap.getBoundingClientRect().top + scrollY - barH, behavior: "auto" });
+          }
+        }),
+      ),
+    );
     r.addEventListener("blur", off);
   }
   for (const c of document.querySelectorAll<HTMLElement>("[data-skill]")) {
@@ -955,11 +970,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     }
   }
 
-  @media (min-width: 64rem) {
-    :global(html.js) .plan-wrap {
-      top: 0;
-    }
-  }
 
   /* without JS the lines are packed from an estimate of the label widths, which only holds
      on wide screens (at 768-1279px labels collided): below 80rem the chart is left out, the
@@ -975,11 +985,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   :global(html.js) .stations > li {
     scroll-margin-top: var(--plan-h, 15rem);
   }
-  @media (min-width: 64rem) {
-    :global(html.js) .stations > li {
-      scroll-margin-top: calc(var(--plan-h, 16rem) - 0.5rem);
-    }
-  }
+
 
   .plan {
     position: relative;
