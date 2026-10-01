@@ -14,9 +14,8 @@
 export const profile = {
   name: "Daniel Lenski",
   role: "Wirtschaftsingenieur, M.Sc.",
-  // KI-PLATZHALTER
   claim:
-    "Ich rechne aus, was ein Bauteil in der Herstellung kostet und wie viel Energie es über sein Leben verbraucht, vom Stahlbau eines Heliostaten bis zum gedruckten Kabinenteil im Flugzeug.",
+    "Bindeglied zwischen Technik und Wirtschaft. Und die Frage, wie hilft KI wirklich bei Prozessen und Projekten",
   location: "Langenfeld (Rheinland) / Düsseldorf",
   email: "daniel.lenski@hotmail.com",
   phone: "+49 157 74585248",
@@ -406,7 +405,10 @@ export const topSkills: TopSkill[] = [
     id: "kosten",
     title: "Bauteilkostenkalkulation",
     proof: [
-      "Bottom-Up-Kostenmodelle für die Stahlkonstruktion von Heliostaten: CAD-Daten aus Autodesk Inventor, die Kalkulation selbst von Hand in Excel aufgebaut. Bachelorarbeit am DLR 2024, veröffentlicht bei der SolarPACES Conference.",
+      "Bottom-Up-Kostenmodell für die Stahlkonstruktion von Heliostaten",
+      "Komplette Produktionslinie mit Arbeitsgängen, Materialkosten und Zeitabschätzungen abgebildet",
+      "Grundlage: echte CAD-Daten aus Autodesk Inventor, Kalkulation von Hand in Excel",
+      "Bachelorarbeit am DLR 2024, veröffentlicht bei der SolarPACES Conference",
     ],
     // Software laut Daniel (2026-09-25): CAD in Inventor, Kalkulation per Hand in Excel
     tools: ["Autodesk Inventor", "Excel"],
@@ -416,8 +418,10 @@ export const topSkills: TopSkill[] = [
     id: "data",
     title: "Data & AI",
     proof: [
-      "ETL-Strecken und Berichte in Power BI und Jedox für Kunden und intern, dazu eine selbst konzipierte Schulung zu Copilot in Power BI. Praktikum bei ATVISIO, seit 2026.",
-      "Privat eigene Projekte mit Claude automatisiert (Cowork, Code).",
+      "ETL-Strecken und Berichte in Power BI und Jedox, für Kunden und intern",
+      "Selbst konzipierte Schulung zu Copilot in Power BI",
+      "Praktikum bei ATVISIO, seit 2026",
+      "Privat eigene Projekte mit Claude automatisiert (Cowork, Code)",
     ],
     // Python und Jedox auf Wunsch von Daniel (2026-09-25) nicht als Software-Logo
     tools: ["Power BI", "MSSQL", "Copilot in Power BI", "Claude"],
@@ -430,8 +434,10 @@ export const topSkills: TopSkill[] = [
     id: "prozesse",
     title: "Prozesse und Projekte",
     proof: [
-      "Als Werkstudent bei IGH Infotec (2023–2024) Timebutler als neues Zeiterfassungssystem eingeführt und die Kolleg:innen darauf geschult.",
-      "Im Praktikum Projektmanagement Kundentermine vor- und nachbereitet, SAP-Tabellen in Kundensystemen gepflegt und in Produktions- und Logistikfragen beraten.",
+      "Timebutler als neues Zeiterfassungssystem eingeführt, Kolleg:innen geschult (IGH Infotec, 2023–2024)",
+      "Kundentermine vor- und nachbereitet (Praktikum Projektmanagement)",
+      "SAP-Tabellen in Kundensystemen gepflegt",
+      "Beratung in Produktions- und Logistikfragen",
     ],
     tools: ["Timebutler", "SAP"],
     learned: [
@@ -444,7 +450,9 @@ export const topSkills: TopSkill[] = [
     id: "controlling",
     title: "Controlling",
     proof: [
-      "Ein Jahr Mitarbeitercontrolling und Monatsabschlüsse mit Excel und Pivot-Tabellen, als Werkstudent Finanzen & Controlling bei IGH Infotec (2023–2024).",
+      "Ein Jahr Mitarbeitercontrolling und Monatsabschlüsse",
+      "Mit Excel und Pivot-Tabellen",
+      "Werkstudent Finanzen & Controlling bei IGH Infotec (2023–2024)",
     ],
     tools: ["Excel"],
     learned: [
