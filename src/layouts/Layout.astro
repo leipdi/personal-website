@@ -1,15 +1,13 @@
 ---
-import TabBar from "../components/TabBar.astro";
-import { nav, cvPdf, type NavId } from "../data/nav";
+import { nav, cvPdf } from "../data/nav";
 import "../styles/global.css";
 
 interface Props {
   title: string;
   description: string;
-  active: NavId;
 }
 
-const { title, description, active } = Astro.props;
+const { title, description } = Astro.props;
 ---
 
 <!doctype html>
@@ -30,7 +28,7 @@ const { title, description, active } = Astro.props;
       href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&display=swap"
     />
   </head>
-  <body>
+  <body id="top">
     <a href="#inhalt" class="skip">Zum Inhalt springen</a>
 
     <!-- remove once every Placeholder / ImagePlaceholder is replaced -->
@@ -40,13 +38,13 @@ const { title, description, active } = Astro.props;
 
     <header class="top">
       <div class="wrap top-in">
-        <a href="/" class="top-name">Daniel Lenski</a>
+        <a href="#top" class="top-name">Daniel Lenski</a>
         <nav class="top-nav" aria-label="Hauptnavigation">
           <ul>
             {
               nav.map((n) => (
                 <li>
-                  <a href={n.href} aria-current={active === n.id ? "page" : undefined}>
+                  <a href={n.href} data-nav={n.id}>
                     {n.label}
                   </a>
                 </li>
@@ -62,7 +60,33 @@ const { title, description, active } = Astro.props;
       <slot />
     </main>
 
-    <TabBar active={active} />
+    <script>
+      // the section in view gets the ink bar in the top bar: the last section whose top has
+      // passed a line a third of the way down the window (by position, not by the section
+      // boxes, so content pushed past a section's box still counts as that section)
+      const links = [...document.querySelectorAll<HTMLAnchorElement>("[data-nav]")];
+      const secs = links.map((a) => document.getElementById(a.dataset.nav!));
+      let raf = 0;
+      const mark = () => {
+        const line = innerHeight / 3;
+        let cur = -1;
+        secs.forEach((el, i) => {
+          if (el && el.getBoundingClientRect().top <= line) cur = i;
+        });
+        if (innerHeight + scrollY >= document.documentElement.scrollHeight - 2) cur = secs.length - 1;
+        links.forEach((a, i) => (i === cur ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current")));
+      };
+      addEventListener(
+        "scroll",
+        () => {
+          cancelAnimationFrame(raf);
+          raf = requestAnimationFrame(mark);
+        },
+        { passive: true },
+      );
+      addEventListener("resize", mark);
+      mark();
+    </script>
   </body>
 </html>
 
@@ -90,16 +114,7 @@ const { title, description, active } = Astro.props;
     top: 1rem;
   }
 
-  /* room for the fixed mobile tab bar */
-  .content {
-    padding-bottom: 7rem;
-  }
 
-  @media (min-width: 64rem) {
-    .content {
-      padding-bottom: 6rem;
-    }
-  }
 
   /* ---------- top bar: the page's own steel paper, closed by one ink rule ---------- */
   .top {
@@ -128,7 +143,7 @@ const { title, description, active } = Astro.props;
     white-space: nowrap;
   }
 
-  /* on phones the bottom tab bar is the navigation */
+  /* phones: just the name and the CV; the page is one scroll */
   .top-nav {
     display: none;
   }
@@ -187,10 +202,9 @@ const { title, description, active } = Astro.props;
       border-bottom-color: var(--line);
     }
 
-    /* where you are: an ink underline (sun is kept for the light itself) */
-    .top-nav a[aria-current="page"] {
+    /* the section in view: ink and the bar (no bolder weight, that would reflow the row) */
+    .top-nav a[aria-current="true"] {
       color: var(--ink);
-      font-weight: 700;
       border-bottom-color: var(--ink);
     }
 

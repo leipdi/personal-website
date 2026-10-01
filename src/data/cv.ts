@@ -24,7 +24,7 @@ export const profile = {
 };
 
 export type CareerEntry = {
-  id: string; // Anker auf /werdegang/ (#id), stabil halten: der Skill-Hub verlinkt darauf
+  id: string; // Anker der Station (#id) auf der Seite, stabil halten: die Kernkompetenzen verlinken darauf
   from: string;
   to: string;
   fromYear: number;
@@ -368,7 +368,7 @@ export const competencies: { name: string; skill: TopSkillId }[] = [
 // (beides Vorgabe Daniel), daher stehen sie hier.
 export const otherCompetencies = ["Ökobilanz (LCA) nach ISO 14040", "Python", "Forschungsprojektmanagement", "Marketing"];
 
-// id = Anker auf /kenntnisse/ (#id), der Skill-Hub verlinkt darauf.
+// id = Anker im Abschnitt Kenntnisse (#id), die Kernkompetenzen verlinken darauf.
 export const certifications = [
   { id: "z-lean-six-sigma", name: "Lean Six Sigma Yellow Belt", authority: "Lean Six Sigma Academy (LSSA)", date: "2025" },
   { id: "z-sql", name: "SQL Grundkurs 1 & 2", authority: "LinkedIn Learning", date: "2025" },
@@ -415,7 +415,7 @@ export const topSkills: TopSkill[] = [
     ],
     // Software laut Daniel (2026-09-25): CAD in Inventor, Kalkulation per Hand in Excel
     tools: ["Autodesk Inventor", "Excel"],
-    learned: [{ label: "Bachelorarbeit am DLR", href: "/projekte/#heliostat" }],
+    learned: [{ label: "Bachelorarbeit am DLR", href: "#bachelorarbeit" }],
     imageIdea: "Heliostat-Stahlbau oder das CAD-Modell",
   },
   {
@@ -428,8 +428,8 @@ export const topSkills: TopSkill[] = [
     // Python und Jedox auf Wunsch von Daniel (2026-09-25) nicht als Software-Logo
     tools: ["Power BI", "MSSQL", "Copilot in Power BI", "Claude"],
     learned: [
-      { label: "Praktikum BI Consulting (ATVISIO)", href: "/projekte/#bi-consulting" },
-      { label: "SQL Grundkurs (LinkedIn Learning)", href: "/kenntnisse/#z-sql" },
+      { label: "Praktikum BI Consulting (ATVISIO)", href: "#praktikum-bi" },
+      { label: "SQL Grundkurs (LinkedIn Learning)", href: "#z-sql" },
     ],
     imageIdea: "Ein Power-BI-Bericht auf dem Bildschirm",
   },
@@ -442,9 +442,9 @@ export const topSkills: TopSkill[] = [
     ],
     tools: ["Timebutler", "SAP"],
     learned: [
-      { label: "Timebutler-Einführung (IGH Infotec)", href: "/projekte/#zeiterfassung" },
-      { label: "Praktikum Projektmanagement (IGH Infotec)", href: "/werdegang/#praktikum-pm" },
-      { label: "Lean Six Sigma Yellow Belt", href: "/kenntnisse/#z-lean-six-sigma" },
+      { label: "Timebutler-Einführung (IGH Infotec)", href: "#werkstudent-controlling" },
+      { label: "Praktikum Projektmanagement (IGH Infotec)", href: "#praktikum-pm" },
+      { label: "Lean Six Sigma Yellow Belt", href: "#z-lean-six-sigma" },
     ],
     imageIdea: "Eine Schulung oder ein Kundentermin",
   },
@@ -457,7 +457,7 @@ export const topSkills: TopSkill[] = [
     ],
     tools: ["Excel"],
     learned: [
-      { label: "Werkstudent Finanzen & Controlling (IGH Infotec)", href: "/werdegang/#werkstudent-controlling" },
+      { label: "Werkstudent Finanzen & Controlling (IGH Infotec)", href: "#werkstudent-controlling" },
     ],
     // Testbild von Daniel (2026-10-01), noch nicht das endgültige
     image: { src: "/img/kompetenzen/controlling.webp", test: true },

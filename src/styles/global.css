@@ -53,9 +53,9 @@
 html {
   background: var(--bg);
   -webkit-text-size-adjust: 100%;
-  /* keep focused/anchored elements clear of the sticky top bar and the fixed bottom tab bar */
+  /* keep focused/anchored elements clear of the sticky top bar */
   scroll-padding-top: 4.5rem;
-  scroll-padding-bottom: calc(4.75rem + env(safe-area-inset-bottom));
+  scroll-padding-bottom: 1rem;
 }
 
 /* desktop: the top bar is static and there is no tab bar (declared after the base rule) */
@@ -143,4 +143,9 @@ body {
     animation-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* one page: the sections after Kernkompetenzen open with the structure rule */
+.sec {
+  border-top: 1.5px solid var(--ink);
 }
