@@ -334,6 +334,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   const todayLbl = document.querySelector<HTMLElement>("[data-today-lbl]")!;
   const caption = document.querySelector<HTMLElement>("[data-caption]")!;
   const tracks = [...document.querySelectorAll<HTMLElement>("[data-track]")];
+  const lanes = [...document.querySelectorAll<HTMLElement>(".lane[data-cat]")];
   const topBar = document.querySelector<HTMLElement>(".top");
   const tabbar = document.querySelector<HTMLElement>(".tabbar");
   const rowOf = new Map(rows.map((r) => [r.dataset.row!, r]));
@@ -434,7 +435,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   };
   const clear = (a0: number, a1: number, b0: number, b1: number, gap: number) => a1 + gap <= b0 || b1 + gap <= a0;
   const pack = () => {
-    const W = tracks[0]?.clientWidth ?? 0;
+    const W = tracks.find((t) => t.clientWidth)?.clientWidth ?? 0;
     if (!W) return;
     const segsOf = (t: HTMLElement) => [...t.querySelectorAll<HTMLElement>(".seg")];
     const lblOf = (s: HTMLElement) => s.querySelector<HTMLElement>(".seg-lbl")!;
@@ -451,6 +452,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     for (const s of all) lblOf(s).style.fontWeight = "";
 
     for (const t of tracks) {
+      if (!t.clientWidth) continue;
       const lines: Box[][] = [];
       const placed: { s: HTMLElement; f: HTMLElement | null; k: number }[] = [];
       for (const s of segsOf(t)) {
@@ -529,6 +531,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     settle(); // a pin re-settles after layout moves things
     if (topBar) root.style.setProperty("--top-bar-h", `${topBar.getBoundingClientRect().height}px`);
     root.style.setProperty("--plan-h", `${planWrap.offsetHeight}px`);
+    if (laneKey === "") fullH = planWrap.offsetHeight;
     const rs = getComputedStyle(root);
     // the page's scroll padding covers the top bar; the pinned chart comes on top of it
     spTop = (parseFloat(rs.scrollPaddingTop) || 0) + planWrap.offsetHeight;
@@ -572,6 +575,10 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   };
 
   let key = "";
+  let laneKey = "";
+  let laneGap = 0;
+  // the chart's height with every lane shown (measured at rest)
+  let fullH = planWrap.offsetHeight;
   const update = () => {
     // where the page is too short to keep the chart pinned over the last station (phones, and
     // tablets/small laptops at the very end), the last station pushes the chart off: it fades
@@ -659,6 +666,40 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
       const b = r.getBoundingClientRect();
       r.style.scrollMarginTop = `${b.top - (mid - b.height / 2)}px`;
       r.style.scrollMarginBottom = `${mid + b.height / 2 - b.bottom}px`;
+    }
+
+    // The chart shows only the lane(s) of what is being read (owner 2026-10-02); at rest
+    // (before the chart pins) the whole plan. The chart sits in the flow above the stations,
+    // so its height change would make the text jump: the height it loses goes on as padding
+    // above the stations, so the text keeps its place on the page (moving the scroll position
+    // instead unpinned the chart and flipped back and forth). Scroll anchoring is off.
+    const show = rest ? "" : [...new Set(cur.map((j) => sts[j].dataset.cat))].join(" ");
+    if (show !== laneKey) {
+      laneKey = show;
+      for (const l of lanes) l.classList.toggle("is-off", show !== "" && !show.split(" ").includes(l.dataset.cat!));
+      const h = planWrap.offsetHeight;
+      if (show === "") fullH = h;
+      // (from the whole plan's height, not step by step: a step measured mid-change drifted)
+      laneGap = show === "" ? 0 : Math.max(0, fullH - h);
+      // (padding, on top of the list's own 1rem)
+      list.style.paddingTop = laneGap ? `calc(1rem + ${laneGap}px)` : "";
+      // anchors under the chart use its new height at once (layout runs a frame later), and a
+      // station reached by a link or a bar click goes back to its place under the smaller chart
+      // once the layout has settled
+      root.style.setProperty("--plan-h", `${h}px`);
+      if (pinned >= 0 && pinBy === "nav") {
+        // (the new padding reached the layout only a frame later in Chrome: wait until it has)
+        const j = pinned;
+        const want = laneGap + 16;
+        let tries = 0;
+        const again = () => {
+          if (pinned !== j) return;
+          const now = parseFloat(getComputedStyle(list).paddingTop) || 0;
+          if (Math.abs(now - want) > 1 && ++tries < 5) return void requestAnimationFrame(again);
+          sts[j].scrollIntoView({ block: "start" });
+        };
+        requestAnimationFrame(again);
+      }
     }
 
     const k = `${rest}|${cur.join(",")}`;
@@ -1050,6 +1091,17 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     display: grid;
     grid-template-columns: var(--lbl) minmax(0, 1fr);
     border-bottom: 1px solid var(--line);
+  }
+
+  /* while reading, only the current station's lane(s) show (script) */
+  .lane.is-off {
+    display: none;
+  }
+
+  /* the script keeps the text in place itself when the chart changes height (margin above
+     the stations); the browser's own scroll anchoring would correct it a second time */
+  :global(html) {
+    overflow-anchor: none;
   }
 
   .lane:last-child {

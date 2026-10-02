@@ -38,7 +38,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   <!-- Kernkompetenzen: one full-height card per skill. While scrolling, each card pins and the
        next slides up over it (stacking cards); on desktop a sticky index of the four names
        beside them shows which one is on. Card: the photo large on top (one steel treatment),
-       the text below on paper (title, proof lines | software, where it comes from, the next). -->
+       the text on top on paper (title, proof lines | software, where it comes from). -->
   <section id="kompetenzen" class="kk" aria-labelledby="h-kk">
     <div class="wrap">
       <h2 id="h-kk" class="display page-title kk-head">Kern&shy;kompetenzen</h2>
@@ -62,8 +62,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
         </nav>
         <ol class="kk-stack" data-kk>
           {
-            topSkills.map((s, i) => {
-              const next = topSkills[i + 1];
+            topSkills.map((s) => {
               return (
                 <li class="panel" id={`kk-${s.id}`} data-kk-panel aria-labelledby={`sk-${s.id}`}>
                   <div class="panel-in" data-kk-card>
@@ -112,15 +111,6 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
                           ))}
                         </p>
                       </div>
-                      <a class="panel-next" href={next ? `#kk-${next.id}` : "#werdegang"}>
-                        Weiter:{" "}
-                        <span class="nobr">
-                          {next ? next.title : "Werdegang"}
-                          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                            <path d="M12 5v14m-6-6 6 6 6-6" />
-                          </svg>
-                        </span>
-                      </a>
                       </div>
                     </div>
                     <div class="panel-photo">
@@ -319,11 +309,11 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   }
 
   /* The portrait directly beside the name (owner 2026-10-02): cut out of its studio
-     background, as tall as the two lines of the name, its foot fading into the page. Behind
+     background, exactly as tall as the name, its foot fading into the page. Behind
      the drawing layer (z-index -1 in the isolated field), so the sun passes over it. */
   .hero-head {
     display: flex;
-    align-items: flex-end;
+    align-items: flex-start;
     gap: clamp(0.5rem, 0.2rem + 1.5vw, 1.75rem);
   }
 
@@ -331,9 +321,10 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     position: relative;
     z-index: -1;
     flex: none;
-    width: calc(1.5 * var(--fs));
+    /* from the cap height of "Daniel" to the baseline of "Lenski" (measured on the glyphs) */
+    width: calc(1.59 * var(--fs));
     aspect-ratio: 1;
-    margin-bottom: calc(-0.05 * var(--fs));
+    margin-top: calc(-0.04 * var(--fs));
     -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
     mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
   }
@@ -578,36 +569,6 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     padding-top: 0;
     border-top: 0;
     text-align: left;
-  }
-
-  /* the way on: a real link to the next panel (the last one leads to Werdegang) */
-  .panel-next {
-    display: inline-block;
-    align-self: flex-start;
-    margin-top: 1.25rem;
-    padding: 0.35rem 0;
-    font-weight: 600;
-    color: var(--ink);
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-decoration-color: var(--steel);
-    text-underline-offset: 0.2em;
-  }
-
-  .panel-next:hover {
-    text-decoration-thickness: 3px;
-    text-decoration-color: var(--ink);
-  }
-
-  .panel-next svg {
-    display: inline-block;
-    margin-left: 0.3rem;
-    vertical-align: -0.2em;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
   }
 
   /* small phones: keep "Bauteilkostenkalkulation" on one line */

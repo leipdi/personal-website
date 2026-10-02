@@ -13,7 +13,7 @@ import {
   fieldEfficiency,
   f1,
   poses,
-  priceY,
+  PRICE_Y,
   rayOpacity,
   receiverGlow,
 } from "../../lib/heliostat";
@@ -30,7 +30,6 @@ const parts = COST_TOWER.parts.map((p) => {
   return seg;
 });
 const T0 = COST_TOWER;
-const py0 = priceY(eff0);
 const { tower: T, receiver: R, ground } = FIELD;
 ---
 
@@ -70,8 +69,8 @@ const { tower: T, receiver: R, ground } = FIELD;
     <circle class="halo" cx={SUN_START.x} cy={SUN_START.y} r="70" data-halo></circle>
     <circle class="sun" cx={SUN_START.x} cy={SUN_START.y} r="20" data-sun></circle>
 
-    <!-- Wirtschaft: the cost tower on the same ground, a counterpart to the solar tower; the
-         price line above it follows the field's yield right now (live) -->
+    <!-- Wirtschaft: the cost tower on the same ground, a counterpart to the solar tower, in
+         colour, with the price above it (the gap is the margin) -->
     <g class="cost">
       {
         parts.map((p, i) => (
@@ -83,8 +82,8 @@ const { tower: T, receiver: R, ground } = FIELD;
           </>
         ))
       }
-      <line class="price" x1={T0.x - 18} x2={T0.x + T0.w + 18} y1={f1(py0)} y2={f1(py0)} data-price></line>
-      <text class="price-lbl" x={T0.x + T0.w + 24} y={f1(py0 + 6)} data-price-lbl>Preis</text>
+      <line class="price" x1={T0.x - 18} x2={T0.x + T0.w + 18} y1={PRICE_Y} y2={PRICE_Y}></line>
+      <text class="price-lbl" x={T0.x + T0.w + 24} y={PRICE_Y + 6}>Preis</text>
     </g>
 
     <line class="ground" x1={FIELD.x0} x2={FIELD.w} y1={ground} y2={ground}></line>
@@ -118,7 +117,6 @@ const { tower: T, receiver: R, ground } = FIELD;
     ROWS,
     SUN_START,
     clampSun,
-    priceY,
     fieldEfficiency,
     poses,
     rayOpacity,
@@ -136,8 +134,6 @@ const { tower: T, receiver: R, ground } = FIELD;
     const sun = svg.querySelector<SVGCircleElement>("[data-sun]")!;
     const halo = svg.querySelector<SVGCircleElement>("[data-halo]")!;
     const rec = svg.querySelector<SVGCircleElement>("[data-rec]")!;
-    const price = svg.querySelector<SVGLineElement>("[data-price]")!;
-    const priceLbl = svg.querySelector<SVGTextElement>("[data-price-lbl]")!;
     const set = (el: Element, a: Record<string, number | string>) => {
       for (const k in a) el.setAttribute(k, typeof a[k] === "number" ? (a[k] as number).toFixed(1) : String(a[k]));
     };
@@ -174,10 +170,6 @@ const { tower: T, receiver: R, ground } = FIELD;
       const g = receiverGlow(eff);
       set(rec, { r: g.r });
       rec.style.opacity = g.opacity.toFixed(2);
-      // the cost tower's price line: what the field yields right now
-      const py = priceY(eff);
-      set(price, { y1: py, y2: py });
-      set(priceLbl, { y: py + 6 });
     };
 
     // screen x -> viewBox x (handles the "slice" crop on narrow screens)
@@ -438,20 +430,21 @@ const { tower: T, receiver: R, ground } = FIELD;
     fill: var(--ink);
   }
 
-  /* the cost tower: three steel tones in ink outlines, labelled; the price line in petrol */
+  /* the cost tower in colour (owner: more colour): the three validated chart hues, a 2px
+     paper gap between the segments; the price line in ink */
   .cost .seg {
-    stroke: var(--ink);
-    stroke-width: 1.5;
+    stroke: var(--bg);
+    stroke-width: 2;
     vector-effect: non-scaling-stroke;
   }
   .cost .s0 {
-    fill: var(--steel-soft);
+    fill: var(--c-edu);
   }
   .cost .s1 {
-    fill: #b9c4cf;
+    fill: var(--c-work);
   }
   .cost .s2 {
-    fill: var(--steel);
+    fill: var(--c-thesis);
   }
 
   .cost-lbl,
@@ -462,14 +455,14 @@ const { tower: T, receiver: R, ground } = FIELD;
   }
 
   .price {
-    stroke: var(--c-work);
+    stroke: var(--ink);
     stroke-width: 2;
     stroke-dasharray: 6 4;
     vector-effect: non-scaling-stroke;
   }
 
   .price-lbl {
-    fill: var(--c-work);
+    fill: var(--ink);
     font-weight: 600;
   }
 
