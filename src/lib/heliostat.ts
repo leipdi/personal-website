@@ -11,7 +11,7 @@ export const FIELD = {
   ground: 500,
   tower: { x: 1330, top: 170, w: 22 },
   receiver: { x: 1341, y: 150 },
-  first: 800, // the field starts right of the chart and the portrait (it started at 470)
+  first: 780, // the field starts right of the cost tower and its price label
   last: 1230,
   gap: 38,
   sunMaxY: 400, // the sun never sets below the mirrors
@@ -97,30 +97,23 @@ export function receiverGlow(eff: number) {
 
 export const f1 = (n: number) => n.toFixed(1);
 
-// The economics side of the hero: a bar chart standing on the same ground line, left of the
-// portrait, drawn like the field (steel bars, ink line). Its last bar is live: it shows what
-// the field yields right now (fieldEfficiency), so the chart rises and falls with the sun.
-export const CHART = {
-  x: 412, // left edge of the first bar (just right of the text column)
-  step: 38, // bar pitch
-  w: 24, // bar width
-  heights: [74, 98, 90, 128, 156], // the past: a rising, not perfectly smooth year
+// The economics side of the hero (owner's pick 2026-10-02 from mockups): a cost tower, one
+// stacked column of the three cost types (Material, Fertigung, Gemeinkosten), standing on the
+// same ground line as a counterpart to the solar tower. Above it a price line that follows
+// what the field yields right now (fieldEfficiency): in good sun the price clears the costs,
+// in poor sun it drops into them.
+export const COST_TOWER = {
+  x: 620, // left edge of the column (its price line starts right of the portrait at every width)
+  w: 50,
+  parts: [
+    { name: "Material", h: 110 },
+    { name: "Fertigung", h: 70 },
+    { name: "Gemeinkosten", h: 45 },
+  ],
 };
 
-export type Bar = { x: number; y: number; w: number; h: number; live: boolean };
+export const costTotal = COST_TOWER.parts.reduce((s, p) => s + p.h, 0);
 
-export function chartBars(eff: number): Bar[] {
-  const hs = [...CHART.heights, 96 + 130 * eff];
-  return hs.map((h, i) => ({
-    x: CHART.x + i * CHART.step,
-    y: FIELD.ground - h,
-    w: CHART.w,
-    h,
-    live: i === hs.length - 1,
-  }));
-}
-
-// the trend line through the bar tops
-export function chartLine(bars: Bar[]) {
-  return bars.map((b, i) => `${i ? "L" : "M"}${f1(b.x + b.w / 2)} ${f1(b.y)}`).join(" ");
-}
+// the price line's height above the ground
+// (kept low, so tower and price stay below the portrait beside the name)
+export const priceY = (eff: number) => FIELD.ground - (160 + 90 * eff);

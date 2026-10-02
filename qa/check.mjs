@@ -14,7 +14,7 @@
 // Waits are for conditions (load, fonts, two animation frames), not fixed sleeps; every size
 // has a hard time limit, so nothing can hang.
 import { chromium } from "playwright";
-import { spawn, execSync } from "node:child_process";
+import { spawn, execSync, execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 
 const args = process.argv.slice(2);
@@ -44,9 +44,20 @@ if (!base) {
   }
   const port = 4329;
   base = `http://localhost:${port}`;
-  // the astro CLI run by node directly (no shell, no npx), so the pid is the server itself and
-  // it can be stopped at the end (through npx + shell it outlived the run on Windows)
+  // astro preview runs as a background service: a second start only reports "already
+  // running" (on whatever port that one uses), and killing the launcher doesn't stop it. So
+  // stop any running one first, start ours, and stop it again at the end.
+  const stopPreview = () => {
+    try {
+      execFileSync(process.execPath, ["node_modules/astro/bin/astro.mjs", "preview", "stop"], { stdio: "ignore" });
+    } catch {}
+  };
+  stopPreview();
   server = spawn(process.execPath, ["node_modules/astro/bin/astro.mjs", "preview", "--port", String(port)], { stdio: "ignore" });
+  server.stopAll = () => {
+    stopPreview();
+    server.kill();
+  };
   const t0 = Date.now();
   for (;;) {
     try {
@@ -225,9 +236,7 @@ try {
   }
 } finally {
   await browser.close();
-  if (server) {
-    server.kill();
-  }
+  if (server) server.stopAll();
 }
 mkdirSync("qa", { recursive: true });
 writeFileSync("qa/last-report.json", JSON.stringify(results, null, 2));

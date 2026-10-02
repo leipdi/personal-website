@@ -9,11 +9,11 @@ import {
   FIELD,
   ROWS,
   SUN_START,
-  chartBars,
-  chartLine,
+  COST_TOWER,
   fieldEfficiency,
   f1,
   poses,
+  priceY,
   rayOpacity,
   receiverGlow,
 } from "../../lib/heliostat";
@@ -22,7 +22,15 @@ const front = ROWS.length - 1;
 const start = poses(SUN_START.x, SUN_START.y);
 const eff0 = fieldEfficiency(start, SUN_START.y);
 const glow = receiverGlow(eff0);
-const bars = chartBars(eff0);
+// the cost tower's segments, bottom up
+let acc = 0;
+const parts = COST_TOWER.parts.map((p) => {
+  const seg = { ...p, y: FIELD.ground - acc - p.h };
+  acc += p.h;
+  return seg;
+});
+const T0 = COST_TOWER;
+const py0 = priceY(eff0);
 const { tower: T, receiver: R, ground } = FIELD;
 ---
 
@@ -62,16 +70,21 @@ const { tower: T, receiver: R, ground } = FIELD;
     <circle class="halo" cx={SUN_START.x} cy={SUN_START.y} r="70" data-halo></circle>
     <circle class="sun" cx={SUN_START.x} cy={SUN_START.y} r="20" data-sun></circle>
 
-    <!-- Wirtschaft, left of the portrait: a bar chart on the same ground; the last bar is the
-         field's yield right now (live) -->
-    <g class="chart">
+    <!-- Wirtschaft: the cost tower on the same ground, a counterpart to the solar tower; the
+         price line above it follows the field's yield right now (live) -->
+    <g class="cost">
       {
-        bars.map((b) => (
-          <rect class:list={[b.live && "live"]} x={b.x} y={f1(b.y)} width={b.w} height={f1(b.h)} data-live={b.live ? "" : undefined} />
+        parts.map((p, i) => (
+          <>
+            <rect class={`seg s${i}`} x={T0.x} y={p.y} width={T0.w} height={p.h} />
+            <text class="cost-lbl" x={T0.x - 12} y={p.y + p.h / 2 + 6} text-anchor="end">
+              {p.name}
+            </text>
+          </>
         ))
       }
-      <path class="trend" d={chartLine(bars)} data-trend></path>
-      {bars.map((b) => <circle class="dot" cx={f1(b.x + b.w / 2)} cy={f1(b.y)} r="4" />)}
+      <line class="price" x1={T0.x - 18} x2={T0.x + T0.w + 18} y1={f1(py0)} y2={f1(py0)} data-price></line>
+      <text class="price-lbl" x={T0.x + T0.w + 24} y={f1(py0 + 6)} data-price-lbl>Preis</text>
     </g>
 
     <line class="ground" x1={FIELD.x0} x2={FIELD.w} y1={ground} y2={ground}></line>
@@ -104,9 +117,8 @@ const { tower: T, receiver: R, ground } = FIELD;
     FIELD,
     ROWS,
     SUN_START,
-    chartBars,
-    chartLine,
     clampSun,
+    priceY,
     fieldEfficiency,
     poses,
     rayOpacity,
@@ -124,16 +136,31 @@ const { tower: T, receiver: R, ground } = FIELD;
     const sun = svg.querySelector<SVGCircleElement>("[data-sun]")!;
     const halo = svg.querySelector<SVGCircleElement>("[data-halo]")!;
     const rec = svg.querySelector<SVGCircleElement>("[data-rec]")!;
-    const liveBar = svg.querySelector<SVGRectElement>("[data-live]")!;
-    const trend = svg.querySelector<SVGPathElement>("[data-trend]")!;
-    const lastDot = [...svg.querySelectorAll<SVGCircleElement>(".chart .dot")].pop()!;
+    const price = svg.querySelector<SVGLineElement>("[data-price]")!;
+    const priceLbl = svg.querySelector<SVGTextElement>("[data-price-lbl]")!;
     const set = (el: Element, a: Record<string, number | string>) => {
       for (const k in a) el.setAttribute(k, typeof a[k] === "number" ? (a[k] as number).toFixed(1) : String(a[k]));
     };
 
+    // Wide screens: the drawing covers the whole hero, its sky extended upward at the same
+    // scale (viewBox from skyTop to the ground), so the pointer sun reaches the very top
+    // instead of stopping where the field's own picture ended. Phones keep the strip.
+    const wide = matchMedia("(min-width: 48rem)");
+    const W = FIELD.w - FIELD.x0;
+    let skyTop = 0;
+    const fit = () => {
+      const r = wrap.getBoundingClientRect();
+      const h = wide.matches && r.width ? Math.max(FIELD.h, (W * r.height) / r.width) : FIELD.h;
+      skyTop = FIELD.h - h;
+      svg.setAttribute("viewBox", `${FIELD.x0} ${skyTop.toFixed(1)} ${W} ${h.toFixed(1)}`);
+    };
+    fit();
+
     let cur = { ...SUN_START };
     const place = (x: number, y: number) => {
-      cur = clampSun(x, y);
+      const c = clampSun(x, y);
+      // (clampSun keeps it above the mirrors; the top is the extended sky)
+      cur = { x: c.x, y: Math.max(Math.min(y, FIELD.sunMaxY), skyTop + 24) };
       const p = poses(cur.x, cur.y);
       let k = 0;
       p.forEach((m, i) => {
@@ -147,12 +174,10 @@ const { tower: T, receiver: R, ground } = FIELD;
       const g = receiverGlow(eff);
       set(rec, { r: g.r });
       rec.style.opacity = g.opacity.toFixed(2);
-      // the chart's live bar: what the field yields right now
-      const bars = chartBars(eff);
-      const lb = bars[bars.length - 1];
-      set(liveBar, { y: lb.y, height: lb.h });
-      set(lastDot, { cy: lb.y });
-      trend.setAttribute("d", chartLine(bars));
+      // the cost tower's price line: what the field yields right now
+      const py = priceY(eff);
+      set(price, { y1: py, y2: py });
+      set(priceLbl, { y: py + 6 });
     };
 
     // screen x -> viewBox x (handles the "slice" crop on narrow screens)
@@ -175,6 +200,8 @@ const { tower: T, receiver: R, ground } = FIELD;
     // the right edge of the name, role and claim (not the portrait): the pointer sun stays right
     // of it, so it never sits in the words with its rays running across them
     let wordsR = -Infinity;
+    // the right edge of the whole text block incl. the portrait beside the name
+    let blockR = -Infinity;
     let hi = FIELD.last + 60;
     const measure = () => {
       const box = svg.getBoundingClientRect();
@@ -199,6 +226,7 @@ const { tower: T, receiver: R, ground } = FIELD;
       }
       // the drift stops well left of the tower, so the sun's halo and the receiver's glow
       // never merge into one yellow blob
+      blockR = textR;
       const top = FIELD.last - 60;
       const right = Math.min(top, visR - MARGIN);
       // (never over the chart: the sun belongs to the field)
@@ -211,13 +239,22 @@ const { tower: T, receiver: R, ground } = FIELD;
       }
       if (hi < lo) hi = lo;
     };
-    measure();
+    const relayout = () => {
+      fit();
+      measure();
+    };
+    relayout();
     let resizeRaf = 0;
     addEventListener("resize", () => {
       cancelAnimationFrame(resizeRaf);
-      resizeRaf = requestAnimationFrame(measure);
+      resizeRaf = requestAnimationFrame(relayout);
     });
-    document.fonts?.ready.then(measure);
+    document.fonts?.ready.then(relayout);
+    // the hero's height follows its text (fonts, wrapping)
+    new ResizeObserver(() => {
+      cancelAnimationFrame(resizeRaf);
+      resizeRaf = requestAnimationFrame(relayout);
+    }).observe(wrap);
 
     let active = false;
     let raf = 0;
@@ -226,8 +263,9 @@ const { tower: T, receiver: R, ground } = FIELD;
       if (!pt) return;
       active = true;
       cancelAnimationFrame(raf);
-      // (75: the sun's halo, r 70, stays off the words too)
-      const x = wordsR > -Infinity ? Math.max(pt.x, wordsR + 75) : pt.x;
+      // the pointer sun stays over the field: right of the words and the portrait (75: its
+      // halo, r 70, stays off them too) and never over the cost tower
+      const x = Math.max(pt.x, blockR + 75, FIELD.first - 30);
       raf = requestAnimationFrame(() => place(x, pt.y));
     };
     wrap.addEventListener("pointermove", follow);
@@ -321,6 +359,12 @@ const { tower: T, receiver: R, ground } = FIELD;
       aspect-ratio: 1920 / 502;
       margin: 0;
     }
+    /* with JS the drawing fills the whole hero (its viewBox extended upward, see fit()) */
+    :global(html.js) .field {
+      top: 0;
+      height: 100%;
+      aspect-ratio: auto;
+    }
   }
 
   /* links inside the text stay clickable */
@@ -394,32 +438,47 @@ const { tower: T, receiver: R, ground } = FIELD;
     fill: var(--ink);
   }
 
-  /* the chart: steel bars like the back mirrors, the live bar in ink, an ink trend line */
-  .chart rect {
+  /* the cost tower: three steel tones in ink outlines, labelled; the price line in petrol */
+  .cost .seg {
+    stroke: var(--ink);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+  }
+  .cost .s0 {
     fill: var(--steel-soft);
-    stroke: var(--steel);
-    stroke-width: 1.5;
+  }
+  .cost .s1 {
+    fill: #b9c4cf;
+  }
+  .cost .s2 {
+    fill: var(--steel);
+  }
+
+  .cost-lbl,
+  .price-lbl {
+    font-family: var(--sans);
+    font-size: 17px;
+    fill: var(--ink-2);
+  }
+
+  .price {
+    stroke: var(--c-work);
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
     vector-effect: non-scaling-stroke;
   }
 
-  .chart rect.live {
-    fill: var(--ink);
-    stroke: var(--ink);
+  .price-lbl {
+    fill: var(--c-work);
+    font-weight: 600;
   }
 
-  .chart .trend {
-    fill: none;
-    stroke: var(--ink);
-    stroke-width: 1.5;
-    stroke-linejoin: round;
-    vector-effect: non-scaling-stroke;
-  }
-
-  .chart .dot {
-    fill: var(--bg);
-    stroke: var(--ink);
-    stroke-width: 1.5;
-    vector-effect: non-scaling-stroke;
+  /* below 64rem the scene is drawn too small for readable labels (7-8px at 768) */
+  @media (max-width: 63.99rem) {
+    .cost-lbl,
+    .price-lbl {
+      display: none;
+    }
   }
 
   .rec-glow {
