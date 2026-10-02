@@ -148,12 +148,14 @@ async function checkSize(browser, { w, h }) {
         cardBottom: card ? Math.round(card.getBoundingClientRect().bottom) : null,
         opacity: card ? Number(getComputedStyle(card).opacity) : 1,
         h: innerHeight,
+        // the page ended before the target could reach the top (the last section on a tall screen)
+        atEnd: scrollY + innerHeight >= document.documentElement.scrollHeight - 2,
       };
     }, id);
   };
   for (const id of ids.sections) {
     const r = await land(id);
-    if (r.top < r.bar - 1 || r.top > r.bar + 40) fails.push(`#${id} lands at ${r.top} (bar ${r.bar})`);
+    if (r.top < r.bar - 1 || (r.top > r.bar + 40 && !r.atEnd)) fails.push(`#${id} lands at ${r.top} (bar ${r.bar})`);
   }
   for (const id of ids.panels) {
     const r = await land(id);

@@ -798,14 +798,8 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
 <style>
   /* ---------- page head ---------- */
   .page-head {
-    padding-top: 2.5rem;
+    padding-top: var(--sp-section);
     padding-bottom: 1.25rem;
-  }
-
-  @media (min-width: 64rem) {
-    .page-head {
-      padding-top: 3rem;
-    }
   }
 
   .lede {
@@ -914,7 +908,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
 
   @media (min-width: 48rem) {
     .plan-wrap {
-      --lbl: 11.5rem;
+      --lbl: var(--col-meta);
       --bar: 8px;
       --lz: 1.25rem;
       --gap: 0.4rem;
@@ -1298,7 +1292,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     grid-template-columns: minmax(0, 1fr);
     align-items: start;
     gap: 0;
-    padding: 3rem 0;
+    padding: var(--sp-block) 0;
   }
 
   .st + .st {
@@ -1314,7 +1308,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     gap: 0.2rem 1rem;
     /* taller than the text needs: each station gets its stretch of scrolling (the reading
        line rushed through a 60px row) */
-    min-height: 7.5rem;
+    min-height: clamp(6rem, 4.5rem + 3vw, 8rem);
     align-content: center;
     padding: 1.5rem 0;
   }
@@ -1351,9 +1345,9 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   @media (min-width: 48rem) {
     .st.st-minor {
       display: grid;
-      grid-template-columns: 11.5rem minmax(0, 1fr);
+      grid-template-columns: var(--col-meta) minmax(0, 1fr);
       grid-template-areas: none;
-      column-gap: 2.5rem;
+      column-gap: var(--sp-gap);
       row-gap: 0.15rem;
     }
     .st.st-minor .org {
@@ -1363,7 +1357,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
 
   @media (min-width: 64rem) {
     .st.st-minor {
-      grid-template-columns: 11.5rem 19rem minmax(0, 1fr);
+      grid-template-columns: var(--col-meta) var(--col-title) minmax(0, 1fr);
     }
     .st.st-minor .org {
       grid-column: auto;
@@ -1389,11 +1383,11 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
 
   @media (min-width: 48rem) {
     .st {
-      grid-template-columns: 11.5rem minmax(0, 1fr);
+      grid-template-columns: var(--col-meta) minmax(0, 1fr);
       grid-template-areas:
         "meta main"
         "meta side";
-      column-gap: 2.5rem;
+      column-gap: var(--sp-gap);
     }
     .main {
       display: block;
@@ -1410,7 +1404,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
 
   @media (min-width: 64rem) {
     .st {
-      grid-template-columns: 11.5rem minmax(0, 1fr) 16rem;
+      grid-template-columns: var(--col-meta) minmax(0, 1fr) var(--col-side);
       grid-template-areas: "meta main side";
     }
   }
@@ -1569,8 +1563,8 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     content: "";
     position: absolute;
     left: -1.15rem;
-    top: 3rem;
-    bottom: 3rem;
+    top: var(--sp-block);
+    bottom: var(--sp-block);
     border-left: 3px solid var(--ink);
   }
   .st-minor.is-peek::before,

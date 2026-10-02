@@ -44,8 +44,20 @@
 
   --sans: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
   --serif: "Newsreader", Georgia, "Times New Roman", serif;
-  --wrap: 72rem; /* content grid width */
-  --gutter: 1.25rem;
+  /* content column: 72rem up to laptop size, then it keeps growing with the screen (62 % of
+     the width) up to 100rem, so large screens aren't half margin */
+  --wrap: min(max(72rem, 62vw), 100rem);
+  /* Fluid layout scale: every layout size grows with the window width between a phone floor
+     and a desktop cap (clamp), instead of jumping at fixed breakpoints. Small UI sizes (icons,
+     logos, borders, the top bar) stay fixed on purpose. */
+  --gutter: clamp(1.25rem, 0.6rem + 2.6vw, 2.5rem);
+  --sp-section: clamp(2.5rem, 1.6rem + 3.6vw, 4.5rem); /* above a section's title */
+  --sp-block: clamp(2rem, 1.2rem + 3.2vw, 4rem); /* below a section, between big blocks */
+  --sp-gap: clamp(1.5rem, 0.8rem + 2.4vw, 2.75rem); /* between columns */
+  --col-meta: clamp(9.5rem, 6rem + 5vw, 12.5rem); /* Werdegang: dates column, chart lane labels */
+  --col-side: clamp(13rem, 8rem + 7vw, 18rem); /* Werdegang: facts column */
+  --col-title: clamp(14rem, 8rem + 9vw, 21rem); /* Werdegang: title column of the minor rows */
+  --col-index: clamp(11rem, 7rem + 6vw, 15rem); /* Kernkompetenzen: the sticky index */
   --measure: 38rem; /* long-prose column */
   --top-h: 3.5rem; /* top bar height on phones (sticky) */
 }
@@ -53,6 +65,10 @@
 html {
   background: var(--bg);
   -webkit-text-size-adjust: 100%;
+  /* the base size grows on screens wider than 1440px (16px there, at most 19px), so type,
+     spacing and every rem size scale up with large displays; below 1440px it stays at the
+     browser default (and follows the visitor's own font-size setting) */
+  font-size: clamp(100%, 0.64rem + 0.4vw, 118.75%);
   /* keep focused/anchored elements clear of the sticky top bar */
   scroll-padding-top: 4.5rem;
   scroll-padding-bottom: 1rem;
@@ -70,7 +86,7 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--sans);
-  font-size: 17px;
+  font-size: 1.0625rem;
   line-height: 1.55;
 }
 
@@ -90,11 +106,6 @@ body {
   padding-inline: var(--gutter);
 }
 
-@media (min-width: 40rem) {
-  :root {
-    --gutter: 2.5rem;
-  }
-}
 
 /* One heading voice for the whole page (2026-10-01): the serif of the hero name for the
    section titles and the Kontakt e-mail (the heavy grotesk read clunky, and the page

@@ -316,55 +316,44 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     text-wrap: pretty;
   }
 
-  /* The portrait in the same language as the Kernkompetenzen photos: a hard-edged square
-     with the ink frame, in the ink/steel duotone (a soft-masked colour
-     circle read as an avatar). Phones: between the text and the field strip; wider: in
-     the middle of the sky, between the text and the mirrors. */
-  /* phones: top right, beside the name (between claim and field it pushed the field below
-     the first screen) */
+  /* The portrait stands in the scene on the ground line, between the chart (Wirtschaft) and
+     the field (Technik): in colour, blended in (multiplied onto the paper, its edges faded by
+     a soft mask), behind the scene layer, so bars, mirrors and the sun draw over its edges.
+     Placed in the scene's own coordinates (the viewBox): centred at x 740 of the scene, 300
+     units wide, between the chart (x 412-626) and the field (from x 800). Phones: the strip shows the scene from x 380 to 1440. */
   .hero-photo {
     position: absolute;
-    top: clamp(1.75rem, 1rem + 3vw, 3.5rem);
-    right: var(--gutter);
-    isolation: isolate;
-    width: min(6.5rem, 28vw);
+    z-index: -1;
+    bottom: 0;
+    left: calc((740 - 150 - 380) / 1060 * 100%);
+    width: calc(300 / 1060 * 100%);
     aspect-ratio: 1;
     margin: 0;
-    overflow: hidden;
-    border: 1.5px solid var(--ink);
-    background: var(--steel-soft);
+    mix-blend-mode: multiply;
+    -webkit-mask-image: radial-gradient(closest-side at 50% 42%, #000 45%, transparent 100%);
+    mask-image: radial-gradient(closest-side at 50% 42%, #000 45%, transparent 100%);
+    pointer-events: none;
   }
 
-  /* (the source JPEG has a light 1-2px column at its left edge: shifted out of the frame) */
   .hero-photo img {
     display: block;
-    width: calc(100% + 3px);
-    max-width: none;
+    width: 100%;
     height: auto;
-    margin-left: -3px;
-    filter: url(#duo);
   }
 
   @media (min-width: 48rem) {
     /* the text stands on the ground line, like the field beside it */
     .hero-text {
-      position: relative;
       padding-bottom: 1.5rem;
     }
     /* ends left of the mirrors, which start at about 49% of the page width */
     .hero-claim {
       max-width: min(24em, calc(46vw - max(var(--gutter), (100vw - var(--wrap)) / 2)));
     }
-    /* Lined up with the name: its top on the cap height of "Daniel", its bottom on the
-       baseline of "Lenski" (a hard frame floating free in the sky related to nothing).
-       Behind the field layer, so the pointer sun and its rays draw over it. */
+    /* wide: the whole viewBox (x -480 to 1440) spans the window */
     .hero-photo {
-      z-index: -1;
-      top: calc(var(--pt) - 0.04 * var(--fs));
-      right: auto;
-      left: 52%;
-      width: auto;
-      height: calc(1.59 * var(--fs));
+      left: calc((740 - 150 + 480) / 1920 * 100%);
+      width: calc(300 / 1920 * 100%);
     }
   }
 
@@ -372,17 +361,11 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   /* ---------- Kernkompetenzen: the names as heading, then stacking panels ---------- */
   .kk {
     /* no top rule: the field's ground line closes the hero */
-    padding: 3rem 0 4rem;
-  }
-
-  @media (min-width: 48rem) {
-    .kk {
-      padding-top: 4rem;
-    }
+    padding: var(--sp-section) 0 var(--sp-block);
   }
 
   .kk-head {
-    margin-bottom: 2rem;
+    margin-bottom: var(--sp-gap);
   }
 
   /* Desktop: a sticky index of the four names beside the cards; the one on show in ink.
@@ -394,8 +377,8 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   @media (min-width: 64rem) {
     .kk-grid {
       display: grid;
-      grid-template-columns: 14rem minmax(0, 1fr);
-      column-gap: 2.5rem;
+      grid-template-columns: var(--col-index) minmax(0, 1fr);
+      column-gap: var(--sp-gap);
       align-items: start;
     }
     .kk-index {
@@ -505,14 +488,12 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     inset: 0;
   }
 
-  /* one treatment for every photo: the ink/steel duotone (#duo in Layout.astro), so four
-     different pictures read as one set and stay inside the palette */
+  /* the photos in their own colours (owner, 2026-10-02: no black and white) */
   .panel-photo img {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    filter: url(#duo);
   }
 
   /* no picture yet: magenta stripes with what it could show */
@@ -584,12 +565,9 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     text-align: left;
   }
 
-  /* single-colour logos: next to the grey photos the brand colours were the loudest thing
-     in the section (the placeholder monograms keep their magenta) */
+  /* the logos in their brand colours (owner, 2026-10-02) */
   .panel-meta .tool-logo {
     height: 1.75rem;
-    filter: grayscale(1);
-    opacity: 0.85;
   }
 
   .panel-meta .tool-mono {
@@ -647,8 +625,8 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     .panel-text {
       display: grid;
       grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-      column-gap: 2.5rem;
-      padding: 1.75rem 2rem 1.75rem;
+      column-gap: var(--sp-gap);
+      padding: clamp(1.25rem, 0.6rem + 1.4vw, 2rem) clamp(1.25rem, 0.4rem + 1.8vw, 2.25rem);
     }
     .panel-side .panel-meta {
       margin-top: 0;

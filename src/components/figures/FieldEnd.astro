@@ -123,7 +123,7 @@ const stand = `${months[now.getMonth()]} ${now.getFullYear()}`;
 
 <style>
   .field-end {
-    margin-top: 4rem;
+    margin-top: var(--sp-block);
     overflow: hidden;
   }
 
@@ -141,7 +141,9 @@ const stand = `${months[now.getMonth()]} ${now.getFullYear()}`;
     display: block;
     width: 100%;
     /* drawn smaller than the hero's field: the ending echoes the opening, it doesn't outdo it */
-    height: clamp(9rem, 26vh, 14rem);
+    /* by width, not window height: the slice keeps its proportions on every device, so the
+       sun stays left of the field on phones too */
+    height: clamp(7rem, 3.5rem + 12vw, 14rem);
   }
 
   .sun {
@@ -197,13 +199,5 @@ const stand = `${months[now.getMonth()]} ${now.getFullYear()}`;
 
   .tower {
     fill: var(--ink);
-  }
-
-  /* phones: low and fixed (not by window height), so the slice reaches left of the field and
-     the sun has open sky */
-  @media (max-width: 47.99rem) {
-    .field-end svg {
-      height: 7rem;
-    }
   }
 </style>
