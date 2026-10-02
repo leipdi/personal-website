@@ -23,12 +23,14 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   <section class="hero" aria-labelledby="name">
     <HeliostatField>
       <div class="wrap hero-text">
-        <h1 id="name" class="hero-name">Daniel<br />Lenski</h1>
+        <div class="hero-head">
+          <h1 id="name" class="hero-name">Daniel<br />Lenski</h1>
+          <div class="hero-photo">
+            <img src="/img/daniel-lenski-cutout.png" alt="Porträt von Daniel Lenski" width="400" height="400" />
+          </div>
+        </div>
         <p class="hero-role">{profile.role}<br />{profile.location}</p>
         <p class="hero-claim">„{profile.claim}“</p>
-        <div class="hero-photo">
-          <img src="/img/daniel-lenski.jpg" alt="Porträt von Daniel Lenski" width="400" height="400" />
-        </div>
       </div>
     </HeliostatField>
   </section>
@@ -316,23 +318,24 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     text-wrap: pretty;
   }
 
-  /* The portrait stands in the scene on the ground line, between the chart (Wirtschaft) and
-     the field (Technik): in colour, blended in (multiplied onto the paper, its edges faded by
-     a soft mask), behind the scene layer, so bars, mirrors and the sun draw over its edges.
-     Placed in the scene's own coordinates (the viewBox): centred at x 740 of the scene, 300
-     units wide, between the chart (x 412-626) and the field (from x 800). Phones: the strip shows the scene from x 380 to 1440. */
+  /* The portrait directly beside the name (owner 2026-10-02): cut out of its studio
+     background, as tall as the two lines of the name, its foot fading into the page. Behind
+     the drawing layer (z-index -1 in the isolated field), so the sun passes over it. */
+  .hero-head {
+    display: flex;
+    align-items: flex-end;
+    gap: clamp(0.5rem, 0.2rem + 1.5vw, 1.75rem);
+  }
+
   .hero-photo {
-    position: absolute;
+    position: relative;
     z-index: -1;
-    bottom: 0;
-    left: calc((740 - 150 - 380) / 1060 * 100%);
-    width: calc(300 / 1060 * 100%);
+    flex: none;
+    width: calc(1.5 * var(--fs));
     aspect-ratio: 1;
-    margin: 0;
-    mix-blend-mode: multiply;
-    -webkit-mask-image: radial-gradient(closest-side at 50% 42%, #000 45%, transparent 100%);
-    mask-image: radial-gradient(closest-side at 50% 42%, #000 45%, transparent 100%);
-    pointer-events: none;
+    margin-bottom: calc(-0.05 * var(--fs));
+    -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
   }
 
   .hero-photo img {
@@ -349,11 +352,6 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     /* ends left of the mirrors, which start at about 49% of the page width */
     .hero-claim {
       max-width: min(24em, calc(46vw - max(var(--gutter), (100vw - var(--wrap)) / 2)));
-    }
-    /* wide: the whole viewBox (x -480 to 1440) spans the window */
-    .hero-photo {
-      left: calc((740 - 150 + 480) / 1920 * 100%);
-      width: calc(300 / 1920 * 100%);
     }
   }
 
