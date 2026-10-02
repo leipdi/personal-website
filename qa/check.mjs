@@ -181,6 +181,31 @@ async function checkSize(browser, { w, h }) {
       fails.push(`#${id} lands at ${r.top} (chart bottom ${r.chartBottom})`);
   }
 
+  // Werdegang: scrolling through it in steps, the text must move exactly with the scroll (the
+  // chart changes its lanes and height while reading; nothing may jump)
+  {
+    const sw = await page.evaluate(() => {
+      const w = document.getElementById("werdegang");
+      const k = document.getElementById("kenntnisse");
+      if (!w || !k) return null;
+      return { start: w.getBoundingClientRect().top + scrollY - 200, end: k.getBoundingClientRect().top + scrollY };
+    });
+    if (sw) {
+      await page.evaluate((y) => { history.replaceState(null, "", location.pathname); scrollTo(0, y); }, sw.start);
+      await settle(page);
+      let prev = null;
+      let jumps = 0;
+      for (let y = sw.start; y < sw.end; y += 80) {
+        await page.evaluate(() => scrollBy(0, 80));
+        await settle(page);
+        const ref = await page.evaluate(() => ({ top: document.getElementById("kenntnisse").getBoundingClientRect().top, sy: scrollY }));
+        if (prev && ref.sy - prev.sy === 80 && Math.abs(prev.top - ref.top - 80) > 3) jumps++;
+        prev = ref;
+      }
+      if (jumps) fails.push(`Werdegang: the text jumped ${jumps}x while scrolling through it`);
+    }
+  }
+
   // the page-end sun: inside the picture and in open sky, left of the first mirror
   const end = await page.evaluate(() => {
     const svg = document.querySelector("[data-end-svg]");

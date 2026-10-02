@@ -99,9 +99,9 @@ export const f1 = (n: number) => n.toFixed(1);
 
 // The economics side of the hero (owner's pick 2026-10-02 from mockups): a cost tower, one
 // stacked column of the three cost types (Material, Fertigung, Gemeinkosten), standing on the
-// same ground line as a counterpart to the solar tower. Above it a price line that follows
-// what the field yields right now (fieldEfficiency): in good sun the price clears the costs,
-// in poor sun it drops into them.
+// same ground line as a counterpart to the solar tower, in colour, with a price line above it
+// (the margin between them is the profit). Static: a version whose price followed the
+// pointer sun made no sense to the owner.
 export const COST_TOWER = {
   x: 620, // left edge of the column (its price line starts right of the portrait at every width)
   w: 50,
@@ -114,6 +114,5 @@ export const COST_TOWER = {
 
 export const costTotal = COST_TOWER.parts.reduce((s, p) => s + p.h, 0);
 
-// the price line's height above the ground
-// (kept low, so tower and price stay below the portrait beside the name)
-export const priceY = (eff: number) => FIELD.ground - (160 + 90 * eff);
+// the price line (kept low, so tower and price stay below the portrait beside the name)
+export const PRICE_Y = FIELD.ground - (costTotal + 40);
