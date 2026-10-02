@@ -488,7 +488,8 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     flex: 1 0 auto;
     position: relative;
     isolation: isolate;
-    min-height: 11rem;
+    /* short phones get a lower floor, so the whole card fits under the top bar */
+    min-height: min(11rem, 18vh);
     overflow: hidden;
     background: var(--steel-soft);
     border-top: 1.5px solid var(--ink);
