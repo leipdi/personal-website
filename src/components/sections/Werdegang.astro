@@ -140,7 +140,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
 <section id="werdegang" class="sec" aria-labelledby="h-werdegang">
   <div class="wrap page-head">
     <h2 id="h-werdegang" class="display page-title">Werdegang</h2>
-    <p class="lede">Von der Schulzeit bis heute, als Projektplan.</p>
+    <p class="lede">Mein Werdegang als Gantt-Diagramm</p>
     <p class="key" aria-hidden="true">
       <span><i class="k-flag"></i>Meilenstein</span>
       <span class="js-key"><i class="k-cur"></i>gerade im Blick</span>
@@ -233,26 +233,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
           // a thesis' submission date is one more fact (the chart's flag shows every milestone)
           const ms = r.milestone && msDate(r) && /^Abgabe/.test(r.milestone.label) ? [{ label: "Abgabe", value: msDate(r)! }] : [];
           const facts = [...(dur ? [{ label: "Dauer", value: dur }] : []), ...(r.facts ?? []), ...ms];
-          // minor stations are one row: dates, title, place and their one fact
-          if (r.minor)
-            return (
-              <li id={r.id} class="st st-minor" data-st={r.id} data-cat={r.cat}>
-                <span class="when">
-                  <i aria-hidden="true" />
-                  <span class="sr-only">{catName(r.cat)}: </span>
-                  {r.from} bis {r.to}
-                </span>
-                <h3 class="title">{r.title}</h3>
-                <span class="org">
-                  {r.org}, {r.place}
-                  {r.facts?.map((f) => (
-                    <span class="minor-fact">
-                      {f.label} {f.value}
-                    </span>
-                  ))}
-                </span>
-              </li>
-            );
           const side = facts.length > 0 || (r.visual && r.visual !== "heliostat");
           return (
             <li id={r.id} class="st" data-st={r.id} data-cat={r.cat}>
@@ -383,11 +363,15 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   let restY: number | null = null;
   let settleT = 0;
   let ready = false;
+  let settlePending = false;
   const settle = () => {
     restY = null;
     clearTimeout(settleT);
+    settlePending = false;
     if (!ready || pinned < 0) return;
+    settlePending = true;
     settleT = window.setTimeout(() => {
+      settlePending = false;
       if (pinned >= 0) restY = scrollY;
     }, 250);
   };
@@ -532,6 +516,10 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     if (topBar) root.style.setProperty("--top-bar-h", `${topBar.getBoundingClientRect().height}px`);
     root.style.setProperty("--plan-h", `${planWrap.offsetHeight}px`);
     if (laneKey === "") fullH = planWrap.offsetHeight;
+    // a lane that has just become visible gets its final height only here (packing): the
+    // padding that keeps the text in place follows it in the same frame
+    laneGap = laneKey === "" ? 0 : Math.max(0, fullH - planWrap.offsetHeight);
+    list.style.paddingTop = laneGap ? `calc(1rem + ${laneGap}px)` : "";
     const rs = getComputedStyle(root);
     // the page's scroll padding covers the top bar; the pinned chart comes on top of it
     spTop = (parseFloat(rs.scrollPaddingTop) || 0) + planWrap.offsetHeight;
@@ -543,7 +531,9 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     const lastTop = last.getBoundingClientRect().top + scrollY;
     // At the very end the last station's top stands a little above the reading line (so it is
     // current on its own before the end state).
-    const pb = pinnedBottom();
+    // (from the full chart height, not the current lanes: otherwise every lane switch would
+    // change the room under the last station and shift everything below it)
+    const pb = stickyTop() + (fullH || planWrap.offsetHeight);
     const line = readingLine(pb);
     const endTop = line - Math.min(64, (line - pb) / 2);
     const need = lastTop - endTop + root.clientHeight - (root.scrollHeight - pad);
@@ -596,7 +586,9 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     // When the chart pins, the first station(s) may already have passed the reading line (tall
     // screens, a short first station). The line then starts at the first station's top and
     // sinks to its usual place at half the scroll speed, so each station still gets its turn.
-    let line = readingLine(planBottom);
+    // (from the whole plan's bottom, not the current lanes': a smaller chart would move the line
+    // up, pick another station, show other lanes and flip back and forth)
+    let line = readingLine(planBottom + laneGap);
     const firstAtPin = sts[0].getBoundingClientRect().top + Math.max(since, 0);
     if (firstAtPin < line) line = Math.min(line, firstAtPin + 1 + Math.max(since, 0) * 0.5);
 
@@ -727,8 +719,11 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     () => {
       schedule();
       if (pinned < 0) return;
-      if (restY === null) settle();
-      else if (Math.abs(scrollY - restY) > 4) unpin();
+      // (the timer is not restarted by every scroll: continuous scrolling without a pause
+      // would otherwise never release the pin)
+      if (restY === null) {
+        if (!settlePending) settle();
+      } else if (Math.abs(scrollY - restY) > 4) unpin();
     },
     { passive: true },
   );
@@ -1351,75 +1346,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     border-top: 1px solid var(--line);
   }
 
-  /* minor stations: one row (dates | title | place and fact); .st.st-minor so the station
-     grid rules (later in the file, same weight) don't take over */
-  .st.st-minor {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.2rem 1rem;
-    /* taller than the text needs: each station gets its stretch of scrolling (the reading
-       line rushed through a 60px row) */
-    min-height: clamp(6rem, 4.5rem + 3vw, 8rem);
-    align-content: center;
-    padding: 1.5rem 0;
-  }
-
-  .st-minor .when {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    font-size: 0.875rem;
-  }
-
-  .st-minor .when i {
-    width: 0.75rem;
-    height: 0.75rem;
-    border-radius: 2px;
-    background: var(--c);
-  }
-
-  .st-minor .org {
-    font-size: 0.875rem;
-    color: var(--ink-2);
-  }
-
-  .minor-fact::before {
-    content: ", ";
-  }
-
-  .st.st-minor .title {
-    order: 0;
-  }
-
-  /* 48-64rem: dates | title, the place under the title (beside it, it was squeezed to five
-     lines); from 64rem one row with a fixed title column, so the places line up */
-  @media (min-width: 48rem) {
-    .st.st-minor {
-      display: grid;
-      grid-template-columns: var(--col-meta) minmax(0, 1fr);
-      grid-template-areas: none;
-      column-gap: var(--sp-gap);
-      row-gap: 0.15rem;
-    }
-    .st.st-minor .org {
-      grid-column: 2;
-    }
-  }
-
-  @media (min-width: 64rem) {
-    .st.st-minor {
-      grid-template-columns: var(--col-meta) var(--col-title) minmax(0, 1fr);
-    }
-    .st.st-minor .org {
-      grid-column: auto;
-    }
-  }
-
-  /* phones: the title first, then the meta line, then the rest */
-  .main {
-    display: contents;
-  }
   .title {
     order: 1;
   }
@@ -1510,11 +1436,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     overflow-wrap: anywhere;
   }
 
-  .st.st-minor .title {
-    font-size: 1.1875rem;
-    hyphens: manual;
-  }
-
   .main > :global(.ph-block) {
     margin-top: 1rem;
   }
@@ -1522,10 +1443,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   .story {
     font-size: 1.1875rem;
     transition: color 0.3s;
-  }
-
-  .st-minor .story {
-    font-size: 1.0625rem;
   }
 
   /* the same list as in the Kernkompetenzen cards: serif, plain discs */
@@ -1618,11 +1535,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     top: var(--sp-block);
     bottom: var(--sp-block);
     border-left: 3px solid var(--ink);
-  }
-  .st-minor.is-peek::before,
-  .st-minor:target::before {
-    top: 1.25rem;
-    bottom: 1.25rem;
   }
   @media (min-width: 40rem) {
     .st.is-peek::before,
