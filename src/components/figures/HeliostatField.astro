@@ -5,11 +5,24 @@
 // day arc, kept clear of the text and inside the visible slice; with prefers-reduced-motion
 // it stays put until moved. Without JS the field is the server-rendered picture at the
 // resting sun position.
-import { FIELD, ROWS, SUN_START, fieldEfficiency, f1, poses, rayOpacity, receiverGlow } from "../../lib/heliostat";
+import {
+  FIELD,
+  ROWS,
+  SUN_START,
+  chartBars,
+  chartLine,
+  fieldEfficiency,
+  f1,
+  poses,
+  rayOpacity,
+  receiverGlow,
+} from "../../lib/heliostat";
 
 const front = ROWS.length - 1;
 const start = poses(SUN_START.x, SUN_START.y);
-const glow = receiverGlow(fieldEfficiency(start, SUN_START.y));
+const eff0 = fieldEfficiency(start, SUN_START.y);
+const glow = receiverGlow(eff0);
+const bars = chartBars(eff0);
 const { tower: T, receiver: R, ground } = FIELD;
 ---
 
@@ -49,6 +62,18 @@ const { tower: T, receiver: R, ground } = FIELD;
     <circle class="halo" cx={SUN_START.x} cy={SUN_START.y} r="70" data-halo></circle>
     <circle class="sun" cx={SUN_START.x} cy={SUN_START.y} r="20" data-sun></circle>
 
+    <!-- Wirtschaft, left of the portrait: a bar chart on the same ground; the last bar is the
+         field's yield right now (live) -->
+    <g class="chart">
+      {
+        bars.map((b) => (
+          <rect class:list={[b.live && "live"]} x={b.x} y={f1(b.y)} width={b.w} height={f1(b.h)} data-live={b.live ? "" : undefined} />
+        ))
+      }
+      <path class="trend" d={chartLine(bars)} data-trend></path>
+      {bars.map((b) => <circle class="dot" cx={f1(b.x + b.w / 2)} cy={f1(b.y)} r="4" />)}
+    </g>
+
     <line class="ground" x1={FIELD.x0} x2={FIELD.w} y1={ground} y2={ground}></line>
     <g class="posts">
       {start.map((m) => <line class={`r${m.row}`} x1={m.px} x2={m.px} y1={m.base} y2={m.py} />)}
@@ -75,7 +100,18 @@ const { tower: T, receiver: R, ground } = FIELD;
 </div>
 
 <script>
-  import { FIELD, ROWS, SUN_START, clampSun, fieldEfficiency, poses, rayOpacity, receiverGlow } from "../../lib/heliostat";
+  import {
+    FIELD,
+    ROWS,
+    SUN_START,
+    chartBars,
+    chartLine,
+    clampSun,
+    fieldEfficiency,
+    poses,
+    rayOpacity,
+    receiverGlow,
+  } from "../../lib/heliostat";
 
   const FRONT = ROWS.length - 1;
 
@@ -88,6 +124,9 @@ const { tower: T, receiver: R, ground } = FIELD;
     const sun = svg.querySelector<SVGCircleElement>("[data-sun]")!;
     const halo = svg.querySelector<SVGCircleElement>("[data-halo]")!;
     const rec = svg.querySelector<SVGCircleElement>("[data-rec]")!;
+    const liveBar = svg.querySelector<SVGRectElement>("[data-live]")!;
+    const trend = svg.querySelector<SVGPathElement>("[data-trend]")!;
+    const lastDot = [...svg.querySelectorAll<SVGCircleElement>(".chart .dot")].pop()!;
     const set = (el: Element, a: Record<string, number | string>) => {
       for (const k in a) el.setAttribute(k, typeof a[k] === "number" ? (a[k] as number).toFixed(1) : String(a[k]));
     };
@@ -104,9 +143,16 @@ const { tower: T, receiver: R, ground } = FIELD;
       });
       set(sun, { cx: cur.x, cy: cur.y });
       set(halo, { cx: cur.x, cy: cur.y });
-      const g = receiverGlow(fieldEfficiency(p, cur.y));
+      const eff = fieldEfficiency(p, cur.y);
+      const g = receiverGlow(eff);
       set(rec, { r: g.r });
       rec.style.opacity = g.opacity.toFixed(2);
+      // the chart's live bar: what the field yields right now
+      const bars = chartBars(eff);
+      const lb = bars[bars.length - 1];
+      set(liveBar, { y: lb.y, height: lb.h });
+      set(lastDot, { cy: lb.y });
+      trend.setAttribute("d", chartLine(bars));
     };
 
     // screen x -> viewBox x (handles the "slice" crop on narrow screens)
@@ -155,11 +201,12 @@ const { tower: T, receiver: R, ground } = FIELD;
       // never merge into one yellow blob
       const top = FIELD.last - 60;
       const right = Math.min(top, visR - MARGIN);
-      lo = Math.max(visL, textR) + MARGIN;
+      // (never over the chart: the sun belongs to the field)
+      lo = Math.max(visL, textR, FIELD.first - 150) + MARGIN;
       hi = right;
       // too little room beside the text: drift within what is visible
       if (hi - lo < 120) {
-        lo = visL + MARGIN;
+        lo = Math.max(visL, FIELD.first - 150) + MARGIN;
         hi = right;
       }
       if (hi < lo) hi = lo;
@@ -242,13 +289,14 @@ const { tower: T, receiver: R, ground } = FIELD;
     order: 2;
     display: block;
     width: 100%;
-    height: 13rem;
+    /* the strip shows the whole scene, chart to tower (viewBox x 380-1440), at any phone width */
+    height: auto;
+    aspect-ratio: 1060 / 502;
     margin-top: 0.5rem;
   }
 
   .field-text {
     order: 1;
-    position: relative;
     pointer-events: none;
   }
 
@@ -259,6 +307,10 @@ const { tower: T, receiver: R, ground } = FIELD;
   @media (min-width: 48rem) {
     .field-wrap {
       display: block;
+    }
+    /* the text layer paints above the absolutely placed field */
+    .field-text {
+      position: relative;
     }
     .field {
       position: absolute;
@@ -340,6 +392,34 @@ const { tower: T, receiver: R, ground } = FIELD;
   .tower,
   .receiver {
     fill: var(--ink);
+  }
+
+  /* the chart: steel bars like the back mirrors, the live bar in ink, an ink trend line */
+  .chart rect {
+    fill: var(--steel-soft);
+    stroke: var(--steel);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .chart rect.live {
+    fill: var(--ink);
+    stroke: var(--ink);
+  }
+
+  .chart .trend {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .chart .dot {
+    fill: var(--bg);
+    stroke: var(--ink);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
   }
 
   .rec-glow {

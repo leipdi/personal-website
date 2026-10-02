@@ -75,14 +75,8 @@ const languages = byLevel("Sprachen");
 
 <style>
   .page {
-    padding-top: 2.5rem;
-    padding-bottom: 4rem;
-  }
-
-  @media (min-width: 64rem) {
-    .page {
-      padding-top: 3rem;
-    }
+    padding-top: var(--sp-section);
+    padding-bottom: var(--sp-block);
   }
 
   /* one column grid for everything: Software | Sprachen on top, and the two-column rows
@@ -90,16 +84,16 @@ const languages = byLevel("Sprachen");
      with the Sprachen column and every rule runs the same width */
   .ledger {
     --cols: minmax(0, 3fr) minmax(0, 2fr);
-    --col-gap: 5rem;
+    --col-gap: clamp(2.5rem, 1rem + 5vw, 5rem);
     margin-top: 2.5rem;
     display: grid;
-    gap: 3.5rem;
+    gap: var(--sp-block);
   }
 
   @media (min-width: 56rem) {
     .ledger {
       grid-template-columns: var(--cols);
-      gap: 4rem var(--col-gap);
+      gap: var(--sp-block) var(--col-gap);
     }
     .wide {
       grid-column: 1 / -1;
@@ -138,7 +132,7 @@ const languages = byLevel("Sprachen");
   @media (min-width: 40rem) {
     .levels > div {
       display: grid;
-      grid-template-columns: 9.5rem minmax(0, 1fr);
+      grid-template-columns: clamp(8rem, 6rem + 3vw, 10rem) minmax(0, 1fr);
       gap: 1.5rem;
       align-items: baseline;
     }

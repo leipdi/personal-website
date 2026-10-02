@@ -54,13 +54,7 @@ const liPath = profile.linkedin.slice(liCut);
 
 <style>
   .page {
-    padding-top: 2.5rem;
-  }
-
-  @media (min-width: 64rem) {
-    .page {
-      padding-top: 3rem;
-    }
+    padding-top: var(--sp-section);
   }
 
   .mail {
@@ -86,16 +80,16 @@ const liPath = profile.linkedin.slice(liCut);
   }
 
   .card-row {
-    margin-top: 3rem;
+    margin-top: var(--sp-block);
     display: grid;
-    gap: 3.5rem;
+    gap: var(--sp-block);
   }
 
   @media (min-width: 56rem) {
     .card-row {
-      margin-top: 4.5rem;
+      margin-top: calc(var(--sp-block) * 1.15);
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 5rem;
+      gap: clamp(3rem, 1rem + 4vw, 5rem);
       /* the "Neben dem Job" column (text + two pictures) is much taller: don't stretch the address to match */
       align-items: start;
     }
