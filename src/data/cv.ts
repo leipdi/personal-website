@@ -33,9 +33,7 @@ export type CareerEntry = {
   org: string;
   place: string;
   kind: "ausbildung" | "beruf";
-  story: string; // KI-PLATZHALTER: kurzer Einstieg (Hauptstationen) bzw. ein Satz (Nebenstationen)
-  // Nebenstationen: kompakte Zeile ohne Text, damit sie nicht so viel Raum bekommen wie die Abschlussarbeiten.
-  minor?: true;
+  story: string; // KI-PLATZHALTER: kurzer Einstieg
   // Slug eines Projekts auf /projekte/, falls es dazu eine ausführliche Fallstudie gibt.
   project?: string;
   // Meilenstein im Projektplan auf /werdegang/ (Raute): Abschluss oder Abgabe. at: "2024",
@@ -60,15 +58,15 @@ export const career: CareerEntry[] = [
     toYear: 2020,
     id: "abitur",
     milestone: { at: "2020", label: "Abitur, Note 2,0", tag: "Note 2,0" },
+    tasks: ["Allgemeine Hochschulreife mit Note 2,0"],
     facts: [{ label: "Note", value: "2,0" }],
     short: "Abitur",
     title: "Allgemeine Hochschulreife",
     org: "Konrad-Adenauer-Gymnasium",
     place: "Langenfeld",
     kind: "ausbildung",
-    minor: true,
     story:
-      "Abitur mit Note 2,0.",
+      "Die Schulzeit in Langenfeld.",
   },
   {
     from: "2020",
@@ -99,11 +97,11 @@ export const career: CareerEntry[] = [
     fromYear: 2021,
     toYear: 2022,
     id: "tutor",
+    tasks: ["Mathematik-Tutorien für Erstsemester gehalten", "Der erste Job neben dem Studium"],
     title: "Mathematik-Tutor",
     org: "Hochschule Düsseldorf",
     place: "Düsseldorf",
     kind: "beruf",
-    minor: true,
     story:
       "Der erste Job neben dem Studium: Mathematik-Tutorien für Erstsemester.",
   },
@@ -181,7 +179,8 @@ export const career: CareerEntry[] = [
   },
   {
     from: "2024",
-    to: "heute",
+    // abgeschlossen laut Daniel (2026-10-03), Monat unbekannt
+    to: "2026",
     fromYear: 2024,
     toYear: 2026,
     id: "master",
@@ -192,15 +191,16 @@ export const career: CareerEntry[] = [
     ],
     facts: [
       { label: "Abschluss", value: "Master of Science" },
-      { label: "Note bisher", value: "1,8" },
+      { label: "Note", value: "1,5" },
     ],
+    milestone: { at: "2026", label: "Master of Science, Note 1,5", tag: "M.Sc., Note 1,5" },
     short: "M.Sc. Int. Wirtschaftsingenieurwesen",
     title: "M.Sc. Internationales Wirtschaftsingenieurwesen",
     org: "Hochschule Düsseldorf",
     place: "Düsseldorf",
     kind: "ausbildung",
     story:
-      "Die Vertiefung nach dem Bachelor, parallel zu Job, Praktikum und Masterarbeit.",
+      "Die Vertiefung nach dem Bachelor, parallel zu Job, Praktikum und Masterarbeit, abgeschlossen mit 1,5.",
   },
   {
     from: "Sep 2024",
@@ -208,12 +208,15 @@ export const career: CareerEntry[] = [
     fromYear: 2024,
     toYear: 2026,
     id: "hilfskraft",
+    tasks: [
+      "Mitteilungen für den Fachbereich verfasst",
+      "Büromaterial und Veranstaltungen organisiert",
+    ],
     short: "Wissenschaftliche Hilfskraft",
     title: "Wissenschaftliche Hilfskraft",
     org: "Hochschule Düsseldorf, FB Maschinenbau & Verfahrenstechnik",
     place: "Düsseldorf",
     kind: "beruf",
-    minor: true,
     story:
       "Das Dekanat im Tagesgeschäft unterstützt: Mitteilungen für den Fachbereich, Büromaterial, Veranstaltungen.",
   },
@@ -230,7 +233,7 @@ export const career: CareerEntry[] = [
       "Erprobt mit Diehl Aviation an einer FDM-gedruckten Luftleitschaufel aus Ultem 9085",
     ],
     facts: [
-      { label: "Note bisher", value: "1,2" },
+      { label: "Note", value: "1,2" },
       { label: "Anteil Nutzung", value: "ca. 99 % der Energie" },
       { label: "Hohle Variante", value: "rund 68 % weniger" },
     ],
@@ -296,7 +299,7 @@ export const projects: Project[] = [
     approach:
       "Aus Normen (ISO 14044), Luftfahrtregeln (REACH, ICAO) und bestehenden Ansätzen einen Anforderungskatalog aufgestellt und darauf eine Bewertungsmetrik gebaut. Umgesetzt als Excel-Tool, das ein Modell des Oak Ridge National Laboratory für Kunststoff-Kabinenteile erweitert: kumulierter Energieaufwand (VDI 4600) und Treibhauspotenzial über fünf Lebensphasen, dazu ein Modul für Kabinenwechsel und eine Ampel für die übrigen Umweltkategorien. Erprobt mit Diehl Aviation an einer Luftleitschaufel aus Ultem 9085, gedruckt im FDM-Verfahren, einmal massiv und einmal hohl.",
     result:
-      "Über zehn Jahre in einem A350 entfallen fast 99 % des Energieaufwands der Luftleitschaufel auf die Nutzung, Herstellung und Material sind Nebensache. Die hohle Variante braucht deshalb rund zwei Drittel weniger Energie als die massive. Ein Tool, das Zulieferer, Kabinenhersteller und Airlines auf weitere Bauteile anwenden können. Bislang mit Note 1,2 bewertet.",
+      "Über zehn Jahre in einem A350 entfallen fast 99 % des Energieaufwands der Luftleitschaufel auf die Nutzung, Herstellung und Material sind Nebensache. Die hohle Variante braucht deshalb rund zwei Drittel weniger Energie als die massive. Ein Tool, das Zulieferer, Kabinenhersteller und Airlines auf weitere Bauteile anwenden können. Mit Note 1,2 bewertet.",
   },
   {
     slug: "heliostat",
@@ -396,10 +399,8 @@ export type TopSkill = {
   tools: string[]; // Schlüssel aus src/data/tools.ts (Logo oder Logo-Platzhalter)
   toolsQuestion?: string;
   learned: { label: string; href: string }[];
-  // Bild der Box (Startseite, Text liegt darauf). Ohne image zeigt die Box einen
-  // Bildplatzhalter mit imageIdea (KI-Vorschlag, was das Bild zeigen könnte).
-  image?: { src: string; test?: true }; // test: Testbild von Daniel, wird noch ersetzt
-  imageIdea: string;
+  // Das Bild der Karte ist eine eigens gezeichnete Illustration (KI-generiert, im Bild
+  // markiert): src/components/figures/kk/<Id>.astro, nach id ausgewählt.
 };
 
 // Reihenfolge und Auswahl der Boxen: Vorgabe von Daniel (2026-09-25). Belegzeilen und
@@ -416,7 +417,6 @@ export const topSkills: TopSkill[] = [
     // Software laut Daniel (2026-09-25): CAD in Inventor, Kalkulation per Hand in Excel
     tools: ["Autodesk Inventor", "Excel"],
     learned: [{ label: "Bachelorarbeit am DLR", href: "#bachelorarbeit" }],
-    imageIdea: "Heliostat-Stahlbau oder das CAD-Modell",
   },
   {
     id: "data",
@@ -431,7 +431,6 @@ export const topSkills: TopSkill[] = [
       { label: "Praktikum BI Consulting (ATVISIO)", href: "#praktikum-bi" },
       { label: "SQL Grundkurs (LinkedIn Learning)", href: "#z-sql" },
     ],
-    imageIdea: "Ein Power-BI-Bericht auf dem Bildschirm",
   },
   {
     id: "prozesse",
@@ -446,7 +445,6 @@ export const topSkills: TopSkill[] = [
       { label: "Praktikum Projektmanagement (IGH Infotec)", href: "#praktikum-pm" },
       { label: "Lean Six Sigma Yellow Belt", href: "#z-lean-six-sigma" },
     ],
-    imageIdea: "Eine Schulung oder ein Kundentermin",
   },
   {
     id: "controlling",
@@ -459,8 +457,5 @@ export const topSkills: TopSkill[] = [
     learned: [
       { label: "Werkstudent Finanzen & Controlling (IGH Infotec)", href: "#werkstudent-controlling" },
     ],
-    // Testbild von Daniel (2026-10-01), noch nicht das endgültige
-    image: { src: "/img/kompetenzen/controlling.webp", test: true },
-    imageIdea: "Monatsabschluss: Zahlen, Tabellen, Taschenrechner",
   },
 ];

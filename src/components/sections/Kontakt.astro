@@ -1,8 +1,6 @@
 ---
-import Placeholder from "../Placeholder.astro";
-import ImagePlaceholder from "../ImagePlaceholder.astro";
 import FieldEnd from "../figures/FieldEnd.astro";
-import { profile, notes } from "../../data/cv";
+import { profile } from "../../data/cv";
 import { cvPdf } from "../../data/nav";
 
 const [user, domain] = profile.email.split("@");
@@ -34,18 +32,6 @@ const liPath = profile.linkedin.slice(liCut);
         <a class="cv" href={cvPdf} target="_blank" rel="noreferrer">Lebenslauf als PDF</a>
       </address>
 
-      <section class="off" aria-labelledby="h-off">
-        <h3 id="h-off" class="h2">Neben dem Job</h3>
-        <Placeholder>
-          <div class="text">
-            {notes.map((n) => <p>{n}</p>)}
-          </div>
-        </Placeholder>
-        <div class="off-pics">
-          <ImagePlaceholder label="Beim Pfeifen als Schiedsrichter" ratio="4 / 3" />
-          <ImagePlaceholder label="Ein selbst gedrucktes 3D-Druck-Teil" ratio="4 / 3" />
-        </div>
-      </section>
     </div>
   </div>
   <!-- the page ends on the device it opened with: the field on its ground line -->
@@ -88,9 +74,6 @@ const liPath = profile.linkedin.slice(liCut);
   @media (min-width: 56rem) {
     .card-row {
       margin-top: calc(var(--sp-block) * 1.15);
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: clamp(3rem, 1rem + 4vw, 5rem);
-      /* the "Neben dem Job" column (text + two pictures) is much taller: don't stretch the address to match */
       align-items: start;
     }
   }
@@ -140,20 +123,5 @@ const liPath = profile.linkedin.slice(liCut);
     font-weight: 700;
     letter-spacing: 0;
     line-height: 1.2;
-  }
-
-  .off .text {
-    margin-top: 0.5rem;
-  }
-
-  .off-pics {
-    margin-top: 1.5rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-    gap: 1rem;
-  }
-
-  .off p + p {
-    margin-top: 0.75rem;
   }
 </style>

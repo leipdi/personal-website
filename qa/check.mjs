@@ -184,6 +184,10 @@ async function checkSize(browser, { w, h }) {
   // Werdegang: scrolling through it in steps, the text must move exactly with the scroll (the
   // chart changes its lanes and height while reading; nothing may jump)
   {
+    // a fresh page: a station pinned by the anchor checks above would hide the lane switching
+    await page.goto(base + "/", { waitUntil: "load" });
+    await page.evaluate(() => document.fonts.ready);
+    await settle(page);
     const sw = await page.evaluate(() => {
       const w = document.getElementById("werdegang");
       const k = document.getElementById("kenntnisse");

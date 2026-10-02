@@ -3,9 +3,14 @@ import Layout from "../layouts/Layout.astro";
 import Placeholder from "../components/Placeholder.astro";
 import HeliostatField from "../components/figures/HeliostatField.astro";
 import Werdegang from "../components/sections/Werdegang.astro";
+import Kosten from "../components/figures/kk/Kosten.astro";
+import Data from "../components/figures/kk/Data.astro";
+import Prozesse from "../components/figures/kk/Prozesse.astro";
+import Controlling from "../components/figures/kk/Controlling.astro";
 import Kenntnisse from "../components/sections/Kenntnisse.astro";
+import Hobbys from "../components/sections/Hobbys.astro";
 import Kontakt from "../components/sections/Kontakt.astro";
-import { profile, topSkills } from "../data/cv";
+import { profile, topSkills, type TopSkillId } from "../data/cv";
 import { tool, uniqueSvg } from "../data/tools";
 
 // Long German compounds get soft hyphens for display only (the data keeps the plain word),
@@ -14,6 +19,9 @@ const titleBreaks: Record<string, string> = {
   Bauteilkostenkalkulation: "Bauteil­kosten­kalkulation",
 };
 const displayTitle = (t: string) => titleBreaks[t] ?? t;
+
+// the card pictures: illustrations drawn for the site (AI-generated, marked in the picture)
+const arts: Record<TopSkillId, typeof Kosten> = { kosten: Kosten, data: Data, prozesse: Prozesse, controlling: Controlling };
 
 // neutral and factual (name, role, fields named in the CV): the AI-drafted claim must not end up in search results
 const description = `${profile.name}, ${profile.role}, ${profile.location}. Herstellkostenrechnung, Ökobilanz (LCA) und BI Consulting mit Power BI und Jedox.`;
@@ -44,7 +52,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
       <h2 id="h-kk" class="display page-title kk-head">Kern&shy;kompetenzen</h2>
       <Placeholder
         kind="vorschlag"
-        note="Belegzeilen und Zuordnung von Stationen und Software KI-abgeleitet; gestrichelte Logos sind Logo-Platzhalter; das Controlling-Bild ist ein Testbild"
+        note="Belegzeilen und Zuordnung von Stationen und Software KI-abgeleitet; gestrichelte Logos sind Logo-Platzhalter"
       >
         <div class="kk-grid">
         <nav class="kk-index" aria-label="Die vier Kernkompetenzen">
@@ -114,14 +122,11 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
                       </div>
                     </div>
                     <div class="panel-photo">
-                      {s.image ? (
-                        <img src={s.image.src} alt="" width="500" height="333" loading="lazy" decoding="async" />
-                      ) : (
-                        <p class="panel-ph" data-placeholder="bild">
-                          <strong>Bildplatzhalter</strong>
-                          <span>{s.imageIdea}</span>
-                        </p>
-                      )}
+                      {(() => {
+                        const Art = arts[s.id];
+                        return <Art />;
+                      })()}
+                      <span class="ai-tag">Generiert mit KI</span>
                     </div>
                   </div>
                 </li>
@@ -136,6 +141,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
 
   <Werdegang />
   <Kenntnisse />
+  <Hobbys />
   <Kontakt />
 </Layout>
 
@@ -273,8 +279,9 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   /* ---------- hero: the heliostat field, name and role in its sky ---------- */
   .hero-text {
     /* the name's size and the top padding, shared with the portrait that lines up with it */
-    --fs: clamp(3.5rem, 1.5rem + 9vw, 9rem);
-    --pt: clamp(1.75rem, 1rem + 3vw, 3.5rem);
+    /* (the quote stands over the drawing from 80rem, so name and portrait can be large) */
+    --fs: clamp(3.25rem, 1.4rem + 8vw, 8rem);
+    --pt: clamp(1.5rem, 0.8rem + 2.6vw, 3rem);
     padding-top: var(--pt);
   }
 
@@ -298,10 +305,10 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   }
 
   .hero-claim {
-    margin-top: 1.5rem;
+    margin-top: 1.1rem;
     font-family: var(--serif);
     font-optical-sizing: auto;
-    font-size: clamp(1.25rem, 1rem + 0.9vw, 1.75rem);
+    font-size: clamp(1.125rem, 0.95rem + 0.6vw, 1.5rem);
     line-height: 1.3;
     letter-spacing: -0.01em;
     max-width: 24em;
@@ -342,7 +349,22 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     }
     /* ends left of the mirrors, which start at about 49% of the page width */
     .hero-claim {
-      max-width: min(24em, calc(46vw - max(var(--gutter), (100vw - var(--wrap)) / 2)));
+      max-width: min(28em, calc(48vw - max(var(--gutter), (100vw - var(--wrap)) / 2)));
+    }
+  }
+
+  /* From 80rem the quote stands over the drawing, in the sky upper right (owner
+     2026-10-03): from just right of the portrait (its right edge follows the name's size:
+     about 4.5x --fs from the column's left edge) to 77% of the width, so the sun keeps the
+     sky over the field to itself. */
+  @media (min-width: 80rem) {
+    .hero-claim {
+      position: absolute;
+      top: calc(var(--pt) + 0.1 * var(--fs));
+      left: calc(max(var(--gutter), (100% - var(--wrap)) / 2) + 4.6 * var(--fs) + 4.5rem);
+      right: 23%;
+      max-width: none;
+      margin: 0;
     }
   }
 
@@ -471,34 +493,26 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     aspect-ratio: 16 / 10;
   }
 
-  .panel-photo img,
-  .panel-ph {
+  /* the illustration fills the picture area (cropped like a photo) */
+  .panel-photo :global(.kk-art) {
     position: absolute;
     inset: 0;
-  }
-
-  /* the photos in their own colours (owner, 2026-10-02: no black and white) */
-  .panel-photo img {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover;
   }
 
-  /* no picture yet: magenta stripes with what it could show */
-  .panel-ph {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 0.1rem;
-    height: 100%;
-    padding: 1rem;
-    background: repeating-linear-gradient(135deg, #fbeaf4 0 10px, #fff 10px 20px);
-    color: var(--ph);
-    font-size: 0.8125rem;
-    line-height: 1.35;
-    text-align: center;
+  /* marks the picture as AI-generated (owner's rule), small, in the corner */
+  .ai-tag {
+    position: absolute;
+    right: 0.5rem;
+    top: 0.5rem;
+    padding: 0.15rem 0.45rem;
+    border-radius: 3px;
+    background: rgb(255 255 255 / 0.85);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--ink-2);
   }
 
   .panel-title {
@@ -569,6 +583,19 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     padding-top: 0;
     border-top: 0;
     text-align: left;
+  }
+
+  /* phones: the picture keeps its own proportions (cropped to fill a tall card, the
+     illustration lost everything that made it readable); the card is as tall as it needs */
+  @media (max-width: 47.99rem) {
+    :global(html.js) .panel-in {
+      min-height: 0;
+    }
+    .panel-photo {
+      flex: none;
+      min-height: 0;
+      aspect-ratio: 800 / 520;
+    }
   }
 
   /* small phones: keep "Bauteilkostenkalkulation" on one line */

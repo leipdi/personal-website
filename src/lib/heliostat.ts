@@ -11,7 +11,7 @@ export const FIELD = {
   ground: 500,
   tower: { x: 1330, top: 170, w: 22 },
   receiver: { x: 1341, y: 150 },
-  first: 780, // the field starts right of the cost tower and its price label
+  first: 810, // the field starts right of the cost column and its labels
   last: 1230,
   gap: 38,
   sunMaxY: 400, // the sun never sets below the mirrors
@@ -97,22 +97,25 @@ export function receiverGlow(eff: number) {
 
 export const f1 = (n: number) => n.toFixed(1);
 
-// The economics side of the hero (owner's pick 2026-10-02 from mockups): a cost tower, one
-// stacked column of the three cost types (Material, Fertigung, Gemeinkosten), standing on the
-// same ground line as a counterpart to the solar tower, in colour, with a price line above it
-// (the margin between them is the profit). Static: a version whose price followed the
-// pointer sun made no sense to the owner.
+// The economics side of the hero (owner's pick 2026-10-02 from mockups, reworked): a price
+// calculation as one stacked column on the same ground line, a counterpart to the solar
+// tower: Material + Fertigung + Gemeinkosten, with a bracket over the whole column naming
+// them "Fertigungskosten" (owner's wording). A leader runs from the bracket to the first heliostat of the field, ringed: the
+// column is the cost of one of these mirrors (the owner's Bachelor thesis was exactly that).
+// Static: a version whose price followed the pointer sun made no sense to the owner. The
+// split is illustrative, not thesis data.
 export const COST_TOWER = {
-  x: 620, // left edge of the column (its price line starts right of the portrait at every width)
+  x: 650, // left edge of the column (its labels clear of the portrait at every width)
   w: 50,
   parts: [
-    { name: "Material", h: 110 },
-    { name: "Fertigung", h: 70 },
-    { name: "Gemeinkosten", h: 45 },
+    // (low: the labels stay clear of the portrait beside the name)
+    { name: "Material", h: 75 },
+    { name: "Fertigung", h: 48 },
+    { name: "Gemeinkosten", h: 34 },
   ],
 };
 
 export const costTotal = COST_TOWER.parts.reduce((s, p) => s + p.h, 0);
 
-// the price line (kept low, so tower and price stay below the portrait beside the name)
-export const PRICE_Y = FIELD.ground - (costTotal + 40);
+// the heliostat the column is about: the first one of the front row, and where its pivot is
+export const LINKED_MIRROR = { x: FIELD.first, y: FIELD.ground - ROWS[ROWS.length - 1].post };
