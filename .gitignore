@@ -29,3 +29,7 @@ pnpm-debug.log*
 /Basic_LinkedInDataExport_*.zip*
 /Input Data/
 /.superpowers/
+
+# QA run output (qa/check.mjs)
+/qa/shots/
+/qa/last-report.json

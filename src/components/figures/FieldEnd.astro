@@ -87,9 +87,8 @@ const stand = `${months[now.getMonth()]} ${now.getFullYear()}`;
       const inv = m.inverse();
       const l = new DOMPoint(box.left, 0).matrixTransform(inv).x;
       const r = new DOMPoint(box.right, 0).matrixTransform(inv).x;
-      // left of the field where there is room, otherwise just inside the slice (on narrow
-      // screens the slice starts right of the field's first mirror, and the sun sets behind it)
-      sx = Math.max(l + (r - l) * 0.12, Math.min(l + (r - l) * 0.2, FIELD.first - 120));
+      // left of the field where there is room, otherwise just inside the slice
+      sx = Math.max(l + (r - l) * 0.04, Math.min(l + (r - l) * 0.2, FIELD.first - 120));
       update();
     };
     const update = () => {
@@ -198,5 +197,13 @@ const stand = `${months[now.getMonth()]} ${now.getFullYear()}`;
 
   .tower {
     fill: var(--ink);
+  }
+
+  /* phones: low and fixed (not by window height), so the slice reaches left of the field and
+     the sun has open sky */
+  @media (max-width: 47.99rem) {
+    .field-end svg {
+      height: 7rem;
+    }
   }
 </style>

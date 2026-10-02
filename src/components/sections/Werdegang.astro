@@ -1312,8 +1312,11 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     flex-wrap: wrap;
     align-items: baseline;
     gap: 0.2rem 1rem;
-    /* a little taller than the text needs: each station gets its stretch of scrolling */
-    padding: 2rem 0;
+    /* taller than the text needs: each station gets its stretch of scrolling (the reading
+       line rushed through a 60px row) */
+    min-height: 7.5rem;
+    align-content: center;
+    padding: 1.5rem 0;
   }
 
   .st-minor .when {
@@ -1343,13 +1346,27 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     order: 0;
   }
 
+  /* 48-64rem: dates | title, the place under the title (beside it, it was squeezed to five
+     lines); from 64rem one row with a fixed title column, so the places line up */
   @media (min-width: 48rem) {
     .st.st-minor {
       display: grid;
-      /* a fixed title column, so the places line up across the minor rows */
-      grid-template-columns: 11.5rem 19rem minmax(0, 1fr);
+      grid-template-columns: 11.5rem minmax(0, 1fr);
       grid-template-areas: none;
       column-gap: 2.5rem;
+      row-gap: 0.15rem;
+    }
+    .st.st-minor .org {
+      grid-column: 2;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .st.st-minor {
+      grid-template-columns: 11.5rem 19rem minmax(0, 1fr);
+    }
+    .st.st-minor .org {
+      grid-column: auto;
     }
   }
 
