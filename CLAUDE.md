@@ -72,7 +72,7 @@ Design history, so a redesign doesn't circle back:
 
 ### Design/QA skills available
 
-`~/.claude/skills/` also has `ui-ux-pro-max` (design-system + UX-rule search; its `scripts/search.py` needs a real Python install — the Windows Store stub alias doesn't count, `python`/`python3`/`py -3` all fail without one — so its markdown references under `references/` were read directly instead), `web-design-guidelines`, `composition-patterns`, and the bundled `dataviz` skill (chart form/color/palette-validation procedure). When redesigning or adding charts, use these rather than eyeballing it.
+The project ships its skills in `.claude/skills/` (so a clone on another device has them; plugins are enabled in `.claude/settings.json`): `ui-ux-pro-max` (design-system + UX-rule search; its `scripts/search.py` needs a real Python install — the Windows Store stub alias doesn't count, `python`/`python3`/`py -3` all fail without one — so its markdown references under `references/` were read directly instead), `web-design-guidelines`, `composition-patterns`, and the bundled `dataviz` skill (chart form/color/palette-validation procedure). When redesigning or adding charts, use these rather than eyeballing it.
 
 ### Process note
 
