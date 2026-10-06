@@ -26,6 +26,9 @@ const arts: Record<TopSkillId, { src: string; alt: string }> = {
 
 // neutral and factual (name, role, fields named in the CV): the AI-drafted claim must not end up in search results
 const description = `${profile.name}, ${profile.role}, ${profile.location}. Herstellkostenrechnung, Ökobilanz (LCA) und BI Consulting mit Power BI und Jedox.`;
+
+// the claim with its *marked* words in italics (odd parts of the split)
+const claimParts = profile.claim.split(/\*(.+?)\*/);
 ---
 
 <Layout title="Daniel Lenski, Wirtschaftsingenieur" description={description}>
@@ -39,7 +42,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
           </div>
         </div>
         <p class="hero-role">{profile.role}<br />{profile.location}</p>
-        <p class="hero-claim">„{profile.claim}“</p>
+        <p class="hero-claim">„{claimParts.map((part, i) => (i % 2 ? <em>{part}</em> : part))}“</p>
       </div>
     </HeliostatField>
   </section>
@@ -277,7 +280,6 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   /* ---------- hero: the heliostat field, name and role in its sky ---------- */
   .hero-text {
     /* the name's size and the top padding, shared with the portrait that lines up with it */
-    /* (the quote stands over the drawing from 80rem, so name and portrait can be large) */
     --fs: clamp(3.25rem, 1.4rem + 8vw, 8rem);
     --pt: clamp(1.5rem, 0.8rem + 2.6vw, 3rem);
     padding-top: var(--pt);
@@ -314,7 +316,7 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   }
 
   /* The portrait directly beside the name (owner 2026-10-02): cut out of its studio
-     background, exactly as tall as the name, its foot fading into the page. Behind
+     background, exactly as tall as the name, with a hard foot. Behind
      the drawing layer (z-index -1 in the isolated field), so the sun passes over it. */
   .hero-head {
     display: flex;
@@ -330,8 +332,9 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     width: calc(1.59 * var(--fs));
     aspect-ratio: 1;
     margin-top: calc(-0.04 * var(--fs));
-    -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
-    mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+    /* no fade at the foot any more (owner 2026-10-06: a hard edge); clipped, so the intro
+       moves the picture up out of its own bottom edge */
+    overflow: hidden;
   }
 
   .hero-photo img {
@@ -340,29 +343,62 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     height: auto;
   }
 
-  @media (min-width: 48rem) {
-    /* the text stands on the ground line, like the field beside it */
-    .hero-text {
-      padding-bottom: 1.5rem;
-    }
-    /* ends left of the mirrors, which start at about 49% of the page width */
-    .hero-claim {
-      max-width: min(28em, calc(48vw - max(var(--gutter), (100vw - var(--wrap)) / 2)));
+  /* The intro (owner 2026-10-06): the portrait comes up out of its bottom edge while the sun rises
+     over the field (HeliostatField), both at about 0.3 s; name, role and claim stay still
+     (a critic found their reveals the stock page-load intro). Once, not with reduced motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-photo img {
+      animation: hero-up 1.1s cubic-bezier(0.2, 0.7, 0.1, 1) 0.3s both;
     }
   }
 
-  /* From 80rem the quote stands over the drawing, in the sky upper right (owner
-     2026-10-03): from just right of the portrait (its right edge follows the name's size:
-     about 4.5x --fs from the column's left edge) to 77% of the width, so the sun keeps the
-     sky over the field to itself. */
-  @media (min-width: 80rem) {
+  @keyframes hero-up {
+    from {
+      transform: translateY(20%);
+      opacity: 0;
+    }
+  }
+
+  @media (min-width: 48rem) {
     .hero-claim {
-      position: absolute;
-      top: calc(var(--pt) + 0.1 * var(--fs));
-      left: calc(max(var(--gutter), (100% - var(--wrap)) / 2) + 4.6 * var(--fs) + 4.5rem);
-      right: 23%;
-      max-width: none;
-      margin: 0;
+      max-width: 30em;
+    }
+  }
+
+  /* From 64rem the text is one row of one height (owner 2026-10-06: everything lined up,
+     filling the first screen): name and portrait on the left; role and claim on the right,
+     the role's first line on the cap height of "Daniel", the claim's last line on the
+     baseline of "Lenski". The drawing below lines up with the same column (HeliostatField
+     fit()). The name's size follows the window height too, so text and drawing share the
+     first screen. (Until 2026-10-06 the claim stood in the sky over the drawing from 80rem.) */
+  @media (min-width: 64rem) {
+    .hero-text {
+      --fs: clamp(5rem, min(1.4rem + 8vw, 20svh), 12rem);
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      column-gap: clamp(2rem, 4vw, 6rem);
+    }
+    .hero-head {
+      grid-row: 1 / 3;
+    }
+    .hero-role {
+      grid-column: 2;
+      align-self: start;
+      /* the first line's cap height on the name's (0.04 fs above the h1's box; 0.42em: this
+         line's own half-leading and space above the caps) */
+      margin-top: calc(-0.04 * var(--fs) - 0.42em);
+    }
+    .hero-claim {
+      grid-column: 2;
+      align-self: end;
+      /* the last line's baseline on the name's (0.21 fs above the h1's box bottom; 0.36em:
+         this line's descent and half-leading) */
+      margin: 0 0 calc(0.21 * var(--fs) - 0.36em);
+      /* large enough to own the column between the role and the name's baseline (a critic
+         found a normal-sized claim there left a hole, "two leftovers") */
+      font-size: clamp(1.5rem, 0.2 * var(--fs), 2.75rem);
+      line-height: 1.22;
+      max-width: 20em;
     }
   }
 
@@ -371,6 +407,10 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   .kk {
     /* no top rule: the field's ground line closes the hero */
     padding: var(--sp-section) 0 var(--sp-block);
+    /* a jump here puts the section right under the top bar: the root scroll padding (4.5 / 5rem)
+       is taller than the bar (3.5 / 3.75rem + its rule), which left a strip of the hero's ground
+       line and mirror posts showing under the bar like a second rule */
+    scroll-margin-top: calc(1.5px - 1rem);
   }
 
   .kk-head {
@@ -384,6 +424,9 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
   }
 
   @media (min-width: 64rem) {
+    .kk {
+      scroll-margin-top: calc(1.5px - 1.25rem);
+    }
     .kk-grid {
       display: grid;
       grid-template-columns: var(--col-index) minmax(0, 1fr);
@@ -500,9 +543,11 @@ const description = `${profile.name}, ${profile.role}, ${profile.location}. Hers
     inset: 0;
     display: block;
     /* the whole picture as large as fits (its light ground matches the area, so the edges of
-       the contained picture don't show; the mask softens the area edges) */
-    width: 100%;
+       the contained picture don't show; the mask softens the area edges), but at most 42rem
+       wide, centred: the drawings are only ~520px, blown up 2-3x on wide screens they went soft */
+    width: min(100%, 42rem);
     height: 100%;
+    margin-inline: auto;
     object-fit: contain;
     -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 92%, transparent),
       linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);

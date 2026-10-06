@@ -44,9 +44,10 @@
 
   --sans: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
   --serif: "Newsreader", Georgia, "Times New Roman", serif;
-  /* content column: 72rem up to laptop size, then it keeps growing with the screen (62 % of
-     the width) up to 100rem, so large screens aren't half margin */
-  --wrap: min(max(72rem, 62vw), 100rem);
+  /* content column: 72rem up to laptop size, then it keeps growing with the screen (84 % of
+     the width) up to 130rem, so large screens aren't half margin (owner 2026-10-06: at 62 %
+     the borders were "huge", ~330px a side at 1920); long prose keeps its own --measure */
+  --wrap: min(max(72rem, 84vw), 130rem);
   /* Fluid layout scale: every layout size grows with the window width between a phone floor
      and a desktop cap (clamp), instead of jumping at fixed breakpoints. Small UI sizes (icons,
      logos, borders, the top bar) stay fixed on purpose. */

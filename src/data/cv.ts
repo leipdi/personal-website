@@ -10,12 +10,13 @@
 // zusätzlich auf die beiden Abschlussarbeiten ("Input Data/", nicht im Repo). Daniel hat die
 // Veröffentlichung trotz Sperrvermerk freigegeben. Zahlen daraus sind echt, die Formulierung KI.
 // Beim Ersetzen durch eigene Texte auch den <Placeholder>-Wrapper in der Seite entfernen.
+// profile.claim: *Wort* wird kursiv gesetzt (Betonung, index.astro).
 
 export const profile = {
   name: "Daniel Lenski",
   role: "Wirtschaftsingenieur, M.Sc.",
   claim:
-    "Bindeglied zwischen Technik und Wirtschaft. Und die Frage, wie hilft KI wirklich bei Prozessen und Projekten",
+    "Bindeglied zwischen *Technik* und *Wirtschaft*. Und die Frage, wie KI wirklich bei Prozessen und Projekten hilft",
   location: "Langenfeld (Rheinland) / Düsseldorf",
   email: "daniel.lenski@hotmail.com",
   phone: "+49 157 74585248",

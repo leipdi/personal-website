@@ -1382,7 +1382,9 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
 
   @media (min-width: 64rem) {
     .st {
-      grid-template-columns: var(--col-meta) minmax(0, 1fr) var(--col-side);
+      /* (the text column stops at 48rem: with the wide page column its prose ran to ~77rem a
+         line at 2560 and the facts stood 1000px off; extra width stays empty on the right) */
+      grid-template-columns: var(--col-meta) minmax(0, 48rem) var(--col-side);
       grid-template-areas: "meta main side";
     }
   }

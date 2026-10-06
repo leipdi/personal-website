@@ -37,7 +37,7 @@ const { title, description } = Astro.props;
       Entwurf: Magenta markierte Stellen sind KI-Platzhalter (Texte, Daten, Bildideen) und werden noch ersetzt.
     </p>
 
-    <header class="top">
+    <header class="top is-hero">
       <div class="wrap top-in">
         <a href="#top" class="top-name">Daniel Lenski</a>
         <nav class="top-nav" aria-label="Hauptnavigation">
@@ -134,7 +134,8 @@ const { title, description } = Astro.props;
         );
       }
 
-      // the bar's name stays hidden while the hero's big name is on screen
+      // the bar's name stays hidden while the hero's big name is on screen; the bar starts
+      // hidden (class in the markup, only with JS), so the name doesn't flash twice on load
       const top = document.querySelector<HTMLElement>(".top");
       const heroName = document.getElementById("name");
       if (top && heroName) {
@@ -142,7 +143,7 @@ const { title, description } = Astro.props;
         new IntersectionObserver((es) => top.classList.toggle("is-hero", es[es.length - 1].isIntersecting), {
           rootMargin: `-${top.offsetHeight}px 0px 0px 0px`,
         }).observe(heroName);
-      }
+      } else top?.classList.remove("is-hero");
     </script>
   </body>
 </html>
@@ -219,7 +220,7 @@ const { title, description } = Astro.props;
     transition: opacity 0.2s, visibility 0.2s;
   }
 
-  .top.is-hero .top-name {
+  :global(html.js) .top.is-hero .top-name {
     opacity: 0;
     visibility: hidden;
   }
