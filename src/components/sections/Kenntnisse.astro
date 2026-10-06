@@ -10,6 +10,8 @@ const groups = [
   { id: "lang", name: "Sprachen", skills: ratedSkills.filter((s) => s.group === "Sprachen") },
 ];
 const SLOTS = 5;
+// each pillar's place in the build-up animation (Software first, then Sprachen)
+const order = (g: (typeof groups)[number], i: number) => (g.id === "lang" ? groups[0].skills.length : 0) + i;
 ---
 
 <section id="kenntnisse" class="sec" aria-labelledby="h-kenntnisse">
@@ -24,8 +26,8 @@ const SLOTS = 5;
               {g.name}
             </h3>
             <ul class="pillars">
-              {g.skills.map((s) => (
-                <li class="pillar" style={`--lv:${s.level}`}>
+              {g.skills.map((s, i) => (
+                <li class="pillar" style={`--lv:${s.level};--p:${order(g, i)}`}>
                   <span class="lvl">{s.levelLabel.replace("Grundkenntnisse", "Grund\u00adkenntnisse")}</span>
                   <span class="blocks" aria-hidden="true">
                     {Array.from({ length: SLOTS }, (_, i) => (
@@ -68,17 +70,19 @@ const SLOTS = 5;
 </section>
 
 <script>
-  // the pillars grow in once when they come into view (not with reduced motion)
+  // the pillars are built when they scroll into view (owner 2026-10-03): the dashed scaffold
+  // first, then the blocks drop onto the stack one by one, pillar by pillar; again each time
+  // the reader comes back from above (not with reduced motion; without JS they just stand)
   const yard = document.querySelector<HTMLElement>("[data-pillars]");
   if (yard && !matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window) {
     yard.classList.add("is-waiting");
     const io = new IntersectionObserver(
       ([e]) => {
-        if (!e.isIntersecting) return;
-        yard.classList.remove("is-waiting");
-        io.disconnect();
+        if (e.intersectionRatio >= 0.35) yard.classList.remove("is-waiting");
+        // fully out of view below the window (scrolled back up): ready to build again
+        else if (!e.isIntersecting && e.boundingClientRect.top > 0) yard.classList.add("is-waiting");
       },
-      { threshold: 0.35 },
+      { threshold: [0, 0.35] },
     );
     io.observe(yard);
   }
@@ -153,18 +157,34 @@ const SLOTS = 5;
   .blocks i {
     border: 1.5px dashed var(--line);
     border-radius: 2px;
+    /* the scaffold appears with its pillar */
+    transition: opacity 0.3s calc(var(--p) * 140ms);
   }
 
   .blocks i.on {
     border: 0;
     background: var(--c);
-    transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i) * 70ms), opacity 0.3s calc(var(--i) * 70ms);
-    transform-origin: left center;
+    /* one block after the other, pillar by pillar, landing with a slight bounce */
+    --d: calc(var(--p) * 140ms + 200ms + var(--i) * 110ms);
+    transition:
+      transform 0.55s cubic-bezier(0.3, 1.45, 0.5, 1) var(--d),
+      opacity 0.2s var(--d);
   }
 
-  .is-waiting .blocks i.on {
-    transform: scaleX(0);
+  /* the level word once its pillar stands */
+  .lvl {
+    transition: opacity 0.35s calc(var(--p) * 140ms + 200ms + var(--lv) * 110ms + 250ms);
+  }
+
+  .is-waiting .blocks i,
+  .is-waiting .lvl {
     opacity: 0;
+    transition: none;
+  }
+
+  /* (phones: the bars are laid from the left) */
+  .is-waiting .blocks i.on {
+    transform: translateX(-1.5rem);
   }
 
   /* wide: the pillars stand on one ground line, Software and Sprachen side by side */
@@ -216,12 +236,10 @@ const SLOTS = 5;
       transform: scaleY(-1);
     }
 
-    .blocks i.on {
-      transform-origin: center top; /* (the column is flipped: top here is the ground) */
-    }
-
+    /* each block drops onto the stack from above (the column is flipped, so a positive
+       offset here is upward on screen) */
     .is-waiting .blocks i.on {
-      transform: scaleY(0);
+      transform: translateY(3rem);
     }
 
     /* the names under the ground line */
