@@ -108,10 +108,11 @@ export const COST_TOWER = {
   x: 650, // left edge of the column (its labels clear of the portrait at every width)
   w: 50,
   parts: [
-    // (low: the labels stay clear of the portrait beside the name)
-    { name: "Material", h: 75 },
-    { name: "Fertigung", h: 48 },
-    { name: "Gemeinkosten", h: 34 },
+    // (tall since 2026-10-06: in the two-row hero it stands under the name as the tower's
+    // counterweight; a critic found the low column dwarfed by the tower)
+    { name: "Material", h: 150 },
+    { name: "Fertigung", h: 96 },
+    { name: "Gemeinkosten", h: 68 },
   ],
 };
 

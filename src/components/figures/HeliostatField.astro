@@ -2,9 +2,9 @@
 // Home hero: a heliostat field seen from the side, with the page's text in its sky (slot).
 // The pointer is the sun; every mirror turns so the light lands on the receiver (the
 // geometry of the owner's DLR thesis). Without a pointer the sun drifts slowly along a
-// day arc, kept clear of the text and inside the visible slice; with prefers-reduced-motion
-// it stays put until moved. Without JS the field is the server-rendered picture at the
-// resting sun position.
+// day arc, kept clear of the text and inside the visible slice; on load it first rises at the
+// left of the field (the hero's only intro); with prefers-reduced-motion it stays put until
+// moved. Without JS the field is the server-rendered picture at the resting sun position.
 import {
   FIELD,
   ROWS,
@@ -83,17 +83,18 @@ const { tower: T, receiver: R, ground } = FIELD;
         parts.map((p, i) => (
           <>
             <rect class={`seg s${i}`} x={T0.x} y={p.y} width={T0.w} height={p.h} />
-            <text class="cost-lbl" x={T0.x - 12} y={p.y + p.h / 2 + 6} text-anchor="end">
+            <text class="cost-lbl" x={T0.x - 12} y={p.y + p.h / 2} text-anchor="end" dominant-baseline="central">
               {p.name}
             </text>
           </>
         ))
       }
       <path class="bracket" d={`M${brX - 6} ${brTop} H${brX} V${FIELD.ground - 1} H${brX - 6}`}></path>
-      <text class="price-lbl" x={brX + 8} y={brTop + 6}>Fertigungskosten</text>
+      <text class="price-lbl" x={brX + 8} y={brTop} dominant-baseline="central">Fertigungskosten</text>
     </g>
 
-    <line class="ground" x1={FIELD.x0} x2={FIELD.w} y1={ground} y2={ground}></line>
+    <!-- (far past both ends: the scaled-up drawing can show more than x0-w, the line closes the hero) -->
+    <line class="ground" x1={FIELD.x0 - 4000} x2={FIELD.w + 4000} y1={ground} y2={ground}></line>
     <g class="posts">
       {start.map((m) => <line class={`r${m.row}`} x1={m.px} x2={m.px} y1={m.base} y2={m.py} />)}
     </g>
@@ -105,7 +106,9 @@ const { tower: T, receiver: R, ground } = FIELD;
     <g class="link">
       <path class="leader" d={`M${brX} ${brMid} H${L.x} V${L.y - ringR}`}></path>
       <circle class="ring" cx={L.x} cy={L.y} r={ringR}></circle>
-      <text class="link-lbl" x={(brX + L.x) / 2} y={brMid - 10} text-anchor="middle">je Heliostat</text>
+      <!-- (under the short leader by the bracket; with JS, where the cost column moved left and the
+           leader stretches across, over it at the field end by the ring: see shiftCost()) -->
+      <text class="link-lbl" x={brX + 8} y={brMid + 22} text-anchor="start">je Heliostat</text>
     </g>
 
     <rect class="tower" x={T.x} y={T.top} width={T.w} height={ground - T.top}></rect>
@@ -130,7 +133,10 @@ const { tower: T, receiver: R, ground } = FIELD;
     FIELD,
     ROWS,
     SUN_START,
+    COST_TOWER,
+    LINKED_MIRROR,
     clampSun,
+    costTotal,
     fieldEfficiency,
     poses,
     rayOpacity,
@@ -138,6 +144,11 @@ const { tower: T, receiver: R, ground } = FIELD;
   } from "../../lib/heliostat";
 
   const FRONT = ROWS.length - 1;
+  // the bracket over the cost column and the leader from its middle to the ringed heliostat
+  // (as in the server render above)
+  const BR_X = COST_TOWER.x + COST_TOWER.w + 12;
+  const BR_MID = FIELD.ground - costTotal / 2;
+  const RING_R = 22;
 
   for (const wrap of document.querySelectorAll<HTMLElement>("[data-field]")) {
     const svg = wrap.querySelector<SVGSVGElement>("[data-field-svg]")!;
@@ -152,17 +163,103 @@ const { tower: T, receiver: R, ground } = FIELD;
       for (const k in a) el.setAttribute(k, typeof a[k] === "number" ? (a[k] as number).toFixed(1) : String(a[k]));
     };
 
-    // Wide screens: the drawing covers the whole hero, its sky extended upward at the same
-    // scale (viewBox from skyTop to the ground), so the pointer sun reaches the very top
-    // instead of stopping where the field's own picture ended. Phones keep the strip.
+    // The hero fills the first screen (landing page) from 48rem. Phones: text, then the strip under
+    // it, showing the scene from x 380 (chart to tower) at its own aspect.
+    // Wide screens (owner 2026-10-06: everything sized and lined up, filling the section): the
+    // text is the top row, the drawing the bottom row, lined up with the text's column: the
+    // cost column's left edge (with its labels) on the name's left edge, the receiver's right
+    // edge on the column's right edge. If the scene (ground to the top of the sun's arc, 430
+    // units) is too tall for the space under the text at that scale, it gets smaller and stays
+    // on the right edge. The viewBox matches the SVG's box exactly.
     const wide = matchMedia("(min-width: 48rem)");
-    const W = FIELD.w - FIELD.x0;
+    const NARROW_X0 = 380;
+    const SCENE_H = 430; // ground (500) to the top of the sun's arc (70)
+    const SCENE_R = FIELD.receiver.x + 20; // the receiver's right edge
+    const costG = svg.querySelector<SVGGElement>(".cost")!;
+    const leader = svg.querySelector<SVGPathElement>(".leader")!;
+    const linkLbl = svg.querySelector<SVGTextElement>(".link-lbl")!;
+    const column = text.firstElementChild as HTMLElement | null;
     let skyTop = 0;
+    // Where the drawing is narrower than the column (limited by the height), the cost column
+    // (Wirtschaft) moves left under the name, onto the column's left edge, and the dashed
+    // leader to its heliostat (Technik) stretches across: the drawing spans the column at any
+    // height (0 where the drawing spans the column anyway).
+    // the right edge of the cost column with its labels, as placed (viewBox units): the sun keeps
+    // right of it (the tall column's "Fertigungskosten" stands at the height of the sun's arc)
+    let costR = -Infinity;
+    // The drawing's labels keep one size on screen (15px) instead of growing with the scaled-up
+    // drawing (a critic found them louder than the page text at 1920+): --u = viewBox units
+    // per screen px, used by the label CSS. Without JS they stay at their drawn size (u 1.133).
+    let uNow = 1.1333;
+    const setLabelScale = (s: number) => {
+      uNow = 1 / s;
+      svg.style.setProperty("--u", uNow.toFixed(4));
+    };
+    const shiftCost = (dx: number) => {
+      costG.setAttribute("transform", dx ? `translate(${dx.toFixed(1)} 0)` : "");
+      const bx = BR_X + dx;
+      leader.setAttribute("d", `M${bx.toFixed(1)} ${BR_MID} H${LINKED_MIRROR.x} V${LINKED_MIRROR.y - RING_R}`);
+      // "je Heliostat" over the leader by the ring; where the leader is too short for it (the
+      // column not moved), under the leader next to the bracket, as in the server render
+      const fits = LINKED_MIRROR.x - 12 - linkLbl.getComputedTextLength() > bx + 20 * uNow;
+      linkLbl.setAttribute("x", (fits ? LINKED_MIRROR.x - 12 : bx + 8).toFixed(1));
+      linkLbl.setAttribute("y", (fits ? BR_MID - 8 * uNow : BR_MID + 20 * uNow).toFixed(1));
+      linkLbl.setAttribute("text-anchor", fits ? "end" : "start");
+      const b = costG.getBBox();
+      costR = b.x + b.width + dx;
+    };
+    // the cost labels' right edge (they are right-aligned there, at a fixed screen size)
+    const LBL_X = COST_TOWER.x - 12;
+    // the lowest edge of the words and the portrait, in px from the hero's top
+    let textBottomPx = 0;
+    const textRects = () =>
+      [...text.querySelectorAll("h1, p, img")].map((el) => {
+        // (the portrait's frame, not the picture: the intro moves the picture up from below, and
+        // measured mid-rise it made a fresh load fit the drawing smaller than a resize did)
+        if (el.tagName === "IMG") return (el.parentElement ?? el).getBoundingClientRect();
+        const rg = document.createRange();
+        rg.selectNodeContents(el);
+        return rg.getBoundingClientRect();
+      });
     const fit = () => {
-      const r = wrap.getBoundingClientRect();
-      const h = wide.matches && r.width ? Math.max(FIELD.h, (W * r.height) / r.width) : FIELD.h;
-      skyTop = FIELD.h - h;
-      svg.setAttribute("viewBox", `${FIELD.x0} ${skyTop.toFixed(1)} ${W} ${h.toFixed(1)}`);
+      const r = svg.getBoundingClientRect();
+      if (!r.width) return;
+      let x0 = NARROW_X0;
+      let W = FIELD.w - x0;
+      let H = Math.max(FIELD.h, (W * r.height) / r.width);
+      if (wide.matches && column) {
+        const top = wrap.getBoundingClientRect().top;
+        textBottomPx = Math.max(0, ...textRects().map((b) => b.bottom - top));
+        // the text column's content box, in px from the SVG's left edge
+        const cr = column.getBoundingClientRect();
+        const cs = getComputedStyle(column);
+        const colL = cr.left + parseFloat(cs.paddingLeft) - r.left;
+        const colR = cr.right - parseFloat(cs.paddingRight) - r.left;
+        // (24: air between the words and the top of the scene)
+        const avail = r.height - textBottomPx - 24;
+        // The scene's left edge is the cost column incl. its labels (hidden below 64rem). The
+        // labels keep their screen width (labelPx) at any scale, so the width that fits the
+        // column is solved exactly: s * (SCENE_R - LBL_X) + labelPx = column width. (An
+        // estimate from the labels as last drawn made a fresh load and a resize disagree.)
+        const labelPx = Math.max(0, (LBL_X - costG.getBBox().x) / uNow);
+        const colW = colR - colL;
+        const sWidth = labelPx > 0 ? (colW - labelPx) / (SCENE_R - LBL_X) : colW / (SCENE_R - COST_TOWER.x);
+        const s = Math.max(Math.min(sWidth, avail / SCENE_H), r.width / (FIELD.w - FIELD.x0));
+        setLabelScale(s);
+        const sceneL = labelPx > 0 ? LBL_X - labelPx / s : COST_TOWER.x;
+        W = r.width / s;
+        H = r.height / s;
+        // the receiver's right edge on the column's right edge
+        x0 = SCENE_R - colR / s;
+        // the column's left edge in viewBox units, minus where the cost column starts: negative
+        // = room on the left, so it moves there (only ever left, away from the field)
+        shiftCost(Math.min(0, x0 + colL / s - sceneL));
+      } else {
+        setLabelScale(r.width / W);
+        shiftCost(0);
+      }
+      skyTop = FIELD.h - H;
+      svg.setAttribute("viewBox", `${x0.toFixed(1)} ${skyTop.toFixed(1)} ${W.toFixed(1)} ${H.toFixed(1)}`);
     };
     fit();
 
@@ -170,7 +267,8 @@ const { tower: T, receiver: R, ground } = FIELD;
     const place = (x: number, y: number) => {
       const c = clampSun(x, y);
       // (clampSun keeps it above the mirrors; the top is the extended sky)
-      cur = { x: c.x, y: Math.max(Math.min(y, FIELD.sunMaxY), skyTop + 24) };
+      cur = { x: c.x, y: Math.max(Math.min(y, FIELD.sunMaxY), skyTop + 72) };
+      // (72: the halo, r 70, stays whole under the top edge instead of being cut flat)
       const p = poses(cur.x, cur.y);
       let k = 0;
       p.forEach((m, i) => {
@@ -201,7 +299,7 @@ const { tower: T, receiver: R, ground } = FIELD;
 
     // The drift range: what is visible of the viewBox, minus the text where it overlays the
     // field (>= 48rem; below that the text sits above the field). Recomputed on resize.
-    const MARGIN = 60; // sun radius plus air, in viewBox units
+    const MARGIN = 80; // the halo (r 70) plus air, in viewBox units: it kept touching the claim at 60
     let lo = 320;
     // the right edge of the name, role and claim (not the portrait): the pointer sun stays right
     // of it, so it never sits in the words with its rays running across them
@@ -209,43 +307,62 @@ const { tower: T, receiver: R, ground } = FIELD;
     // the right edge of the whole text block incl. the portrait beside the name
     let blockR = -Infinity;
     let hi = FIELD.last + 60;
+    // Where the text stands wholly above the sun's sky (wide screens with the scaled-up
+    // drawing: "band" layout), the sun drifts over the whole field below it and its arc peaks
+    // just under the words; otherwise (the text reaches down beside the field) it keeps right
+    // of the words as before.
+    let band = false;
+    // the right edge of what is visible of the drawing (viewBox units)
+    let visRight = Infinity;
+    // the words' lowest edge in viewBox units, and the peak of the sun's day arc
+    let textBottomU = -Infinity;
+    let peakY = 70;
     const measure = () => {
       const box = svg.getBoundingClientRect();
       const visL = toFieldX(box.left);
       const visR = toFieldX(box.right);
-      if (visL === null || visR === null) return;
+      if (visR !== null) visRight = visR;
+      const m = svg.getScreenCTM();
+      if (visL === null || visR === null || !m) return;
       let textR = -Infinity;
       wordsR = -Infinity;
-      if (matchMedia("(min-width: 48rem)").matches) {
+      textBottomU = -Infinity;
+      if (wide.matches) {
         // the right edge of the actual words and the portrait, not of the full-width block
-        for (const el of text.querySelectorAll("h1, p, img")) {
-          let rect = el.getBoundingClientRect();
-          if (el.tagName !== "IMG") {
-            const r = document.createRange();
-            r.selectNodeContents(el);
-            rect = r.getBoundingClientRect();
-          }
+        const rects = textRects();
+        const imgs = [...text.querySelectorAll("h1, p, img")].map((el) => el.tagName === "IMG");
+        rects.forEach((rect, i) => {
           const right = toFieldX(rect.right);
           if (right !== null) textR = Math.max(textR, right);
-          if (right !== null && el.tagName !== "IMG") wordsR = Math.max(wordsR, right);
-        }
+          if (right !== null && !imgs[i]) wordsR = Math.max(wordsR, right);
+          textBottomU = Math.max(textBottomU, new DOMPoint(0, rect.bottom).matrixTransform(m.inverse()).y);
+        });
       }
+      blockR = textR;
+      const climb = 70 + 0.6 * Math.min(0, skyTop);
+      // (90: the halo, r 70, plus air under the words)
+      // (band while the arc's peak under the words still stands above its ends, 213; fit()
+      // leaves the words only 16px above the scene, so the peak lands about 150-160)
+      band = wide.matches && textBottomU + 90 <= 200;
+      peakY = band ? Math.max(climb, textBottomU + 90) : climb;
       // the drift stops well left of the tower, so the sun's halo and the receiver's glow
       // never merge into one yellow blob
-      blockR = textR;
       const top = FIELD.last - 60;
       const right = Math.min(top, visR - MARGIN);
       // (never over the chart: the sun belongs to the field)
-      lo = Math.max(visL, textR, FIELD.first - 150) + MARGIN;
+      lo = Math.max(visL, band ? -Infinity : textR, FIELD.first - 150, costR) + MARGIN;
       hi = right;
       // too little room beside the text: drift within what is visible
       if (hi - lo < 80) {
-        lo = Math.max(visL, FIELD.first - 150) + MARGIN;
+        lo = Math.max(visL, FIELD.first - 150, costR) + MARGIN;
         hi = right;
       }
       if (hi < lo) hi = lo;
     };
     const relayout = () => {
+      // the hero fills the first screen (landing page): what sits above it (draft note, top bar)
+      // comes off the window height (CSS --hero-top; its fallback is the top bar alone)
+      wrap.style.setProperty("--hero-top", `${(wrap.getBoundingClientRect().top + scrollY).toFixed(1)}px`);
       fit();
       measure();
     };
@@ -269,10 +386,14 @@ const { tower: T, receiver: R, ground } = FIELD;
       if (!pt) return;
       active = true;
       cancelAnimationFrame(raf);
-      // the pointer sun stays over the field: right of the words and the portrait (75: its
-      // halo, r 70, stays off them too) and never over the cost tower
-      const x = Math.max(pt.x, blockR + 75, FIELD.first + 30);
-      raf = requestAnimationFrame(() => place(x, pt.y));
+      // the pointer sun stays over the field: never over the cost tower, and off the words and
+      // the portrait (75: its halo, r 70, stays off them too): under them in the band layout,
+      // right of them otherwise
+      const x = Math.min(Math.max(pt.x, band ? -Infinity : blockR + 75, FIELD.first + 30, costR + 75), visRight - 30);
+      // (85: the halo, r 70, plus air under the words; and the disc stays inside the visible drawing,
+      // or at the right edge it was cut by the window, its halo on the claim)
+      const y = band && x < blockR + 85 ? Math.max(pt.y, textBottomU + 85) : pt.y;
+      raf = requestAnimationFrame(() => place(x, y));
     };
     wrap.addEventListener("pointermove", follow);
     wrap.addEventListener("pointerdown", follow);
@@ -288,19 +409,67 @@ const { tower: T, receiver: R, ground } = FIELD;
     let visible = true;
     new IntersectionObserver(([en]) => (visible = en.isIntersecting)).observe(wrap);
     let dir = 1;
+    // the day arc: highest in the middle of the drift range, lower at both ends (213); its peak
+    // (measure()) climbs into extra sky where there is some, and stays under the words
+    const arcY = (x: number) => {
+      const k = hi > lo ? Math.min(Math.max((x - lo) / (hi - lo), 0), 1) : 0.5;
+      return peakY + (213 - peakY) * (2 * k - 1) ** 2;
+    };
+
+    // Sunrise on load, the hero's only intro (owner 2026-10-06; a critic found the text
+    // reveals around it generic, the rise is what belongs to this field): a third into the
+    // drift range the sun comes straight up from just above the reflected rays (never inside
+    // their fan, where it read as a ball stuck on the beams; where the range reaches the left
+    // of the field that is the horizon itself) onto its arc, the mirrors following and the
+    // receiver brightening; then the drift carries on from there. Only when the hero is on
+    // screen at load and motion is welcome; a pointer takes over at once.
+    const RISE_MS = 1500;
+    // the top edge of the ray fan at x: the highest of the mirror-to-receiver lines there
+    const pivots = poses(SUN_START.x, SUN_START.y);
+    const { receiver: REC } = FIELD;
+    const fanTop = (x: number) =>
+      Math.min(
+        ...pivots.filter((m) => m.px < x).map((m) => m.py + ((REC.y - m.py) * (x - m.px)) / (REC.x - m.px)),
+        FIELD.ground,
+      );
+    // (clear of the "je Heliostat" leader on the left, like the pointer sun)
+    const riseX = () => Math.max(lo + (hi - lo) * 0.35, FIELD.first + 30);
+    // 85: the sun's radius plus most of its halo above the top ray
+    const riseY0 = () => Math.min(FIELD.sunMaxY, fanTop(riseX()) - 85);
+    let riseT0 = -1;
+    // (no rise if the fan reaches up to the arc there: nothing to climb)
+    if (!reduce.matches && wrap.getBoundingClientRect().bottom > 0 && riseY0() > arcY(riseX()) + 40) {
+      riseT0 = 0;
+      place(riseX(), riseY0());
+    }
+    // the light was held back (CSS) until the sun stands where the script put it, so the
+    // server's resting sun doesn't flash before the jump to the sunrise start
+    wrap.classList.add("is-lit");
     const drift = (t: number) => {
+      // (off screen, e.g. a reload restored further down: no rise, or it would jump to its end)
+      if (active || !visible) riseT0 = -1;
       if (!active && visible && !reduce.matches) {
         const dt = lastT ? Math.min(t - lastT, 50) : 0;
-        if (cur.x >= hi) dir = -1;
-        else if (cur.x <= lo) dir = 1;
-        let x = cur.x + dir * dt * 0.02; // ~20 viewBox units per second
-        if (cur.x >= lo && cur.x <= hi) x = Math.min(Math.max(x, lo), hi);
-        // the arc: highest in the middle of the range, lower at both ends
-        const k = hi > lo ? Math.min(Math.max((x - lo) / (hi - lo), 0), 1) : 0.5;
-        const target = 70 + 143 * (2 * k - 1) ** 2;
-        // ease toward the arc, so handing over from the pointer doesn't jump
-        const y = cur.y + (target - cur.y) * Math.min(1, dt * 0.004);
-        place(x, y);
+        if (riseT0 >= 0) {
+          if (riseT0 === 0) riseT0 = t;
+          const p = Math.min((t - riseT0) / RISE_MS, 1);
+          const e = 1 - (1 - p) ** 3;
+          const x = riseX();
+          const y0 = riseY0();
+          // lands exactly on the arc, so the drift takes over without a step
+          place(x, y0 + (arcY(x) - y0) * e);
+          if (p === 1) {
+            riseT0 = -1;
+            dir = 1;
+          }
+        } else {
+          if (cur.x >= hi) dir = -1;
+          else if (cur.x <= lo) dir = 1;
+          let x = cur.x + dir * dt * 0.02; // ~20 viewBox units per second
+          if (cur.x >= lo && cur.x <= hi) x = Math.min(Math.max(x, lo), hi);
+          // ease toward the arc, so handing over from the pointer doesn't jump
+          place(x, cur.y + (arcY(x) - cur.y) * Math.min(1, dt * 0.004));
+        }
       }
       lastT = t;
       requestAnimationFrame(drift);
@@ -316,6 +485,9 @@ const { tower: T, receiver: R, ground } = FIELD;
     position: relative;
     display: flex;
     flex-direction: column;
+    /* (phones: as tall as text + strip; filling the screen there only left ~400px of empty sky
+       between claim and strip, a critic found, and the owner agreed. The landing-page height
+       is set from 48rem below.) */
     overflow: hidden;
     touch-action: pan-y;
     /* its own stacking group on the page colour, so slotted content can sit behind the
@@ -336,12 +508,13 @@ const { tower: T, receiver: R, ground } = FIELD;
     /* the strip shows the whole scene, chart to tower (viewBox x 380-1440), at any phone width */
     height: auto;
     aspect-ratio: 1060 / 502;
-    margin-top: 0.5rem;
   }
 
   .field-text {
     order: 1;
     pointer-events: none;
+    /* (the strip's gap under the text) */
+    margin-bottom: 0.5rem;
   }
 
   /* wider: the text sits in the field's sky */
@@ -350,13 +523,15 @@ const { tower: T, receiver: R, ground } = FIELD;
      the field up */
   @media (min-width: 48rem) {
     .field-wrap {
-      display: block;
-      /* at least the drawing's own height, or "slice" would crop its sky and the sun */
-      min-height: calc(100vw * 502 / 1920);
+      /* the text stands at the top, the drawing (scaled up by fit()) fills the space below; at
+         least the drawing's own height, or "slice" would crop its sky and the sun, and at
+         least the first screen */
+      min-height: max(calc(100vw * 502 / 1920), calc(100svh - var(--hero-top, calc(var(--top-h) + 1.5px))));
     }
     /* the text layer paints above the absolutely placed field */
     .field-text {
       position: relative;
+      margin-bottom: 0;
     }
     .field {
       position: absolute;
@@ -481,23 +656,26 @@ const { tower: T, receiver: R, ground } = FIELD;
     vector-effect: non-scaling-stroke;
   }
 
+  /* the labels keep 15px on screen at any scale of the drawing (--u from the script: viewBox
+     units per screen px); without JS their drawn size (17 / 16 units). Medium, not bold: the
+     annotations shouldn't outweigh the page's own text (a critic, 2026-10-06) */
   .link-lbl {
     font-family: var(--sans);
-    font-size: 16px;
-    font-weight: 600;
+    font-size: calc(var(--u, 1.0667) * 15px);
+    font-weight: 500;
     fill: var(--ink);
   }
 
   .cost-lbl,
   .price-lbl {
     font-family: var(--sans);
-    font-size: 17px;
+    font-size: calc(var(--u, 1.1333) * 15px);
     fill: var(--ink-2);
   }
 
   .price-lbl {
     fill: var(--ink);
-    font-weight: 600;
+    font-weight: 500;
   }
 
   /* below 64rem the scene is drawn too small for readable labels (7-8px at 768) */
@@ -511,5 +689,37 @@ const { tower: T, receiver: R, ground } = FIELD;
 
   .rec-glow {
     fill: url(#hf-halo);
+  }
+
+  /* With JS (and motion welcome) the light waits for the script, which first moves the sun to
+     its sunrise start: sun, halo, rays and receiver glow fade in there (.is-lit) instead of
+     showing at the server's resting place for a moment. The glow uses fill-opacity, since the
+     script sets its opacity inline. If the script never runs, they show after 1.5 s anyway. */
+  .sun,
+  .halo,
+  .rays-in,
+  .rays-out,
+  .rec-glow {
+    transition:
+      opacity 0.3s,
+      fill-opacity 0.3s;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html.js) .field-wrap:not(.is-lit) :is(.sun, .halo, .rays-in, .rays-out) {
+      opacity: 0;
+      animation: hf-show 0s 1.5s forwards;
+    }
+    :global(html.js) .field-wrap:not(.is-lit) .rec-glow {
+      fill-opacity: 0;
+      animation: hf-show 0s 1.5s forwards;
+    }
+  }
+
+  @keyframes hf-show {
+    to {
+      opacity: 1;
+      fill-opacity: 1;
+    }
   }
 </style>
