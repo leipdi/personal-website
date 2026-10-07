@@ -251,7 +251,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
 
               <div class="main">
                 <h3 class="title">{r.title}</h3>
-                <Placeholder>
                   <p class="text story">{r.story}</p>
                   {r.tasks && (
                     <ul class="text tasks">
@@ -260,12 +259,9 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
                       ))}
                     </ul>
                   )}
-                </Placeholder>
                 {r.visual === "heliostat" && (
                   <div class="visual">
-                    <Placeholder kind="data" note="KI-Skizze, besser durch echtes Bild ersetzen">
                       <Heliostat />
-                    </Placeholder>
                   </div>
                 )}
               </div>
