@@ -90,7 +90,7 @@ export const career: CareerEntry[] = [
     place: "Düsseldorf",
     kind: "ausbildung",
     story:
-      "Der Einstieg ins Wirtschaftsingenieurwesen. Die Bachelorarbeit am DLR entschied den Weg in Richtung Produktion und Energie.",
+      "Der Einstieg ins Wirtschaftsingenieurwesen: Grundstudium zwischen Technik und Betriebswirtschaft, parallel erste Stationen in der Praxis, abgeschlossen mit der Bachelorarbeit am DLR.",
   },
   {
     from: "Okt 2021",
@@ -125,7 +125,7 @@ export const career: CareerEntry[] = [
     place: "Langenfeld",
     kind: "beruf",
     story:
-      "Die Schnittstelle zwischen Kunden und Softwareentwicklung.",
+      "Die IGH Infotec AG bietet SAP-Add on Softwarelösungen für die Produktion und Logistik an. Schwerpunkt liegt bei der Visualisierung von Maschinendaten.",
   },
   {
     from: "Feb 2023",
@@ -135,8 +135,8 @@ export const career: CareerEntry[] = [
     id: "werkstudent-controlling",
     tasks: [
       "Mitarbeitercontrolling und Monatsabschlüsse in Excel und Pivot-Tabellen",
-      "Timebutler als neues Zeiterfassungssystem eingeführt",
-      "Die Kolleg:innen auf das neue System geschult",
+      "Timebutler als neues Zeiterfassungssystem eingeführt. Die Kolleg:innen auf das neue System geschult",
+      "Operative Aufgaben im Tagesgeschäft. Rechnungen überprüft und eingescannt, offene Forderungen nachgehalten, etc.",
     ],
     facts: [{ label: "Bereich", value: "Finanzen & Controlling" }],
     tools: ["Excel", "Timebutler"],
@@ -147,7 +147,7 @@ export const career: CareerEntry[] = [
     kind: "beruf",
     project: "zeiterfassung",
     story:
-      "Gut ein Jahr im Controlling, dazu ein Einführungsprojekt.",
+      "Interner Wechsel zu einer anderen Abteilung. Neues Entdecken und frischer Wind.",
   },
   {
     from: "Mär 2024",
@@ -158,7 +158,7 @@ export const career: CareerEntry[] = [
     tasks: [
       "Kalkulationssoftware verglichen; Costing24 ließ sich nur teilweise nutzen",
       "Aus den CAD-Daten Fertigungsstücklisten und Baumstrukturen abgeleitet",
-      "Für jedes Stahlteil ein Verfahren gewählt, etwa Laserschneiden für dünne Bleche",
+      "Für jedes Bauteil ein Verfahren gewählt, etwa Laserschneiden für dünne Bleche oder Spritzguss für Kunststoffteile",
       "Bearbeitungszeiten, Maschinenstundensätze und Materialkosten berechnet",
     ],
     facts: [
@@ -176,7 +176,7 @@ export const career: CareerEntry[] = [
     kind: "beruf",
     project: "heliostat",
     story:
-      "Ein Heliostat ist ein nachgeführter Spiegel, der Sonnenlicht auf den Receiver eines Solarturms lenkt. Die Frage: Was kostet der neue Heliostat des DLR in Serie?",
+      "Ein Heliostat ist ein nachgeführter Spiegel, der Sonnenlicht auf den Receiver eines Solarturms lenkt. Ausgangslage: Neue Konstruktion eine Heliostaten. Die Frage: Was kostet der neue Heliostat des DLR in Serie und was sind die Produktionsschritte?",
   },
   {
     from: "2024",
@@ -239,7 +239,6 @@ export const career: CareerEntry[] = [
       { label: "Hohle Variante", value: "rund 68 % weniger" },
     ],
     tools: ["Excel"],
-    visual: { image: "Die Luftleitschaufel aus Ultem 9085, massiv und hohl", note: "falls Diehl Aviation ein Bild freigibt" },
     short: "Masterarbeit, RWTH Aachen",
     milestone: { at: "01.06.2026", label: "Abgabe der Masterarbeit", tag: "Abgabe MA" },
     title: "Masterarbeit: Ökobilanz additiver Fertigung in der Luftfahrt",
@@ -259,18 +258,18 @@ export const career: CareerEntry[] = [
     tasks: [
       "ETL-Strecken für Kunden und intern aufgebaut",
       "Berichte in Power BI und Jedox gebaut",
-      "Eine Schulung zu Copilot in Power BI konzipiert und selbst gehalten",
+      "Eine Schulung zu Copilot in Power BI konzipiert",
+      "Kunden die Lösung vorgestellt",
     ],
     facts: [{ label: "Bereich", value: "BI Consulting" }],
     tools: ["Power BI", "Jedox", "Copilot in Power BI"],
-    visual: { image: "Ausschnitt eines Berichts aus Power BI oder Jedox", note: "anonymisiert, ohne Kundendaten" },
     title: "Praktikum BI Consulting",
     org: "ATVISIO Consult GmbH",
     place: "Düsseldorf",
     kind: "beruf",
     project: "bi-consulting",
     story:
-      "Daten aus mehreren Systemen zu Berichten zusammenführen, für Kunden und intern.",
+      "Weitere Berufserfahrung sammeln und weitere Kenntnisse sammeln. Der Wille Power BI zu erlernen führte dazu, ein Praktikum im BI Consulting zu starten.",
   },
 ];
 
