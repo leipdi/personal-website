@@ -395,7 +395,9 @@ export type TopSkillId = "kosten" | "data" | "prozesse" | "controlling";
 export type TopSkill = {
   id: TopSkillId;
   title: string;
-  proof: string[];
+  // Hauptpunkte mit Unterpunkten (Daniel 2026-10-08: große Punkte, kleinere darunter; er
+  // ergänzt später eigene Angaben). Unterpunkte aus den Stationen (career[].tasks/facts).
+  proof: { text: string; sub?: string[] }[];
   tools: string[]; // Schlüssel aus src/data/tools.ts (Logo oder Logo-Platzhalter)
   toolsQuestion?: string;
   learned: { label: string; href: string }[];
@@ -404,15 +406,25 @@ export type TopSkill = {
 };
 
 // Reihenfolge und Auswahl der Boxen: Vorgabe von Daniel (2026-09-25). Belegzeilen und
-// Zuordnungen bleiben KI-Entwurf. Seit 2026-10-01 nur zwei kurze Belegzeilen je Box (die Box
-// liegt auf einem Bild und soll ganz auf den Schirm passen); Details stehen auf /werdegang/.
+// Zuordnungen bleiben KI-Entwurf. Je Box zwei Hauptpunkte mit Unterpunkten (seit 2026-10-08,
+// die Karten sind Blätter im Stapel mit Platz dafür); Details stehen im Werdegang.
 export const topSkills: TopSkill[] = [
   {
     id: "kosten",
     title: "Bauteilkostenkalkulation",
     proof: [
-      "Bottom-Up-Kostenmodell für den Stahlbau von Heliostaten",
-      "Bachelorarbeit am DLR, veröffentlicht bei SolarPACES",
+      {
+        text: "Bottom-Up-Kostenmodell für den Stahlbau von Heliostaten",
+        sub: [
+          "Aus den CAD-Daten Fertigungsstücklisten und Baumstrukturen abgeleitet",
+          "Je Bauteil ein Verfahren gewählt, Bearbeitungszeiten, Maschinenstundensätze und Materialkosten berechnet",
+          "Ergebnis: ca. 116 € Herstellkosten pro Heliostat, 58 €/m² Spiegelfläche",
+        ],
+      },
+      {
+        text: "Bachelorarbeit am DLR, veröffentlicht bei SolarPACES",
+        sub: ["Kalkulationssoftware verglichen; Costing24 ließ sich nur teilweise nutzen"],
+      },
     ],
     // Software laut Daniel (2026-09-25): CAD in Inventor, Kalkulation per Hand in Excel
     tools: ["Autodesk Inventor", "Excel"],
@@ -422,8 +434,14 @@ export const topSkills: TopSkill[] = [
     id: "data",
     title: "Data & AI",
     proof: [
-      "ETL-Strecken und Berichte in Power BI und Jedox",
-      "Selbst konzipierte Schulung zu Copilot in Power BI",
+      {
+        text: "ETL-Strecken und Berichte in Power BI und Jedox",
+        sub: ["ETL-Strecken für Kunden und intern aufgebaut", "Kunden die Lösung vorgestellt"],
+      },
+      {
+        text: "Selbst konzipierte Schulung zu Copilot in Power BI",
+        sub: ["Im Praktikum BI Consulting bei ATVISIO, seit Mai 2026"],
+      },
     ],
     // Python und Jedox auf Wunsch von Daniel (2026-09-25) nicht als Software-Logo
     tools: ["Power BI", "MSSQL", "Copilot in Power BI", "Claude"],
@@ -436,8 +454,14 @@ export const topSkills: TopSkill[] = [
     id: "prozesse",
     title: "Prozesse und Projekte",
     proof: [
-      "Timebutler eingeführt, Kolleg:innen geschult",
-      "Kundentermine vor- und nachbereitet",
+      {
+        text: "Timebutler eingeführt, Kolleg:innen geschult",
+        sub: ["Neues Zeiterfassungssystem bei IGH Infotec", "Lean Six Sigma Yellow Belt (2025)"],
+      },
+      {
+        text: "Kundentermine vor- und nachbereitet",
+        sub: ["SAP-Tabellen in Kundensystemen gepflegt", "In Produktions- und Logistikfragen beraten"],
+      },
     ],
     tools: ["Timebutler", "SAP"],
     learned: [
@@ -450,8 +474,14 @@ export const topSkills: TopSkill[] = [
     id: "controlling",
     title: "Controlling",
     proof: [
-      "Ein Jahr Mitarbeitercontrolling und Monatsabschlüsse",
-      "Mit Excel und Pivot-Tabellen, bei IGH Infotec",
+      {
+        text: "Ein Jahr Mitarbeitercontrolling und Monatsabschlüsse",
+        sub: ["Mit Excel und Pivot-Tabellen", "Werkstudent Finanzen & Controlling bei IGH Infotec, Feb 2023 bis Feb 2024"],
+      },
+      {
+        text: "Operative Aufgaben im Tagesgeschäft",
+        sub: ["Rechnungen überprüft und eingescannt", "Offene Forderungen nachgehalten"],
+      },
     ],
     tools: ["Excel"],
     learned: [
