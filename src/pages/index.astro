@@ -47,95 +47,87 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
     </HeliostatField>
   </section>
 
-  <!-- Kernkompetenzen: one full-height card per skill. While scrolling, each card pins and the
-       next slides up over it (stacking cards); on desktop a sticky index of the four names
-       beside them shows which one is on. Card: the photo large on top (one steel treatment),
-       the text on top on paper (title, proof lines | software, where it comes from). -->
+  <!-- Kernkompetenzen as a pile of sheets (owner 2026-10-08, "Blattstapel", after the stacked
+       cards of anjaliagrawal.framer.website and devanshuchauhan.in): one sheet per skill, a
+       title strip with "n / 4" on top, main points with sub-points | software and where it was
+       learned, the picture on the right. While scrolling each sheet pins one strip lower than
+       the last, so the covered ones stay as a pile of leaning title tabs above the open one. -->
   <section id="kompetenzen" class="kk" aria-labelledby="h-kk">
     <div class="wrap">
       <h2 id="h-kk" class="display page-title kk-head">Kern&shy;kompetenzen</h2>
       <Placeholder
         kind="vorschlag"
-        note="Belegzeilen und Zuordnung von Stationen und Software KI-abgeleitet; gestrichelte Logos sind Logo-Platzhalter"
+        note="Punkte, Unterpunkte und Zuordnung von Stationen und Software KI-abgeleitet; gestrichelte Logos sind Logo-Platzhalter"
       >
-        <div class="kk-grid">
-        <nav class="kk-index" aria-label="Die vier Kernkompetenzen">
-          <ol>
-            {
-              topSkills.map((s, i) => (
-                <li>
-                  <a href={`#kk-${s.id}`} data-kk-name={i}>
-                    {displayTitle(s.title)}
-                  </a>
-                </li>
-              ))
-            }
-          </ol>
-        </nav>
-        <ol class="kk-stack" data-kk>
+        <ol class="pile" data-kk>
           {
-            topSkills.map((s) => {
-              return (
-                <li class="panel" id={`kk-${s.id}`} data-kk-panel aria-labelledby={`sk-${s.id}`}>
-                  <div class="panel-in" data-kk-card>
-                    <div class="panel-text">
-                      <div class="panel-main">
-                      <h3 id={`sk-${s.id}`} class="panel-title">
-                        {displayTitle(s.title)}
-                      </h3>
-                      <ul class="text panel-proof">
-                        {s.proof.map((line) => (
-                          <li>{line}</li>
-                        ))}
-                      </ul>
-                      </div>
-                      <div class="panel-side">
-                      <div class="panel-meta">
-                        {s.tools.length > 0 && (
-                          <ul class="tools" aria-label="Software">
-                            {s.tools.map((key) => {
-                              const t = tool(key);
-                              return t.svg ? (
-                                <li class="tool">
-                                  <span class="tool-logo" aria-hidden="true" set:html={uniqueSvg(t.svg, s.id)} />
-                                  <span class="tool-name">{t.name}</span>
-                                </li>
-                              ) : (
-                                <li class="tool tool-ph" data-placeholder="logo">
-                                  <span class="tool-mono" aria-hidden="true">
-                                    {t.mono}
-                                  </span>
-                                  <span class="tool-name">{t.name}</span>
-                                  <span class="sr-only"> (Logo-Platzhalter)</span>
-                                </li>
-                              );
-                            })}
+            topSkills.map((s, i) => (
+              <li class="sheet" id={`kk-${s.id}`} data-kk-panel data-kk-card aria-labelledby={`sk-${s.id}`} style={`--i: ${i}`}>
+                <div class="sheet-head">
+                  <h3 id={`sk-${s.id}`} class="sheet-title">
+                    <a href={`#kk-${s.id}`}>{displayTitle(s.title)}</a>
+                  </h3>
+                  <span class="sheet-of" aria-label={`${i + 1} von ${topSkills.length}`}>
+                    {i + 1} / {topSkills.length}
+                  </span>
+                </div>
+                <div class="sheet-text" data-kk-fade>
+                  <ul class="proof">
+                    {s.proof.map((p) => (
+                      <li>
+                        <span class="proof-main text">{p.text}</span>
+                        {p.sub && (
+                          <ul class="proof-sub">
+                            {p.sub.map((line) => (
+                              <li>{line}</li>
+                            ))}
                           </ul>
                         )}
-                        {s.toolsQuestion && <p class="tools-open">{s.toolsQuestion}</p>}
-                        <p class="skill-src">
-                          <span class="lbl">Gelernt bei</span>{" "}
-                          {s.learned.map((l, k) => (
-                            <>
-                              {k > 0 && ", "}
-                              <a href={l.href}>{l.label}</a>
-                            </>
-                          ))}
-                        </p>
-                      </div>
-                      </div>
-                    </div>
-                    <div class="panel-photo">
-                      <img src={arts[s.id].src} alt={arts[s.id].alt} width="520" height="351" loading="lazy" decoding="async" />
-                      <span class="ai-tag">Generiert mit KI</span>
-                    </div>
+                      </li>
+                    ))}
+                  </ul>
+                  <div class="sheet-meta">
+                    {s.tools.length > 0 && (
+                      <ul class="tools" aria-label="Software">
+                        {s.tools.map((key) => {
+                          const t = tool(key);
+                          return t.svg ? (
+                            <li class="tool">
+                              <span class="tool-logo" aria-hidden="true" set:html={uniqueSvg(t.svg, s.id)} />
+                              <span class="tool-name">{t.name}</span>
+                            </li>
+                          ) : (
+                            <li class="tool tool-ph" data-placeholder="logo">
+                              <span class="tool-mono" aria-hidden="true">
+                                {t.mono}
+                              </span>
+                              <span class="tool-name">{t.name}</span>
+                              <span class="sr-only"> (Logo-Platzhalter)</span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                    {s.toolsQuestion && <p class="tools-open">{s.toolsQuestion}</p>}
+                    <p class="skill-src">
+                      <span class="lbl">Gelernt bei</span>{" "}
+                      {s.learned.map((l, k) => (
+                        <>
+                          {k > 0 && ", "}
+                          <a href={l.href}>{l.label}</a>
+                        </>
+                      ))}
+                    </p>
                   </div>
-                </li>
-              );
-            })
+                </div>
+                <div class="sheet-pic" data-kk-fade>
+                  <img src={arts[s.id].src} alt={arts[s.id].alt} width="520" height="351" loading="lazy" decoding="async" />
+                  <span class="ai-tag">Generiert mit KI</span>
+                </div>
+              </li>
+            ))
           }
         </ol>
-        </div>
       </Placeholder>
     </div>
   </section>
@@ -147,107 +139,143 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
 </Layout>
 
 <script>
-  // Kernkompetenzen as stacking panels: each panel is sticky (CSS, JS only) and the next one
-  // scrolls up over it. The script sets each panel's sticky top (the card pinned centred in
-  // the space under the top bar; a card taller than that pins by its bottom edge, so none of
-  // it is ever out of reach) and lets the covered card step back and fade out as the next
-  // one comes up (no scaling: a scaled card left a sliver above the incoming one). Nothing
-  // moves with reduced motion.
-  const stack = document.querySelector<HTMLElement>("[data-kk]");
-  const panels = [...document.querySelectorAll<HTMLElement>("[data-kk-panel]")];
-  if (stack && panels.length) {
-    const cards = panels.map((p) => p.querySelector<HTMLElement>("[data-kk-card]")!);
-    const names = [...document.querySelectorAll<HTMLAnchorElement>("[data-kk-name]")];
+  // Kernkompetenzen as a pile of sheets (from 56rem, with JS, where it fits): every sheet is
+  // sticky one title strip lower than the one before, so a covered sheet keeps its strip in
+  // view as a tab. All sheets get the tallest content's height. Each sheet's bottom margin
+  // shrinks by one strip per sheet, so all margin boxes end on one line: the pile holds while
+  // the last sheet is read (the dwell after it, `.pile::after`) and then leaves as one. A covered
+  // sheet steps back a little, leans about its title's corner like loose paper, and its content
+  // fades before the incoming edge reaches it (a half-faded body sliced by an edge read as a
+  // glitch). Where four strips plus a sheet don't fit under the top bar (short windows), the
+  // sheets just follow each other: slivers of tabs read as broken. A covered sheet is a tab: a
+  // click on it brings it back. No movement with reduced motion.
+  const pile = document.querySelector<HTMLElement>("[data-kk]");
+  const sheets = [...document.querySelectorAll<HTMLElement>("[data-kk-panel]")];
+  if (pile && sheets.length) {
+    const fades = sheets.map((s) => [...s.querySelectorAll<HTMLElement>("[data-kk-fade]")]);
     const topBar = document.querySelector<HTMLElement>(".top");
+    const wide = matchMedia("(min-width: 56rem)");
     const reduce = matchMedia("(prefers-reduced-motion: reduce)");
-    let base = 0;
-    let sticks: number[] = [];
-    let heights: number[] = [];
+    // the lean of a covered sheet in degrees, alternating (more ate the strips' right ends)
+    const LEAN = [-0.6, 0.5, -0.45, 0.6];
+    const n = sheets.length;
+    let on = false;
+    let H = 0;
+    let tab = 0;
+    let tops: number[] = [];
+    let gaps: number[] = [];
+
+    const off = () => {
+      on = false;
+      pile.classList.remove("is-pile");
+      pile.style.removeProperty("--kk-h");
+      sheets.forEach((s) => {
+        s.style.removeProperty("--stick");
+        s.style.removeProperty("--gap");
+        s.style.scrollMarginTop = "";
+      });
+    };
 
     const layout = () => {
-      // the sticky top bar on phones; static from 64rem
-      base = topBar && getComputedStyle(topBar).position === "sticky" ? topBar.getBoundingClientRect().height : 0;
-      const free = innerHeight - base;
-      // every card fills the free height (minus the panel's padding), so it covers the last one
-      const pad = parseFloat(getComputedStyle(panels[0]).paddingTop) * 2 || 0;
-      stack.style.setProperty("--kk-free", `${Math.round(free - pad)}px`);
-      stack.closest("section")?.style.setProperty("--kk-base", `${Math.round(base)}px`);
-      heights = panels.map((p) => p.offsetHeight);
-      sticks = heights.map((h) => (h <= free ? base + (free - h) / 2 : innerHeight - h));
-      // an anchor to a panel lands where it has just pinned (natural top at its sticky top),
-      // not at the page's scroll padding, where the next card would already cover it
-      const sp = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
-      panels.forEach((p, i) => {
-        p.style.setProperty("--stick", `${Math.round(sticks[i])}px`);
-        p.style.scrollMarginTop = `${Math.round(sticks[i] - sp)}px`;
-      });
+      off();
+      if (wide.matches) {
+        const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+        const base = topBar ? topBar.getBoundingClientRect().height : 0;
+        const air = rem;
+        // measure the natural heights in pile style
+        pile.classList.add("is-pile");
+        tab = sheets[0].querySelector<HTMLElement>(".sheet-head")!.offsetHeight;
+        H = Math.ceil(Math.max(...sheets.map((s) => s.offsetHeight)));
+        if (base + air + (n - 1) * tab + H <= innerHeight - air) {
+          on = true;
+          pile.style.setProperty("--kk-h", `${H}px`);
+          const sp = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+          tops = sheets.map((_, i) => Math.round(base + air + i * tab));
+          // the way the next sheet travels before it touches this one, plus the strips still to come
+          gaps = sheets.map((_, i) => Math.round(2 * rem + (n - 1 - i) * tab));
+          sheets.forEach((s, i) => {
+            s.style.setProperty("--stick", `${tops[i]}px`);
+            s.style.setProperty("--gap", `${gaps[i]}px`);
+            // an anchor to a sheet lands where it has just pinned
+            s.style.scrollMarginTop = `${tops[i] - sp}px`;
+          });
+        } else {
+          pile.classList.remove("is-pile");
+        }
+      }
       update();
     };
 
     const natural = (i: number) =>
-      stack.getBoundingClientRect().top + scrollY + heights.slice(0, i).reduce((a, h) => a + h, 0);
+      pile.getBoundingClientRect().top + scrollY + i * H + gaps.slice(0, i).reduce((a, g) => a + g, 0);
+    const pinnedAt = (i: number) => natural(i) - tops[i];
 
-    // how far the next panel has come up over panel i: 0 when it meets i's bottom, 1 pinned
-    const covered = (i: number) => {
-      const next = panels[i + 1];
-      if (!next) return 0;
-      const from = sticks[i] + heights[i];
-      const to = sticks[i + 1];
-      const t = next.getBoundingClientRect().top;
+    // how far sheet j has come up onto sheet j-1: 0 while it is a gap below it, 1 pinned
+    const arrived = (j: number) => {
+      const from = tops[j - 1] + H + gaps[j - 1];
+      const to = tops[j];
+      const t = sheets[j].getBoundingClientRect().top;
       return Math.min(Math.max((from - t) / Math.max(from - to, 1), 0), 1);
     };
 
     const update = () => {
-      // the index marks the card on show: the next one counts once it is a third over the last
-      let cur = 0;
-      for (let i = 1; i < panels.length; i++) if (covered(i - 1) >= 0.35) cur = i;
-      names.forEach((a, i) => (i === cur ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current")));
-      cards.forEach((card, i) => {
-        const k = reduce.matches ? 0 : covered(i);
-        // the incoming card slides over an opaque card (like a sheet laid on top); it fades
-        // over the last 40 %, so it is gone before its title strip is all that shows
-        // (a half-transparent card cut by the incoming edge read as a rendering bug)
-        const fade = Math.max((k - 0.6) / 0.4, 0);
-        card.style.opacity = k > 0 ? (1 - fade).toFixed(3) : "";
+      const still = !on || reduce.matches;
+      sheets.forEach((s, i) => {
+        let depth = 0;
+        if (on) for (let j = i + 1; j < n; j++) depth += arrived(j);
+        s.classList.toggle("is-under", on && depth > 0.95);
+        const d = Math.min(depth, 1);
+        if (still || d < 0.002) {
+          s.style.transform = "";
+          fades[i].forEach((f) => (f.style.opacity = ""));
+          return;
+        }
+        // scale and lean about the title strip's top-left corner, so the strip stays put
+        const scale = 1 - 0.03 * d - 0.01 * Math.max(depth - 1, 0);
+        s.style.transform = `scale(${scale.toFixed(4)}) rotate(${(LEAN[i % LEAN.length] * d).toFixed(3)}deg)`;
+        // the body is gone by 55 % of the cover, before the incoming edge slices much of it
+        const fade = Math.min(Math.max((d - 0.1) / 0.45, 0), 1);
+        fades[i].forEach((f) => (f.style.opacity = (1 - fade).toFixed(3)));
       });
     };
 
-    // Focus in a card that a later one covers (Shift+Tab, or a link the browser thinks is
-    // on screen because its panel is pinned): scroll back to where that panel has just
-    // pinned and the next one still waits below it.
-    // (keyboard focus only: a click or tap on a link focuses it too, and must be left to
-    // scroll to its target)
-    stack.addEventListener("focusin", (e) => {
-      const el = e.target as HTMLElement;
-      if (!el.matches(":focus-visible")) return;
-      const p = el.closest<HTMLElement>("[data-kk-panel]");
-      if (!p) return;
-      const i = panels.indexOf(p);
-      requestAnimationFrame(() => {
-        const r = (e.target as HTMLElement).getBoundingClientRect();
-        const next = panels[i + 1]?.getBoundingClientRect().top ?? Infinity;
-        if (covered(i) === 0 && r.bottom <= next && r.top >= base) return;
-        scrollTo({ top: natural(i) - sticks[i], behavior: "auto" });
-      });
-    });
+    const toSheet = (i: number) => scrollTo({ top: pinnedAt(i), behavior: reduce.matches ? "auto" : "smooth" });
 
-    const toPanel = (i: number) => scrollTo({ top: natural(i) - sticks[i], behavior: reduce.matches ? "auto" : "smooth" });
+    // a covered sheet is a tab: a click anywhere on it brings it back (its title link too)
     document.addEventListener("click", (e) => {
-      const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#kk-"]');
-      if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
-      const i = panels.findIndex((p) => `#${p.id}` === a.getAttribute("href"));
+      if (!on || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      const target = e.target as HTMLElement;
+      const a = target.closest<HTMLAnchorElement>('a[href^="#kk-"]');
+      const tabbed = target.closest<HTMLElement>(".sheet.is-under");
+      let i = a ? sheets.findIndex((s) => `#${s.id}` === a.getAttribute("href")) : -1;
+      if (i < 0 && tabbed && !target.closest("a")) i = sheets.indexOf(tabbed);
       if (i < 0) return;
       e.preventDefault();
-      if (location.hash !== a.getAttribute("href")) history.pushState(null, "", a.getAttribute("href"));
-      toPanel(i);
+      const hash = `#${sheets[i].id}`;
+      if (location.hash !== hash) history.pushState(null, "", hash);
+      toSheet(i);
     });
-    // typed hashes and Back/Forward between card hashes
     const fromHash = () => {
-      const i = panels.findIndex((p) => `#${p.id}` === location.hash);
-      if (i >= 0) toPanel(i);
+      const i = sheets.findIndex((s) => `#${s.id}` === location.hash);
+      if (i >= 0 && on) toSheet(i);
     };
     addEventListener("hashchange", fromHash);
     addEventListener("popstate", fromHash);
+
+    // keyboard focus in a covered sheet (Shift+Tab): bring that sheet back
+    pile.addEventListener("focusin", (e) => {
+      const el = e.target as HTMLElement;
+      if (!on || !el.matches(":focus-visible")) return;
+      const s = el.closest<HTMLElement>("[data-kk-panel]");
+      if (!s) return;
+      const i = sheets.indexOf(s);
+      requestAnimationFrame(() => {
+        const r = el.getBoundingClientRect();
+        const next = sheets[i + 1]?.getBoundingClientRect().top ?? Infinity;
+        if (r.bottom <= next && r.top >= tops[i] && !s.classList.contains("is-under")) return;
+        scrollTo({ top: pinnedAt(i), behavior: "auto" });
+      });
+    });
 
     let raf = 0;
     addEventListener(
@@ -259,17 +287,17 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
       { passive: true },
     );
     addEventListener("resize", layout);
+    wide.addEventListener("change", layout);
     document.fonts?.ready.then(layout);
-    new ResizeObserver(layout).observe(stack);
     layout();
 
-    // a fresh visit to /#kk-…: the browser scrolled before the margins above existed
+    // a fresh visit to /#kk-…: the browser scrolled before the sticky tops existed
     // (a reload or Back restores its saved position instead, see Werdegang)
-    const atLoad = panels.findIndex((p) => `#${p.id}` === location.hash);
+    const atLoad = sheets.findIndex((s) => `#${s.id}` === location.hash);
     if (atLoad >= 0 && typeof history.state?.wdY !== "number") {
       document.fonts?.ready.then(() => {
         layout();
-        scrollTo(0, natural(atLoad) - sticks[atLoad]);
+        if (on) scrollTo(0, pinnedAt(atLoad));
       });
     }
   }
@@ -403,7 +431,7 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
   }
 
 
-  /* ---------- Kernkompetenzen: the names as heading, then stacking panels ---------- */
+  /* ---------- Kernkompetenzen: a pile of sheets ---------- */
   .kk {
     /* no top rule: the field's ground line closes the hero */
     padding: var(--sp-section) 0 var(--sp-block);
@@ -413,270 +441,239 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
     scroll-margin-top: calc(1.5px - 1rem);
   }
 
-  .kk-head {
-    margin-bottom: var(--sp-gap);
-  }
-
-  /* Desktop: a sticky index of the four names beside the cards; the one on show in ink.
-     Phones: the cards alone (the index would only repeat their titles). */
-  .kk-index {
-    display: none;
-  }
-
   @media (min-width: 64rem) {
     .kk {
       scroll-margin-top: calc(1.5px - 1.25rem);
     }
-    .kk-grid {
-      display: grid;
-      grid-template-columns: var(--col-index) minmax(0, 1fr);
-      column-gap: var(--sp-gap);
-      align-items: start;
-    }
-    .kk-index {
-      display: block;
-      position: sticky;
-      top: calc(var(--kk-base, 4rem) + 2rem);
-    }
   }
 
-  .kk-index ol {
+  .kk-head {
+    margin-bottom: var(--sp-gap);
+  }
+
+  /* Without the pile (phones, short windows, no JS) the skills simply follow each other on the
+     page, no box: each opens with the 1.5px ink rule over its title strip (a stack of boxed
+     cards was the v2 tell) */
+  .pile {
     display: grid;
-    gap: 0.6rem;
+    gap: var(--sp-block);
   }
 
-  .kk-index a {
-    display: block;
-    padding-left: 0.9rem;
-    border-left: 3px solid transparent;
-    font-family: var(--serif);
-    font-optical-sizing: auto;
-    font-weight: 500;
-    font-size: 1.375rem;
-    line-height: 1.2;
-    color: var(--ink-3);
-    text-decoration: none;
-    hyphens: manual;
-    transition: color 0.2s, border-color 0.2s;
-  }
-
-  .kk-index a:hover {
-    color: var(--ink);
-  }
-
-  .kk-index a[aria-current="true"] {
-    color: var(--ink);
-    border-left-color: var(--ink);
-  }
-
-  /* Without JS the panels simply follow each other. With JS each one is sticky at the
-     top the script works out (--stick), and the next one slides up over it. */
-  .kk-stack {
+  .sheet {
+    --pad: clamp(1.25rem, 0.8rem + 1.5vw, 2.25rem);
     display: grid;
-    gap: 1.5rem;
-  }
-
-  :global(html.js) .kk-stack {
-    gap: 0;
-  }
-
-  .panel {
+    grid-template-columns: minmax(0, 1fr);
     min-width: 0;
-  }
-
-  /* no background of its own: the incoming card itself slides over the pinned one */
-  :global(html.js) .panel {
-    position: sticky;
-    top: var(--stick, 0px);
-    padding: 0.75rem 0;
-  }
-
-  /* the card that steps back when the next panel covers it; with JS it fills the free
-     height under the top bar (--kk-free), so it really covers the one before */
-  .panel-in {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    background: var(--paper);
-    border: 1px solid var(--line);
-    transform-origin: 50% 0;
-    will-change: transform, opacity;
-  }
-
-  /* the edge of a card sliding up: the structure rule, not a shadow */
-  :global(html.js) .panel-in {
-    min-height: var(--kk-free, auto);
     border-top: 1.5px solid var(--ink);
   }
 
-  /* the text on top, the photo below taking what the text leaves: an incoming card covers
-     the photo first, so the words stay readable longest */
-  .panel-text {
+  /* the title strip: the part of a covered sheet that stays in view; the counter right after
+     the title, on its baseline (at the far end the lean of the pile swung it under the next tab) */
+  .sheet-head {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .sheet-title {
+    font-family: var(--serif);
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: clamp(1.5rem, 1rem + 1.2vw, 2.25rem);
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+    hyphens: manual;
+    overflow-wrap: anywhere;
+  }
+
+  .sheet-title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .sheet-title a:hover {
+    text-decoration: underline 2px;
+    text-underline-offset: 0.15em;
+  }
+
+  .sheet-of {
+    flex: none;
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-3);
+  }
+
+  .sheet-text {
     display: flex;
     flex-direction: column;
     min-width: 0;
-    padding: 1.25rem 1.25rem 1.1rem;
+    padding: 1.25rem 0;
   }
 
-  .panel-photo {
-    order: 1;
-    flex: 1 0 auto;
+  /* main points in the serif with an ink disc; their sub-points smaller in the grotesk, the
+     steel tick hanging in the disc's gutter, so markers and text keep two edges */
+  .proof {
+    display: grid;
+    gap: 1.1rem;
+  }
+
+  .proof > li {
+    position: relative;
+    padding-left: 1.1rem;
+  }
+
+  .proof > li::before {
+    content: "";
+    position: absolute;
+    left: 0.1rem;
+    top: 0.56em;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: var(--ink);
+  }
+
+  .proof-main {
+    display: block;
+    font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.25rem);
+    line-height: 1.4;
+    text-wrap: pretty;
+  }
+
+  .proof-sub {
+    display: grid;
+    gap: 0.3rem;
+    margin-top: 0.45rem;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    color: var(--ink-2);
+  }
+
+  .proof-sub li {
+    position: relative;
+    text-wrap: pretty;
+  }
+
+  .proof-sub li::before {
+    content: "";
+    position: absolute;
+    left: -1.1rem;
+    top: 0.72em;
+    width: 0.55rem;
+    border-top: 1.5px solid var(--steel);
+  }
+
+  /* software and where it comes from, under the points */
+  .sheet-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: var(--sp-gap);
+    padding-top: 1rem;
+    border-top: 1px solid var(--line);
+  }
+
+  /* the picture on its own light ground, a panel set off by a hairline; its edges fade into
+     that ground (owner 2026-10-03: no hard edge around the drawing) */
+  .sheet-pic {
+    --pic-bg: #f0f2f4;
     position: relative;
     isolation: isolate;
-    /* short phones get a lower floor, so the whole card fits under the top bar */
-    min-height: min(11rem, 18vh);
+    aspect-ratio: 520 / 351;
+    max-height: 14rem;
+    background: var(--pic-bg);
     overflow: hidden;
-    /* no hard edge under the text (owner 2026-10-03): the white paper runs softly into the
-       picture's own light tone */
-    --pic-bg: #f0f2f4;
-    background: linear-gradient(to bottom, var(--paper), var(--pic-bg) min(5rem, 40%));
   }
 
-  :global(html:not(.js)) .panel-photo {
-    aspect-ratio: 16 / 10;
-  }
-
-  /* the whole picture, never cropped (the drawings have their subject everywhere); its
-     edges fade into the area, so it sits in the card rather than as a pasted rectangle */
-  .panel-photo img {
+  /* the whole picture, never cropped (the drawings have their subject everywhere), at most
+     42rem wide (they are only ~520px and go soft when blown up) */
+  .sheet-pic img {
     position: absolute;
-    inset: 0;
+    inset: 1rem;
     display: block;
-    /* the whole picture as large as fits (its light ground matches the area, so the edges of
-       the contained picture don't show; the mask softens the area edges), but at most 42rem
-       wide, centred: the drawings are only ~520px, blown up 2-3x on wide screens they went soft */
-    width: min(100%, 42rem);
-    height: 100%;
+    width: min(100% - 2rem, 42rem);
+    height: calc(100% - 2rem);
     margin-inline: auto;
     object-fit: contain;
-    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 92%, transparent),
-      linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
-    -webkit-mask-composite: source-in;
-    mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 92%, transparent),
-      linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
-    mask-composite: intersect;
+    object-position: 50% 0;
+    -webkit-mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 62%, transparent 100%);
+    mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 62%, transparent 100%);
   }
 
   /* marks the picture as AI-generated (owner's rule), small, in the corner */
   .ai-tag {
     position: absolute;
     right: 0.5rem;
-    top: 0.5rem;
+    bottom: 0.5rem;
     padding: 0.15rem 0.45rem;
-    border-radius: 3px;
     background: rgb(255 255 255 / 0.85);
     font-size: 0.6875rem;
     font-weight: 600;
     color: var(--ink-2);
   }
 
-  .panel-title {
-    margin-bottom: 0.75rem;
-    font-family: var(--serif);
-    font-optical-sizing: auto;
-    font-weight: 600;
-    font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.5rem);
-    line-height: 1.1;
-    color: var(--ink);
-    hyphens: manual;
-    overflow-wrap: anywhere;
-  }
-
-  .panel-proof {
-    list-style: disc;
-    padding-left: 1.15rem;
-    font-size: 1.0625rem;
-    line-height: 1.5;
-  }
-
-  .panel-proof li + li {
-    margin-top: 0.35rem;
-  }
-
-  .panel-proof li::marker {
-    color: var(--ink-2);
-  }
-
-  /* software and where it comes from, folded into the text: small and left-aligned */
-  .panel-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-top: 1.25rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--line);
-  }
-
-  .panel-meta .tools {
-    justify-content: flex-start;
-    gap: 0.75rem 1rem;
-  }
-
-  .panel-meta .tools > li {
-    flex: 0 0 auto;
-    max-width: 6rem;
-  }
-
-  .panel-meta .tool {
-    flex-direction: row;
-    gap: 0.45rem;
-    text-align: left;
-  }
-
-  /* the logos in their brand colours (owner, 2026-10-02) */
-  .panel-meta .tool-logo {
-    height: 1.75rem;
-  }
-
-  .panel-meta .tool-mono {
-    min-width: 1.75rem;
-    height: 1.75rem;
-    font-size: 0.6875rem;
-  }
-
-  .panel-meta .skill-src {
-    padding-top: 0;
-    border-top: 0;
-    text-align: left;
-  }
-
-  /* phones: the picture keeps its own proportions (cropped to fill a tall card, the
-     illustration lost everything that made it readable); the card is as tall as it needs */
-  @media (max-width: 47.99rem) {
-    :global(html.js) .panel-in {
-      min-height: 0;
-    }
-    .panel-photo {
-      flex: none;
-      min-height: 0;
-      aspect-ratio: 520 / 351;
-    }
-  }
-
-  /* small phones: keep "Bauteilkostenkalkulation" on one line */
-  @media (max-width: 24.99rem) {
-    .panel-title {
-      font-size: 1.375rem;
-    }
-  }
-
-  /* wide: the text below the photo in two columns: title and proof lines | software,
-     where it comes from and the way on */
+  /* wide: points | picture side by side under the strip */
   @media (min-width: 56rem) {
-    .panel-text {
-      display: grid;
-      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-      column-gap: var(--sp-gap);
-      padding: clamp(1.25rem, 0.6rem + 1.4vw, 2rem) clamp(1.25rem, 0.4rem + 1.8vw, 2.25rem);
+    .sheet {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      grid-template-rows: auto minmax(0, 1fr);
     }
-    .panel-side .panel-meta {
-      margin-top: 0;
-      padding-top: 0;
-      border-top: 0;
+    .sheet-text {
+      padding-right: var(--sp-gap);
     }
-    .panel-proof {
-      font-size: 1.125rem;
+    .sheet-pic {
+      aspect-ratio: auto;
+      max-height: none;
+      min-height: 14rem;
+      border-left: 1px solid var(--line);
     }
+  }
+
+  /* The pile (script, from 56rem where it fits): sheets of paper, each sticky at its own top
+     (--stick), all one height (--kk-h), the bottom margins (--gap) ending on one line; the next
+     slides up over it. The incoming sheet's edge is the ink rule with a faint shadow upwards
+     onto the sheet it covers (nothing lies below it). */
+  .pile.is-pile {
+    gap: 0;
+  }
+
+  /* the dwell: the pile holds while the last sheet is read */
+  .pile.is-pile::after {
+    content: "";
+    height: 30svh;
+  }
+
+  .is-pile .sheet {
+    position: sticky;
+    top: var(--stick, 0px);
+    height: var(--kk-h, auto);
+    margin-bottom: var(--gap, 0px);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-top: 1.5px solid var(--ink);
+    box-shadow: 0 -10px 18px -14px rgb(15 27 45 / 0.3);
+    transform-origin: 0 0;
+    overflow: hidden;
+  }
+
+  .is-pile .sheet-head {
+    padding-inline: var(--pad);
+  }
+
+  .is-pile .sheet-text {
+    padding: var(--pad);
+  }
+
+  .is-pile .sheet.is-under {
+    cursor: pointer;
+  }
+
+  .is-pile .sheet.is-under:hover .sheet-title a {
+    text-decoration: underline 2px;
+    text-underline-offset: 0.15em;
   }
 
   .lbl {
@@ -685,33 +682,22 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
     color: var(--ink-2);
   }
 
-  /* logos with their names centred in the box (owner, 2026-09-25) */
+  /* logos in their brand colours (owner, 2026-10-02), name beside the logo */
   .tools {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
-    gap: 1.1rem 0.5rem;
-  }
-
-  /* all logos of a box share one row (the fullest box set every footer's height
-     through the subgrid when four logos wrapped to two rows) */
-  .tools > li {
-    flex: 1 1 0;
-    min-width: 0;
-    max-width: 6rem;
+    gap: 0.6rem 1.25rem;
   }
 
   .tool {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.45rem;
     min-width: 0;
-    text-align: center;
   }
 
   .tool-name {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 500;
     line-height: 1.25;
   }
@@ -719,29 +705,26 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
   .tool-logo {
     display: flex;
     align-items: center;
-    justify-content: center;
-    height: 2.75rem;
-    max-width: 100%;
+    height: 1.5rem;
   }
 
   .tool-logo :global(svg) {
     display: block;
     height: 100%;
     width: auto;
-    max-width: 100%;
   }
 
   /* no free logo available: dashed magenta outline monogram = marked logo placeholder */
   .tool-mono {
     display: grid;
     place-items: center;
-    min-width: 2.75rem;
-    height: 2.75rem;
-    padding: 0 0.2rem;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0 0.15rem;
     border: 1.5px dashed var(--ph);
-    border-radius: 4px;
+    border-radius: 3px;
     color: var(--ph);
-    font-size: 0.9375rem;
+    font-size: 0.6875rem;
     font-weight: 800;
   }
 
@@ -761,13 +744,6 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
     font-size: 0.875rem;
     line-height: 1.5;
     color: var(--ink-2);
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--line);
-    text-align: center;
-  }
-
-  .skill-src a:focus-visible {
-    outline-offset: 1px;
   }
 
   .skill-src a {
@@ -782,6 +758,10 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
     color: var(--ink);
     text-decoration-thickness: 3px;
     text-decoration-color: var(--ink);
+  }
+
+  .skill-src a:focus-visible {
+    outline-offset: 1px;
   }
 
 </style>

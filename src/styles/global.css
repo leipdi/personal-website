@@ -58,7 +58,6 @@
   --col-meta: clamp(9.5rem, 6rem + 5vw, 12.5rem); /* Werdegang: dates column, chart lane labels */
   --col-side: clamp(13rem, 8rem + 7vw, 18rem); /* Werdegang: facts column */
   --col-title: clamp(14rem, 8rem + 9vw, 21rem); /* Werdegang: title column of the minor rows */
-  --col-index: clamp(11rem, 7rem + 6vw, 15rem); /* Kernkompetenzen: the sticky index */
   --measure: 38rem; /* long-prose column */
   --top-h: 3.5rem; /* top bar height on phones (sticky) */
 }
