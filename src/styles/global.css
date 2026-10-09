@@ -17,14 +17,18 @@
   color-scheme: light;
 
   /* v4 "Stahl + Sonnengelb" (owner's pick, 2026-09-26): cool steel paper, steel-navy ink,
-     one sun yellow. Fixed light theme, deliberately no dark-mode override. */
+     one sun yellow. Fixed light theme, deliberately no dark-mode override.
+     Since 2026-10-09 the page colour is a day (owner's pick from colour mockups "A + C"): with
+     JS, Layout.astro sets --bg while scrolling, from dawn at the hero to dusk at Kontakt, and
+     soft light spots with grain lie behind the content (.light). This value is the no-JS page. */
   --bg: #f4f6f8; /* page */
   --paper: #ffffff; /* raised surfaces: skill boxes, figure panels */
   --ink: #0f1b2d; /* text and structure, 16.6:1 on --bg */
-  --ink-2: #4f5d6e; /* secondary text, 6.2:1 on --bg */
-  --ink-3: #64707d; /* stepped-back text (Werdegang steps not being read), 4.66:1 on --bg */
+  /* (both darker since the day colours: >= 4.5:1 on every day colour incl. its light spots) */
+  --ink-2: #434f5e; /* secondary text, 7.6:1 on steel, >= 5:1 on the day colours */
+  --ink-3: #4e5a67; /* stepped-back text (Werdegang steps not being read), >= 4.5:1 on the day */
   --steel: #7d8b99; /* mirrors, ghost lines, inactive marks (never text) */
-  --line: #cfd6de; /* hairlines */
+  --line: rgb(15 27 45 / 0.17); /* hairlines: translucent ink, so they show on every day colour */
   --wash: #e7ebf0; /* quiet band */
   --steel-soft: #dde3ea; /* neutral light fill: text selection, the AM model's lead area */
   /* Sun yellow means light: the hero's sun and rays, the current station, the break-even point.
@@ -41,6 +45,14 @@
   /* Kenntnisse: the KI pillars under Software, a violet step away from its cobalt (owner
      2026-10-09: "slightly different color"); fill only, never text */
   --c-ai: #6a4fc4;
+  /* The light split as in a prism: only as sprinkles on thin lines (owner 2026-10-09: "B only
+     as sprinkles"): the nav's current-section bar (the full spectrum, a 3px hairline) and the
+     Kontakt e-mail's underline (only the dusk end of it: the full spectrum under the huge
+     address read as a rainbow ruler, a critic found). */
+  --spectrum: linear-gradient(90deg, #2f55c7, #0e9384 30%, #f2a900 58%, #e4572e 80%, #b4325a);
+  /* print grain: grey fractal noise around mid-grey, 40 % alpha, laid on in soft light */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 .4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --spectrum-dusk: linear-gradient(90deg, #9a86e6, #e4572e 60%, #f2a900);
   /* Placeholder marker for AI-drafted content (components/Placeholder, ImagePlaceholder).
      Not part of the palette: it should look like scaffolding. 7:1 on --bg. */
   --ph: #a3175f;
@@ -85,8 +97,9 @@ html {
   }
 }
 
+/* (transparent: the day colour and its light spots are the fixed .light layer behind it) */
 body {
-  background: var(--bg);
+  background: transparent;
   color: var(--ink);
   font-family: var(--sans);
   font-size: 1.0625rem;
@@ -165,4 +178,38 @@ body {
 /* one page: the sections after Kernkompetenzen open with the structure rule */
 .sec {
   border-top: 1.5px solid var(--ink);
+}
+
+/* The day behind the page (Layout.astro): the day colour, two soft light spots that drift with
+   the scroll, and a fine print grain, fixed behind everything. The script colours and moves
+   it; without JS it is the plain page colour. */
+.light {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--bg);
+}
+
+.light i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 80vmax;
+  height: 80vmax;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+/* the grain: fractal noise in soft light, so the spots read as light on paper, not as a
+   template gradient; neutral on average (multiplied it darkened the page, and the pinned
+   chart and top bar, which don't show it through their blur, read as lighter boxes; they
+   carry the same grain, var(--grain)) */
+.light::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: soft-light;
+  background-image: var(--grain);
 }

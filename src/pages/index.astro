@@ -25,7 +25,7 @@ const arts: Record<TopSkillId, { src: string; alt: string }> = {
 
 // a line icon before each card title (owner 2026-10-09, variant A from
 // .superpowers/brainstorm/kk-icons.html): ink, 1.5 stroke on a 24 grid, like the card drawings;
-// the cost column with its bracket is the hero's cost tower
+// the cost column with its bracket (the hero once had such a cost tower)
 const icons: Record<TopSkillId, string> = {
   kosten: '<rect x="6" y="5" width="7" height="15"/><path d="M6 10h7M6 15h7M16.5 5h1.5v15h-1.5"/>',
   data: '<ellipse cx="10" cy="6" rx="6.5" ry="2.5"/><path d="M3.5 6v11.5c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5V6M3.5 11.8c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5M20 2.5v4M18 4.5h4"/>',
@@ -142,7 +142,10 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
   // sticky one title strip lower than the one before, so a covered sheet keeps its strip in
   // view as a tab. All sheets get the tallest content's height. Each sheet's bottom margin
   // shrinks by one strip per sheet, so all margin boxes end on one line: the pile holds while
-  // the last sheet is read (the dwell after it, `.pile::after`) and then leaves as one. A covered
+  // the last sheet is read (the dwell after it, `.pile::after`) and then leaves as one. The strips
+  // a margin lost go on top of the next sheet instead (a top margin doesn't limit sticking), so
+  // every sheet stays readable for the same scroll distance, the last one too (owner 2026-10-09:
+  // the third card was gone after less than half of the first one's time). A covered
   // sheet steps back a little, leans about its title's corner like loose paper, and its content
   // fades before the incoming edge reaches it (a half-faded body sliced by an edge read as a
   // glitch). Where four strips plus a sheet don't fit under the top bar (short windows), the
@@ -166,6 +169,8 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
     let tab = 0;
     let tops: number[] = [];
     let gaps: number[] = [];
+    // the space between one sheet's bottom and the next one's top, the same for every sheet
+    let D = 0;
 
     const off = () => {
       on = false;
@@ -173,9 +178,11 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
       delete pile.dataset.fit;
       pile.style.removeProperty("--kk-h");
       pile.style.removeProperty("--kk-meta");
+      pile.style.removeProperty("--kk-dwell");
       sheets.forEach((s) => {
         s.style.removeProperty("--stick");
         s.style.removeProperty("--gap");
+        s.style.removeProperty("--lead");
         s.style.scrollMarginTop = "";
       });
     };
@@ -213,9 +220,12 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
           tops = sheets.map((_, i) => Math.round(base + air + i * tab));
           // the way the next sheet travels before it touches this one, plus the strips still to come
           gaps = sheets.map((_, i) => Math.round(2 * rem + (n - 1 - i) * tab));
+          D = gaps[0];
+          pile.style.setProperty("--kk-dwell", `${D}px`);
           sheets.forEach((s, i) => {
             s.style.setProperty("--stick", `${tops[i]}px`);
             s.style.setProperty("--gap", `${gaps[i]}px`);
+            if (i > 0) s.style.setProperty("--lead", `${D - gaps[i - 1]}px`);
             // an anchor to a sheet lands where it has just pinned
             s.style.scrollMarginTop = `${tops[i] - sp}px`;
           });
@@ -227,13 +237,12 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
       update();
     };
 
-    const natural = (i: number) =>
-      pile.getBoundingClientRect().top + scrollY + i * H + gaps.slice(0, i).reduce((a, g) => a + g, 0);
+    const natural = (i: number) => pile.getBoundingClientRect().top + scrollY + i * (H + D);
     const pinnedAt = (i: number) => natural(i) - tops[i];
 
     // how far sheet j has come up onto sheet j-1: 0 while it is a gap below it, 1 pinned
     const arrived = (j: number) => {
-      const from = tops[j - 1] + H + gaps[j - 1];
+      const from = tops[j - 1] + H + D;
       const to = tops[j];
       const t = sheets[j].getBoundingClientRect().top;
       return Math.min(Math.max((from - t) / Math.max(from - to, 1), 0), 1);
@@ -390,6 +399,9 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
     display: block;
     width: 100%;
     height: auto;
+    /* the automatic cut-out leaves a faint light fringe on its top and side edges, invisible on
+       the old steel page but a thin frame on the coloured day: trimmed off (the foot stays) */
+    clip-path: inset(1.5% 1.5% 1px 1.5%);
   }
 
   /* The intro (owner 2026-10-06): the portrait comes up out of its bottom edge while the sun rises
@@ -694,16 +706,17 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
     gap: 0;
   }
 
-  /* the dwell: the pile holds while the last sheet is read */
+  /* the dwell: the pile holds while the last sheet is read, as long as for each sheet before it */
   .pile.is-pile::after {
     content: "";
-    height: 30svh;
+    height: var(--kk-dwell, 30svh);
   }
 
   .is-pile .sheet {
     position: sticky;
     top: var(--stick, 0px);
     height: var(--kk-h, auto);
+    margin-top: var(--lead, 0px);
     margin-bottom: var(--gap, 0px);
     background: var(--paper);
     border: 1px solid var(--line);

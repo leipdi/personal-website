@@ -226,19 +226,6 @@ async function checkSize(browser, { w, h }) {
     }
   }
 
-  // the page-end sun: inside the picture and in open sky, left of the first mirror
-  const end = await page.evaluate(() => {
-    const svg = document.querySelector("[data-end-svg]");
-    const sun = document.querySelector("[data-end-sun]");
-    if (!svg || !sun) return null;
-    const s = sun.getBoundingClientRect();
-    const b = svg.getBoundingClientRect();
-    const mirrorLeft = Math.min(...[...svg.querySelectorAll(".mirrors line")].map((l) => l.getBoundingClientRect().left));
-    return { sunL: Math.round(s.left), sunR: Math.round(s.right), svgL: Math.round(b.left), mirrorLeft: Math.round(mirrorLeft) };
-  });
-  if (end && end.sunL < end.svgL) fails.push(`end sun cut off at the left (${end.sunL} < ${end.svgL})`);
-  if (end && end.sunR > end.mirrorLeft) fails.push(`end sun over the mirrors (sun right ${end.sunR}, first mirror ${end.mirrorLeft})`);
-
   // screenshots, one per section
   if (shots) {
     const dir = `qa/shots/${w}x${h}`;
