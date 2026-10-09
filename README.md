@@ -24,7 +24,6 @@ src/
   lib/         geometry, dates, url() for base-aware paths
   styles/      global.css (tokens, palette)
 public/        files served as-is (images, CV PDF, favicon)
-Pictures/      source pictures (not published)
 scripts/       image helpers
 qa/            QA script
 ```
