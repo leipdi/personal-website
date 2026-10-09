@@ -159,6 +159,8 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
     // the lean of a covered sheet in degrees, alternating (more ate the strips' right ends)
     const LEAN = [-0.6, 0.5, -0.45, 0.6];
     const n = sheets.length;
+    // the pile's spacing steps, roomy to tight (CSS `.is-pile[data-fit]`)
+    const FITS = ["", "snug", "tight"];
     let on = false;
     let H = 0;
     let tab = 0;
@@ -168,6 +170,7 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
     const off = () => {
       on = false;
       pile.classList.remove("is-pile");
+      delete pile.dataset.fit;
       pile.style.removeProperty("--kk-h");
       sheets.forEach((s) => {
         s.style.removeProperty("--stick");
@@ -181,13 +184,25 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
       if (wide.matches) {
         const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
         const base = topBar ? topBar.getBoundingClientRect().height : 0;
-        const air = rem;
-        // measure the natural heights in pile style
-        pile.classList.add("is-pile");
-        tab = sheets[0].querySelector<HTMLElement>(".sheet-head")!.offsetHeight;
-        H = Math.ceil(Math.max(...sheets.map((s) => s.offsetHeight)));
-        if (base + air + (n - 1) * tab + H <= innerHeight - air) {
-          on = true;
+        // measure the natural heights in pile style, roomy first, then tighter (`data-fit`) until
+        // the pile fits: laptop windows are often only 600-730px tall under the browser's bars.
+        // No transitions while measuring: with reduced motion global.css gives every element a
+        // 0.01ms one, and the old spacing would be measured.
+        pile.classList.add("is-pile", "is-measuring");
+        let air = rem;
+        for (const fit of FITS) {
+          if (fit) pile.dataset.fit = fit;
+          else delete pile.dataset.fit;
+          air = fit ? rem / 2 : rem;
+          tab = sheets[0].querySelector<HTMLElement>(".sheet-head")!.offsetHeight;
+          H = Math.ceil(Math.max(...sheets.map((s) => s.offsetHeight)));
+          if (base + air + (n - 1) * tab + H <= innerHeight - air) {
+            on = true;
+            break;
+          }
+        }
+        pile.classList.remove("is-measuring");
+        if (on) {
           pile.style.setProperty("--kk-h", `${H}px`);
           const sp = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
           tops = sheets.map((_, i) => Math.round(base + air + i * tab));
@@ -201,6 +216,7 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
           });
         } else {
           pile.classList.remove("is-pile");
+          delete pile.dataset.fit;
         }
       }
       update();
@@ -665,6 +681,75 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
 
   .is-pile .sheet-text {
     padding: var(--pad);
+  }
+
+  /* Short windows (laptops: 600-730px under the browser's bars): the script steps the pile's
+     spacing down until four strips plus a sheet fit, rather than dropping the pile */
+  .is-pile[data-fit] .sheet {
+    --pad: clamp(0.9rem, 0.5rem + 1vw, 1.5rem);
+  }
+
+  .is-pile[data-fit] .sheet-head {
+    padding-block: 0.45rem;
+  }
+
+  .is-pile[data-fit] .sheet-title {
+    font-size: clamp(1.3rem, 0.9rem + 1vw, 1.875rem);
+  }
+
+  .is-pile[data-fit] .sheet-text {
+    padding-block: 0.9rem;
+  }
+
+  .is-pile[data-fit] .proof {
+    gap: 0.7rem;
+  }
+
+  .is-pile[data-fit] .proof-sub {
+    gap: 0.15rem;
+    margin-top: 0.3rem;
+  }
+
+  .is-pile[data-fit] .sheet-meta {
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 0.7rem;
+  }
+
+  .is-pile[data-fit="tight"] .sheet-head {
+    padding-block: 0.3rem;
+  }
+
+  .is-pile[data-fit="tight"] .sheet-title {
+    font-size: clamp(1.2rem, 0.85rem + 0.8vw, 1.6rem);
+  }
+
+  .is-pile[data-fit="tight"] .sheet-text {
+    padding-block: 0.7rem;
+  }
+
+  .is-pile[data-fit="tight"] .proof {
+    gap: 0.5rem;
+  }
+
+  .is-pile[data-fit="tight"] .proof-main {
+    font-size: 1rem;
+    line-height: 1.35;
+  }
+
+  .is-pile[data-fit="tight"] .proof-sub {
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+
+  .is-pile[data-fit="tight"] .sheet-meta {
+    margin-top: 0.7rem;
+    padding-top: 0.5rem;
+  }
+
+  .pile.is-measuring,
+  .pile.is-measuring :global(*) {
+    transition: none !important;
   }
 
   .is-pile .sheet.is-under {

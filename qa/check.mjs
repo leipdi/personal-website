@@ -1,7 +1,7 @@
 // Standard QA pass for the one-page site: the checks every review round needs, in one run,
 // so a tester agent only adds the few targeted checks a change calls for.
 //
-//   npm run qa                         build, serve the build, check 390 / 768 / 1440
+//   npm run qa                         build, serve the build, check 390 / 768 / 1366x657 / 1440
 //   npm run qa -- --sizes 320,390,1440 other sizes (width or WxH; <= 480 wide = phone emulation)
 //   npm run qa -- --shots              also save one screenshot per section and size (qa/shots/)
 //   npm run qa -- --base http://localhost:4321   check a running server instead of building
@@ -24,7 +24,9 @@ const opt = (name, fallback) => {
   const v = args[i + 1];
   return v && !v.startsWith("--") ? v : true;
 };
-const sizes = String(opt("sizes", "390,768,1440"))
+// 1366x657: a common laptop window (1366x768 screen minus browser bars and taskbar); short
+// windows like it are where layouts that only fit a tall screen break
+const sizes = String(opt("sizes", "390,768,1366x657,1440"))
   .split(",")
   .map((s) => {
     const [w, h] = s.split("x").map(Number);
@@ -119,6 +121,20 @@ async function checkSize(browser, { w, h }) {
     return bad;
   }, REMOVED);
   fails.push(...links);
+
+  // Kernkompetenzen: from 56rem the sheets stack as a pile even in short laptop windows (it
+  // steps its spacing down to fit), and no sheet cuts off its own text
+  const kk = await page.evaluate(() => {
+    const pile = document.querySelector("[data-kk]");
+    if (!pile) return null;
+    const cut = [...pile.querySelectorAll("[data-kk-panel]")]
+      .filter((s) => s.scrollHeight > s.clientHeight + 1)
+      .map((s) => s.id);
+    return { on: pile.classList.contains("is-pile"), fit: pile.dataset.fit ?? "roomy", wide: matchMedia("(min-width: 56rem)").matches, cut };
+  });
+  if (kk?.wide && h >= 560 && !kk.on) fails.push(`Kernkompetenzen: no pile at ${w}x${h} (sheets just follow each other)`);
+  if (kk?.cut.length) fails.push(`Kernkompetenzen: content cut off in ${kk.cut.join(", ")}`);
+  if (kk?.on) notes.push(`Kernkompetenzen pile: ${kk.fit}`);
 
   // heading outline: one h1, no skipped levels
   const outline = await page.evaluate(() => {
