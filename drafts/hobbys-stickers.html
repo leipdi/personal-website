@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hobbys: Sticker-Collage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&display=swap" rel="stylesheet" />
+<style>
+  /* Mockup (2026-10-09): Hobbys as a sticker collage of real objects around the portrait.
+     Inspo: Milo AI's personal site (cut-out object stickers around a cut-out portrait),
+     marchuenerwadel.com (real objects as charms), jackiezhang.co.za (torn paper notes).
+     Magenta = placeholder for a photo of the owner's own object, cut out like the portrait. */
+  :root {
+    --bg: #ffcdb5; /* the sunset stop the page has at Hobbys */
+    --paper: #ffffff;
+    --ink: #0f1b2d;
+    --ink-2: #434f5e;
+    --line: rgb(15 27 45 / 0.17);
+    --ph: #a3175f;
+    --c-edu: #2f55c7;
+    --c-work: #0e9384;
+    --sans: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+    --serif: "Newsreader", Georgia, serif;
+    --wrap: min(max(72rem, 84vw), 130rem);
+    --gutter: clamp(1rem, 4vw, 3rem);
+    --edge: 6px; /* the white sticker edge */
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font: 1.0625rem/1.5 var(--sans);
+    color: var(--ink);
+    background:
+      radial-gradient(60rem 40rem at 80% 90%, rgb(255 170 120 / 0.35), transparent 70%),
+      radial-gradient(50rem 30rem at 10% 10%, rgb(255 230 210 / 0.5), transparent 70%),
+      var(--bg);
+    min-height: 100vh;
+  }
+  .note-top {
+    font-size: 0.875rem; color: var(--ink-2);
+    padding: 0.75rem var(--gutter); border-bottom: 1px solid var(--line);
+    background: rgb(255 255 255 / 0.4);
+  }
+  .note-top b { color: var(--ph); }
+  .wrap { width: min(var(--wrap), 100% - 2 * var(--gutter)); margin-inline: auto; }
+  section { padding: clamp(3rem, 6vw, 6rem) 0; border-top: 1.5px solid var(--ink); }
+
+  .head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 2rem; }
+  h2 {
+    font-family: var(--serif); font-weight: 500; letter-spacing: -0.02em;
+    font-size: clamp(2.75rem, 1.5rem + 4vw, 5rem); line-height: 1;
+  }
+  .lede { font-family: var(--serif); font-size: 1.25rem; color: var(--ink-2); max-width: 34rem; margin-top: 0.75rem; }
+  .lede em { font-style: italic; }
+
+  .switch { display: inline-flex; padding: 4px; border: 1.5px solid var(--ink); border-radius: 999px; background: var(--paper); }
+  .switch button {
+    padding: 0.45rem 1rem; border: 0; border-radius: 999px; background: transparent;
+    font: 600 0.9375rem var(--sans); color: var(--ink-2); cursor: pointer;
+  }
+  .switch button[aria-checked="true"] { background: var(--ink); color: var(--paper); }
+
+  /* ---------- the board: stickers placed freely on a wide stage ---------- */
+  .board {
+    position: relative;
+    margin-top: clamp(1.5rem, 3vw, 2.5rem);
+    height: clamp(40rem, 50vw, 54rem);
+    touch-action: pan-y;
+  }
+
+  /* the portrait in the middle, standing on the bottom edge like in Milo's */
+  .me {
+    position: absolute; left: 50%; bottom: 0; translate: -50% 0;
+    width: clamp(15rem, 24vw, 22rem); aspect-ratio: 1;
+    filter: url(#edge) drop-shadow(0 10px 18px rgb(15 27 45 / 0.18));
+    z-index: 1;
+  }
+  .me img { width: 100%; height: 100%; object-fit: contain; object-position: bottom; display: block; clip-path: inset(2px 2px 0 2px); /* the cut-out has a 1px opaque frame */ }
+
+  .s {
+    position: absolute;
+    left: var(--x); top: var(--y);
+    width: var(--w);
+    rotate: var(--r, 0deg);
+    z-index: 2;
+    cursor: grab;
+    user-select: none;
+    transition: scale 0.2s, opacity 0.3s, filter 0.3s;
+  }
+  .s:hover { scale: 1.04; z-index: 5; }
+  .s.is-drag { cursor: grabbing; scale: 1.07; z-index: 9; transition: none; }
+  .board[data-mode="out"] .s[data-side="in"],
+  .board[data-mode="in"] .s[data-side="out"] { opacity: 0.22; filter: grayscale(1); }
+
+  /* a sticker: white edge, soft shadow under it */
+  .stk {
+    background: var(--paper);
+    padding: var(--edge);
+    border-radius: var(--rad, 18px);
+    box-shadow: 0 1px 2px rgb(15 27 45 / 0.12), 0 12px 24px -8px rgb(15 27 45 / 0.25);
+  }
+
+  /* placeholder for an owner's photo: magenta stripes + what goes here */
+  .ph {
+    display: grid; place-items: center; text-align: center;
+    aspect-ratio: var(--ar, 1);
+    border-radius: calc(var(--rad, 18px) - var(--edge));
+    background: repeating-linear-gradient(-45deg, rgb(163 23 95 / 0.10) 0 10px, rgb(163 23 95 / 0.04) 10px 20px);
+    outline: 1.5px dashed var(--ph); outline-offset: -1.5px;
+    color: var(--ph); font: 600 0.8125rem/1.3 var(--sans); padding: 0.5rem;
+  }
+  .ph small { display: block; font-weight: 400; opacity: 0.85; }
+  .round { --rad: 999px; }
+
+  /* the captions: torn paper strips, serif, after jackiezhang.co.za's notes */
+  .cap {
+    position: absolute; left: var(--cx, 50%); top: var(--cy, 100%);
+    translate: -50% 0;
+    width: max-content; max-width: 15rem;
+    padding: 0.4rem 0.7rem 0.5rem;
+    background: #fffdf6;
+    font: 1rem/1.3 var(--serif);
+    color: var(--ink);
+    rotate: var(--cr, -2deg);
+    box-shadow: 0 6px 12px -6px rgb(15 27 45 / 0.3);
+    clip-path: polygon(0 4%, 6% 0, 14% 5%, 23% 1%, 33% 4%, 44% 0, 55% 5%, 66% 1%, 77% 4%, 88% 0, 100% 3%, 100% 100%, 0 100%);
+  }
+  .cap b { font-weight: 600; display: block; }
+  .cap span { font-size: 0.875rem; color: var(--ink-2); }
+
+  .polaroid { --rad: 3px; padding: 10px 10px 0; }
+  .pol-cap { font: italic 1rem/1 var(--serif); padding: 0.7rem 0.2rem 0.8rem; color: var(--ink-2); }
+  .pol-cap { color: var(--ph); }
+
+  /* tape on some stickers */
+  .tape::before {
+    content: ""; position: absolute; left: 50%; top: -12px; translate: -50% 0; rotate: -4deg;
+    width: 64px; height: 22px; background: rgb(255 255 255 / 0.55);
+    border: 1px solid rgb(15 27 45 / 0.06); z-index: 1;
+  }
+
+  /* real stickers that need no photo */
+  .tactic { display: block; width: 100%; height: auto; border-radius: 10px; }
+  .play {
+    position: absolute; right: 14px; bottom: 14px;
+    padding: 0.35rem 0.8rem; border: 1.5px solid #fff; border-radius: 999px;
+    background: var(--ink); color: #fff; font: 600 0.8125rem var(--sans); cursor: pointer;
+  }
+  .term {
+    padding: 0.8rem 1rem; border-radius: 10px; background: var(--ink); color: #e6edf5;
+    font: 0.8125rem/1.6 ui-monospace, Consolas, monospace; white-space: pre;
+  }
+  .term .p { color: #9fb0c3; } .term .ok { color: #3fc1a7; }
+  .term .cur { animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .hint { margin-top: 1rem; font-size: 0.875rem; color: var(--ink-2); text-align: center; }
+
+  /* ---------- phones/tablets: the stickers follow each other, still tilted ---------- */
+  @media (max-width: 56rem) {
+    .board { overflow-x: clip; padding-inline: 4px; height: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 2.75rem 1rem; padding-bottom: 2rem; }
+    .me { position: relative; left: auto; translate: none; grid-column: 1 / -1; justify-self: center; width: min(16rem, 70%); order: -1; }
+    .s { position: relative; left: auto; top: auto; width: auto; cursor: default; }
+    .s.wide { grid-column: 1 / -1; }
+    .s:hover { scale: none; }
+    .cap { position: relative; left: auto; top: auto; translate: none; display: block; width: auto; max-width: none; margin: -0.5rem 0.3rem 0; font-size: 0.9375rem; }
+    .hint { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .s, .term .cur { transition: none; animation: none; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="edge" x="-10%" y="-10%" width="120%" height="120%">
+  <feComponentTransfer in="SourceAlpha" result="a"><feFuncA type="discrete" tableValues="0 0 1 1" /></feComponentTransfer>
+  <feMorphology in="a" operator="dilate" radius="6" result="d" />
+  <feFlood flood-color="#fff" /><feComposite in2="d" operator="in" result="w" />
+  <feComposite in="SourceGraphic" in2="a" operator="in" result="src" />
+  <feMerge><feMergeNode in="w" /><feMergeNode in="src" /></feMerge>
+</filter></svg>
+<p class="note-top">Mockup Hobbys, Variante „Sticker-Collage“. <b>Magenta</b> = Platzhalter für ein Foto deines eigenen Gegenstands (freigestellt wie das Porträt). Sticker lassen sich am Desktop verschieben. Fenster schmaler ziehen für die Handy-Ansicht.</p>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <h2>Hobbys</h2>
+        <p class="lede">Was neben der Arbeit auf meinem Tisch liegt: <em>draußen</em> der Platz, <em>drinnen</em> der Rechner.</p>
+      </div>
+      <div class="switch" role="radiogroup" aria-label="Welche Seite zeigen">
+        <button type="button" role="radio" aria-checked="false" data-mode="out">Draußen</button>
+        <button type="button" role="radio" aria-checked="true" data-mode="all">Beides</button>
+        <button type="button" role="radio" aria-checked="false" data-mode="in">Drinnen</button>
+      </div>
+    </div>
+
+    <div class="board" data-board data-mode="all">
+      <figure class="me"><img src="../public/img/daniel-lenski-cutout.png" alt="Daniel Lenski" /></figure>
+
+      <!-- Fußball: Schuhe, Ball, Taktiktafel -->
+      <div class="s" data-side="out" style="--x:2%; --y:3%; --w:clamp(11rem,17vw,16rem); --r:-7deg">
+        <div class="stk" style="--rad:28px"><div class="ph" style="--ar:4/3">Foto: deine Fußballschuhe<small>freigestellt, schräg von oben</small></div></div>
+        <p class="cap" style="--cy:92%; --cx:58%; --cr:3deg"><b>Fußball</b><span>Ich spiele selbst und stehe als Trainer an der Seitenlinie.</span></p>
+      </div>
+
+      <div class="s round" data-side="out" style="--x:20%; --y:38%; --w:clamp(6.5rem,9vw,8.5rem); --r:12deg">
+        <div class="stk"><div class="ph">Foto: Ball</div></div>
+      </div>
+
+      <div class="s wide tape" data-side="out" style="--x:1%; --y:52%; --w:clamp(15rem,22vw,21rem); --r:4deg">
+        <div class="stk" style="--rad:16px; position:relative">
+          <svg class="tactic" viewBox="0 0 320 230" aria-hidden="true">
+            <rect width="320" height="230" rx="10" fill="#1f7a4d"/>
+            <g fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="2">
+              <rect x="14" y="14" width="292" height="202"/><rect x="226" y="60" width="80" height="110"/><circle cx="14" cy="115" r="40"/>
+            </g>
+            <g fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="6 5" opacity=".9">
+              <line x1="70" y1="135" x2="150" y2="82"/><line x1="120" y1="195" x2="210" y2="155"/><line x1="180" y1="105" x2="260" y2="62"/>
+            </g>
+            <path d="M70 135 L210 155 L260 62" fill="none" stroke="#fff" stroke-width="2.5"/>
+            <g stroke="#fff" stroke-width="3"><path d="M193 133l14 14M207 133l-14 14M233 89l14 14M247 89l-14 14M143 46l14 14M157 46l-14 14"/></g>
+            <g fill="#0f1b2d" stroke="#fff" stroke-width="2.5"><circle cx="70" cy="135" r="10"/><circle cx="120" cy="195" r="10"/><circle cx="180" cy="105" r="10"/></g>
+          </svg>
+          <button class="play" type="button">Spielzug abspielen</button>
+        </div>
+      </div>
+
+      <div class="s" data-side="out" style="--x:27%; --y:4%; --w:clamp(7rem,10vw,9.5rem); --r:6deg">
+        <div class="stk" style="--rad:14px"><div class="ph" style="--ar:3/4">Foto: Trainer-Ding<small>Hütchen, Pfeife oder Spielerpass</small></div></div>
+      </div>
+
+      <!-- Polaroid: du selbst beim Hobby -->
+      <div class="s tape" data-side="out" style="--x:43%; --y:1%; --w:clamp(10rem,14vw,13rem); --r:-3deg">
+        <div class="stk polaroid"><div class="ph" style="--ar:1">Foto: du auf dem Platz<small>Training, Spiel oder mit deinem Team</small></div><p class="pol-cap">deine Bildunterschrift</p></div>
+      </div>
+
+      <!-- Basketball -->
+      <div class="s tape" data-side="out" style="--x:70%; --y:2%; --w:clamp(10rem,14vw,13rem); --r:-4deg">
+        <div class="stk" style="--rad:10px"><div class="ph" style="--ar:16/9">Foto: Ticket / Trikot<small>Basketball</small></div></div>
+        <p class="cap" style="--cy:88%; --cx:42%; --cr:2deg"><b>Basketball</b><span>Neben Fußball der Sport, den ich am liebsten verfolge.</span></p>
+      </div>
+
+      <!-- Ausgehen -->
+      <div class="s round" data-side="out" style="--x:86%; --y:30%; --w:clamp(8rem,11vw,10.5rem); --r:-10deg">
+        <div class="stk"><div class="ph">Foto: Bierdeckel<small>oder Konzertbändchen</small></div></div>
+        <p class="cap" style="--cy:96%; --cx:30%; --cr:-4deg"><b>Ausgehen</b><span>Freunde treffen, gern spontan.</span></p>
+      </div>
+
+      <!-- Gaming -->
+      <div class="s" data-side="in" style="--x:63%; --y:40%; --w:clamp(10rem,15vw,14rem); --r:8deg">
+        <div class="stk" style="--rad:40px"><div class="ph" style="--ar:3/2">Foto: dein Controller</div></div>
+        <p class="cap" style="--cy:90%; --cx:55%; --cr:-2deg"><b>Gaming</b><span>Zocken gehört genauso dazu wie der Platz.</span></p>
+      </div>
+
+      <!-- Nerd: Druckteil + Claude-Terminal -->
+      <div class="s" data-side="in" style="--x:79%; --y:66%; --w:clamp(8rem,11vw,10.5rem); --r:-6deg">
+        <div class="stk" style="--rad:20px"><div class="ph">Foto: ein Teil aus deinem 3D-Drucker</div></div>
+        <p class="cap" style="--cy:94%; --cx:20%; --cr:3deg"><b>Ein bisschen Nerd</b><span>3D-Druck und eigene Projekte mit Claude.</span></p>
+      </div>
+
+      <div class="s wide" data-side="in" style="--x:59%; --y:76%; --w:clamp(11rem,15vw,14rem); --r:-3deg">
+        <div class="stk" style="--rad:14px"><pre class="term"><span class="p">$</span> claude "Report bauen"
+<span class="ok">✓</span> fertig<span class="cur">_</span></pre></div>
+      </div>
+    </div>
+    <p class="hint">Sticker lassen sich verschieben.</p>
+  </div>
+</section>
+
+<script>
+  // the switch, as on the live page
+  const board = document.querySelector("[data-board]");
+  const btns = [...document.querySelectorAll("[data-mode]")].filter((b) => b.tagName === "BUTTON");
+  btns.forEach((b) => b.addEventListener("click", () => {
+    board.dataset.mode = b.dataset.mode;
+    btns.forEach((o) => o.setAttribute("aria-checked", String(o === b)));
+  }));
+
+  // drag a sticker (desktop layout only); the last one moved stays on top
+  const wide = matchMedia("(min-width: 56.01rem)");
+  let zTop = 10;
+  for (const s of board.querySelectorAll(".s")) {
+    s.addEventListener("pointerdown", (e) => {
+      if (!wide.matches || e.target.closest("button")) return;
+      e.preventDefault();
+      s.setPointerCapture(e.pointerId);
+      const box = board.getBoundingClientRect();
+      const r = s.getBoundingClientRect();
+      const dx = e.clientX - r.left, dy = e.clientY - r.top;
+      s.classList.add("is-drag");
+      const move = (ev) => {
+        s.style.setProperty("--x", ((ev.clientX - dx - box.left) / box.width) * 100 + "%");
+        s.style.setProperty("--y", ((ev.clientY - dy - box.top) / box.height) * 100 + "%");
+      };
+      const up = () => {
+        s.classList.remove("is-drag");
+        s.style.zIndex = ++zTop;
+        s.removeEventListener("pointermove", move);
+      };
+      s.addEventListener("pointermove", move);
+      s.addEventListener("pointerup", up, { once: true });
+    });
+  }
+</script>
+</body>
+</html>
