@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hobbys: Regal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&display=swap" rel="stylesheet" />
+<style>
+  /* Mockup C (2026-10-09): Hobbys as one shelf, after devanshuchauhan.in (a shelf of
+     favourite things over his desk; pointing at an object brings it to life and names it).
+     The objects are the animated SVG drawings of drafts/hobbys-animated.html, but they stand
+     still until pointed at: then the compartment's light goes on (sun yellow = light, the
+     site's rule) and the object plays. The list beside it traces both ways (hover-to-trace). */
+  :root {
+    --bg: #ffcdb5;
+    --paper: #ffffff;
+    --ink: #0f1b2d;
+    --ink-2: #434f5e;
+    --line: rgb(15 27 45 / 0.17);
+    --wash: #e7ebf0;
+    --steel: #7d8b99;
+    --sun: #f2a900;
+    --sans: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+    --serif: "Newsreader", Georgia, serif;
+    --wrap: min(max(72rem, 84vw), 130rem);
+    --gutter: clamp(1rem, 4vw, 3rem);
+    --sp-gap: clamp(1.25rem, 3vw, 3rem);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font: 1.0625rem/1.5 var(--sans); color: var(--ink);
+    background:
+      radial-gradient(60rem 40rem at 80% 90%, rgb(255 170 120 / 0.35), transparent 70%),
+      radial-gradient(50rem 30rem at 10% 10%, rgb(255 230 210 / 0.5), transparent 70%),
+      var(--bg);
+    min-height: 100vh;
+  }
+  .note-top { font-size: 0.875rem; color: var(--ink-2); padding: 0.75rem var(--gutter); border-bottom: 1px solid var(--line); background: rgb(255 255 255 / 0.4); }
+  .wrap { width: min(var(--wrap), 100% - 2 * var(--gutter)); margin-inline: auto; }
+  section { padding: clamp(3rem, 6vw, 6rem) 0; border-top: 1.5px solid var(--ink); }
+
+  .head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 2rem; margin-bottom: var(--sp-gap); }
+  h2 { font-family: var(--serif); font-weight: 500; letter-spacing: -0.02em; font-size: clamp(2.75rem, 1.5rem + 4vw, 5rem); line-height: 1; }
+  .switch { display: inline-flex; padding: 4px; border: 1.5px solid var(--ink); border-radius: 999px; background: var(--paper); }
+  .switch button { padding: 0.45rem 1rem; border: 0; border-radius: 999px; background: transparent; font: 600 0.9375rem var(--sans); color: var(--ink-2); cursor: pointer; }
+  .switch button[aria-checked="true"] { background: var(--ink); color: var(--paper); }
+
+  .room { display: grid; gap: var(--sp-gap); align-items: center; }
+  @media (min-width: 64rem) { .room { grid-template-columns: 8fr 4fr; } }
+
+  /* ---------- the shelf ---------- */
+  .shelf {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+    padding: 14px;
+    background: linear-gradient(#eef1f4, #dfe4ea);
+    border: 1.5px solid var(--ink);
+    border-radius: 10px;
+    box-shadow: 0 2px 0 rgb(15 27 45 / 0.08), 0 30px 50px -24px rgb(15 27 45 / 0.45);
+    position: relative;
+  }
+  /* the shelf's two feet / wall brackets */
+  .shelf::before, .shelf::after {
+    content: ""; position: absolute; bottom: -14px; width: 18px; height: 14px;
+    background: var(--ink); border-radius: 0 0 3px 3px;
+  }
+  .shelf::before { left: 12%; } .shelf::after { right: 12%; }
+
+  .cell {
+    position: relative; aspect-ratio: 4 / 3;
+    display: grid; place-items: end center;
+    padding: 12% 10% 8%;
+    border: 0; border-radius: 6px;
+    background: linear-gradient(#cfd6de, #e6eaef 30%, #edf0f3);
+    box-shadow: inset 0 10px 14px -8px rgb(15 27 45 / 0.35), inset 0 -2px 0 rgb(255 255 255 / 0.7);
+    cursor: pointer; font: inherit; color: inherit;
+    overflow: hidden;
+    transition: background 0.4s;
+  }
+  .cell:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  /* the lamp at the top of each compartment, and its light */
+  .cell::before {
+    content: ""; position: absolute; top: 0; left: 50%; translate: -50% 0;
+    width: 28%; height: 5px; border-radius: 0 0 4px 4px; background: var(--ink); z-index: 2;
+  }
+  .cell::after {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(70% 90% at 50% 0%, rgb(242 169 0 / 0.55), rgb(242 169 0 / 0.12) 55%, transparent 80%);
+    opacity: 0; transition: opacity 0.35s; pointer-events: none;
+  }
+  .cell.is-on::after { opacity: 1; }
+  .cell.is-on { background: linear-gradient(#f7e6c4, #f6efe2 40%, #f3f0ea); }
+
+  /* the drawing stands on the compartment floor, whole */
+  .cell svg { position: absolute; z-index: 1; left: 9%; top: 14%; width: 82%; height: 78%; overflow: visible; filter: drop-shadow(0 6px 6px rgb(15 27 45 / 0.25)); transition: scale 0.35s; }
+  .cell.is-on svg { scale: 1.05; }
+  .cell.is-wide svg { left: 8%; top: 12%; width: 84%; height: 80%; }
+  .cell.is-wide svg { filter: drop-shadow(0 4px 5px rgb(15 27 45 / 0.25)); border-radius: 6px; }
+
+  /* the name tag, as on devanshuchauhan.in */
+  .tag {
+    position: absolute; left: 50%; bottom: 8px; translate: -50% 6px; z-index: 3;
+    padding: 0.2rem 0.7rem; border: 1.5px solid var(--ink); border-radius: 999px;
+    background: var(--paper); font: 600 0.8125rem var(--sans); white-space: nowrap;
+    opacity: 0; transition: opacity 0.25s, translate 0.25s;
+  }
+  .cell.is-on .tag { opacity: 1; translate: -50% 0; }
+
+  /* ---------- the list beside it ---------- */
+  .list { list-style: none; padding: 0; display: grid; gap: 0.25rem; }
+  .list li { position: relative; padding: 0.55rem 0 0.55rem 1rem; border-left: 3px solid transparent; cursor: default; transition: border-color 0.25s; }
+  .list h3 { font: 600 1.25rem/1.2 var(--serif); }
+  .list p { font-size: 0.9375rem; line-height: 1.45; color: var(--ink-2); margin-top: 0.15rem; }
+  .list li.is-on { border-left-color: var(--ink); }
+  .list.has-on li:not(.is-on) { opacity: 0.55; }
+  .list li { transition: opacity 0.25s, border-color 0.25s; }
+
+  /* ---------- CSS loops: only in a lit compartment ---------- */
+  .cell * { animation-play-state: paused !important; }
+  .cell.is-on * { animation-play-state: running !important; }
+  .ball { transform-box: fill-box; transform-origin: center; animation: kick 3.6s cubic-bezier(.3,.6,.4,1) infinite; }
+  .bshadow { transform-box: fill-box; transform-origin: center; animation: kick-shadow 3.6s cubic-bezier(.3,.6,.4,1) infinite; }
+  .net { animation: bulge 3.6s ease-out infinite; }
+  @keyframes kick {
+    0%, 10% { transform: translate(0, 0) rotate(0); opacity: 1; }
+    28% { transform: translate(70px, -34px) rotate(320deg); }
+    46% { transform: translate(172px, -6px) rotate(760deg); }
+    52% { transform: translate(180px, 0) rotate(790deg); }
+    74% { transform: translate(178px, 0) rotate(795deg); opacity: 1; }
+    80% { transform: translate(178px, 0) rotate(795deg); opacity: 0; }
+    81% { transform: translate(0, 0) rotate(0); opacity: 0; }
+    92%, 100% { transform: translate(0, 0) rotate(0); opacity: 1; }
+  }
+  @keyframes kick-shadow {
+    0%, 10% { transform: translate(0, 0) scale(1); opacity: 1; }
+    28% { transform: translate(70px, 0) scale(0.55); opacity: 0.5; }
+    46% { transform: translate(172px, 0) scale(1); opacity: 1; }
+    52%, 74% { transform: translate(180px, 0) scale(1); opacity: 1; }
+    80% { opacity: 0; transform: translate(178px, 0); }
+    81% { transform: translate(0, 0); opacity: 0; }
+    92%, 100% { transform: translate(0, 0); opacity: 1; }
+  }
+  @keyframes bulge { 0%, 46% { transform: translateX(0); } 52% { transform: translateX(7px); } 60% { transform: translateX(-2px); } 68%, 100% { transform: translateX(0); } }
+
+  /* ---------- phones ---------- */
+  @media (max-width: 40rem) {
+    .shelf { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px; }
+    .tag { font-size: 0.75rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cell *, .cell::after, .cell svg, .tag { animation: none !important; transition: none; }
+  }
+</style>
+</head>
+<body>
+<p class="note-top">Mockup Hobbys C, „Regal“ (nach devanshuchauhan.in): ein Regal mit deinen Sachen, alles steht still, bis man darauf zeigt. Dann geht im Fach das Licht an und das Ding bewegt sich. Die Liste rechts funktioniert in beide Richtungen. Am Handy: antippen.</p>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <h2>Hobbys</h2>
+      <div class="switch" role="radiogroup" aria-label="Welche Seite zeigen">
+        <button type="button" role="radio" aria-checked="false" data-mode="out">Draußen</button>
+        <button type="button" role="radio" aria-checked="true" data-mode="all">Beides</button>
+        <button type="button" role="radio" aria-checked="false" data-mode="in">Drinnen</button>
+      </div>
+    </div>
+
+    <div class="room">
+      <div class="shelf" data-shelf>
+
+        <!-- Fußball -->
+        <button class="cell is-wide" type="button" data-id="fussball" data-side="out" aria-label="Fußball">
+          <svg viewBox="0 0 260 160" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+            <rect width="260" height="160" rx="8" fill="#e6f1fc" />
+            <rect y="112" width="260" height="48" fill="#1f7a4d" />
+            <g fill="#23874f"><rect x="0" y="112" width="40" height="48" /><rect x="80" y="112" width="40" height="48" /><rect x="160" y="112" width="40" height="48" /></g>
+            <g class="net" stroke="#0f1b2d" stroke-opacity=".35" stroke-width="1"><path d="M198 54V112M206 54V112M214 54V112M222 54V112M230 54V112M238 54V112M246 54V112M254 54V112M190 62H260M190 70H260M190 78H260M190 86H260M190 94H260M190 102H260" /></g>
+            <path d="M190 113V52H262" fill="none" stroke="#0f1b2d" stroke-width="5" stroke-linejoin="round" />
+            <path d="M190 113V52H262" fill="none" stroke="#fff" stroke-width="2" />
+            <ellipse class="bshadow" cx="34" cy="115" rx="11" ry="3" fill="#0f1b2d" opacity=".25" />
+            <g class="ball">
+              <circle cx="34" cy="100" r="12" fill="#fff" stroke="#0f1b2d" stroke-width="2.5" />
+              <path d="M34 95l4.8 3.5-1.8 5.6h-6l-1.8-5.6z" fill="#0f1b2d" />
+              <path d="M34 95v-7M38.8 98.5l6.5-2.3M37 104.1l3.8 5.6M31 104.1l-3.8 5.6M29.2 98.5l-6.5-2.3" stroke="#0f1b2d" stroke-width="1.4" />
+            </g>
+          </svg>
+          <span class="tag">Fußball</span>
+        </button>
+
+        <!-- Taktiktafel: plays its move while lit -->
+        <button class="cell is-wide" type="button" data-id="trainer" data-side="out" aria-label="Trainer">
+          <svg viewBox="0 0 320 230" preserveAspectRatio="xMidYMax meet" aria-hidden="true" data-tactic>
+            <rect width="320" height="230" rx="10" fill="#1f7a4d" />
+            <g fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="2"><rect x="14" y="14" width="292" height="202" /><rect x="226" y="60" width="80" height="110" /><circle cx="14" cy="115" r="40" /></g>
+            <g fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="6 5" opacity=".9"><line x1="70" y1="135" x2="150" y2="82" data-move /><line x1="120" y1="195" x2="210" y2="155" data-move /><line x1="180" y1="105" x2="260" y2="62" data-move /></g>
+            <path d="M70 135 L210 155 L260 62" fill="none" stroke="#fff" stroke-width="2.5" />
+            <g stroke="#fff" stroke-width="3"><path d="M193 133l14 14M207 133l-14 14M233 89l14 14M247 89l-14 14M143 46l14 14M157 46l-14 14" /></g>
+            <g fill="#0f1b2d" stroke="#fff" stroke-width="2.5"><circle cx="70" cy="135" r="10" data-player /><circle cx="120" cy="195" r="10" data-player /><circle cx="180" cy="105" r="10" data-player /></g>
+            <circle cx="70" cy="135" r="6" fill="#fff" stroke="#0f1b2d" stroke-width="2" data-ball />
+          </svg>
+          <span class="tag">Trainer</span>
+        </button>
+
+        <!-- Basketball -->
+        <button class="cell" type="button" data-id="basketball" data-side="out" aria-label="Basketball">
+          <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMax meet" aria-hidden="true" data-smil>
+            <path d="M181 70V196" stroke="#0f1b2d" stroke-width="7" stroke-linecap="round" />
+            <rect x="118" y="18" width="72" height="54" rx="4" fill="#fff" stroke="#0f1b2d" stroke-width="3" />
+            <rect x="140" y="38" width="30" height="22" fill="none" stroke="#b4532a" stroke-width="2.5" />
+            <g>
+              <animateMotion dur="3.2s" repeatCount="indefinite" path="M22 182 Q82 -42 140 72 L140 138" keyPoints="0;0;0.8;1;1" keyTimes="0;0.12;0.68;0.82;1" calcMode="linear" />
+              <animate attributeName="opacity" dur="3.2s" repeatCount="indefinite" values="1;1;1;1;0;1" keyTimes="0;0.12;0.2;0.78;0.84;1" />
+              <g>
+                <animateTransform attributeName="transform" type="rotate" dur="3.2s" repeatCount="indefinite" values="0;0;-540;-600;-600" keyTimes="0;0.12;0.68;0.82;1" />
+                <circle r="13" fill="#d9762b" stroke="#0f1b2d" stroke-width="2.5" />
+                <path d="M-13 0H13M0-13V13M-9-9Q-2 0-9 9M9-9Q2 0 9 9" fill="none" stroke="#0f1b2d" stroke-width="1.5" />
+              </g>
+            </g>
+            <g transform="translate(140 80)"><g>
+              <animateTransform attributeName="transform" type="scale" dur="3.2s" repeatCount="indefinite" values="1 1;1 1;0.86 1.25;1.04 0.95;1 1;1 1" keyTimes="0;0.68;0.74;0.8;0.86;1" />
+              <path d="M-19 0L-12 28M19 0L12 28M-12 28H12M-19 0L0 28M0 0L-12 28M0 0L12 28M19 0L0 28" fill="none" stroke="#0f1b2d" stroke-width="1.6" stroke-opacity=".75" />
+            </g></g>
+            <ellipse cx="140" cy="80" rx="21" ry="4.5" fill="none" stroke="#b4532a" stroke-width="4" />
+            <path d="M161 80H181" stroke="#0f1b2d" stroke-width="3" />
+          </svg>
+          <span class="tag">Basketball</span>
+        </button>
+
+        <!-- Ausgehen -->
+        <button class="cell" type="button" data-id="ausgehen" data-side="out" aria-label="Ausgehen">
+          <svg viewBox="0 0 220 190" preserveAspectRatio="xMidYMax meet" aria-hidden="true" data-smil>
+            <path d="M6 28Q60 66 110 34T214 38" fill="none" stroke="#0f1b2d" stroke-width="2" />
+            <g transform="translate(26 42)"><circle r="12" fill="#f2a900" opacity=".25"><animate attributeName="opacity" values=".1;.5;.1" dur="1.8s" repeatCount="indefinite" /></circle><circle r="6" fill="#f2a900" stroke="#0f1b2d" stroke-width="2" /></g>
+            <g transform="translate(62 52)"><circle r="12" fill="#f2a900" opacity=".25"><animate attributeName="opacity" values=".5;.1;.5" dur="2.2s" repeatCount="indefinite" /></circle><circle r="6" fill="#f2a900" stroke="#0f1b2d" stroke-width="2" /></g>
+            <g transform="translate(98 42)"><circle r="12" fill="#f2a900" opacity=".25"><animate attributeName="opacity" values=".1;.5;.1" dur="1.5s" repeatCount="indefinite" /></circle><circle r="6" fill="#f2a900" stroke="#0f1b2d" stroke-width="2" /></g>
+            <g transform="translate(134 26)"><circle r="12" fill="#f2a900" opacity=".25"><animate attributeName="opacity" values=".5;.1;.5" dur="1.9s" repeatCount="indefinite" /></circle><circle r="6" fill="#f2a900" stroke="#0f1b2d" stroke-width="2" /></g>
+            <g transform="translate(170 26)"><circle r="12" fill="#f2a900" opacity=".25"><animate attributeName="opacity" values=".1;.5;.1" dur="2.4s" repeatCount="indefinite" /></circle><circle r="6" fill="#f2a900" stroke="#0f1b2d" stroke-width="2" /></g>
+            <g transform="translate(204 36)"><circle r="12" fill="#f2a900" opacity=".25"><animate attributeName="opacity" values=".5;.1;.5" dur="1.7s" repeatCount="indefinite" /></circle><circle r="6" fill="#f2a900" stroke="#0f1b2d" stroke-width="2" /></g>
+            <g transform="translate(82 178)"><g>
+              <animateTransform attributeName="transform" type="rotate" dur="3s" repeatCount="indefinite" values="0;0;9;9;0;0" keyTimes="0;0.3;0.45;0.52;0.7;1" />
+              <path d="M-20-78H20C20-48 12-36 0-36S-20-48-20-78Z" fill="#fff" stroke="#0f1b2d" stroke-width="2.5" stroke-linejoin="round" />
+              <path d="M-18.5-62H18.5C17-46 11-39 0-39S-17-46-18.5-62Z" fill="#ef6a3a" />
+              <circle cx="-6" cy="-50" r="1.6" fill="#fff"><animate attributeName="cy" values="-44;-60" dur="1.4s" repeatCount="indefinite" /></circle>
+              <circle cx="11" cy="-66" r="6.5" fill="#f59b42" stroke="#0f1b2d" stroke-width="1.5" />
+              <path d="M0-36V-4M-14-3H14" stroke="#0f1b2d" stroke-width="2.5" stroke-linecap="round" />
+            </g></g>
+            <g transform="translate(138 178) scale(-1 1)"><g>
+              <animateTransform attributeName="transform" type="rotate" dur="3s" repeatCount="indefinite" values="0;0;9;9;0;0" keyTimes="0;0.3;0.45;0.52;0.7;1" />
+              <path d="M-20-78H20C20-48 12-36 0-36S-20-48-20-78Z" fill="#fff" stroke="#0f1b2d" stroke-width="2.5" stroke-linejoin="round" />
+              <path d="M-18.5-62H18.5C17-46 11-39 0-39S-17-46-18.5-62Z" fill="#ef6a3a" />
+              <circle cx="-4" cy="-48" r="1.4" fill="#fff"><animate attributeName="cy" values="-43;-60" dur="1.6s" repeatCount="indefinite" /></circle>
+              <circle cx="11" cy="-66" r="6.5" fill="#f59b42" stroke="#0f1b2d" stroke-width="1.5" />
+              <path d="M0-36V-4M-14-3H14" stroke="#0f1b2d" stroke-width="2.5" stroke-linecap="round" />
+            </g></g>
+            <g transform="translate(110 92)" stroke="#0f1b2d" stroke-width="2" stroke-linecap="round" opacity="0">
+              <animate attributeName="opacity" dur="3s" repeatCount="indefinite" values="0;0;1;0;0" keyTimes="0;0.44;0.48;0.62;1" />
+              <path d="M0-10V-18M-8-6L-14-11M8-6L14-11" />
+            </g>
+          </svg>
+          <span class="tag">Ausgehen</span>
+        </button>
+
+        <!-- Gaming -->
+        <button class="cell" type="button" data-id="gaming" data-side="in" aria-label="Gaming">
+          <svg viewBox="0 0 220 200" preserveAspectRatio="xMidYMax meet" aria-hidden="true" data-smil>
+            <rect x="40" y="8" width="140" height="94" rx="8" fill="#0f1b2d" />
+            <rect x="48" y="16" width="124" height="76" rx="3" fill="#13305a" />
+            <path d="M110 20V90" stroke="#e6edf5" stroke-opacity=".35" stroke-width="2" stroke-dasharray="4 4" />
+            <text x="96" y="30" font-family="ui-monospace,Consolas,monospace" font-size="10" fill="#e6edf5" opacity=".7" text-anchor="end">3</text>
+            <text x="124" y="30" font-family="ui-monospace,Consolas,monospace" font-size="10" fill="#e6edf5" opacity=".7">2</text>
+            <rect x="52" width="4" height="18" fill="#e6edf5" y="41"><animate attributeName="y" dur="4.8s" repeatCount="indefinite" values="41;71;21;41" keyTimes="0;0.3333;0.6667;1" /></rect>
+            <rect x="164" width="4" height="18" fill="#e6edf5" y="40"><animate attributeName="y" dur="4.8s" repeatCount="indefinite" values="40;21;51;66;40" keyTimes="0;0.1667;0.5;0.8333;1" /></rect>
+            <rect x="-2.5" y="-2.5" width="5" height="5" fill="#fff"><animateMotion dur="4.8s" repeatCount="indefinite" calcMode="linear" values="58.5,50;161.5,30;58.5,80;161.5,60;58.5,30;161.5,75;58.5,50" /></rect>
+            <path d="M100 102h20v12h-20z" fill="#0f1b2d" />
+            <path d="M60 128C40 128 30 148 28 172C26 190 40 197 52 188L72 170H148L168 188C180 197 194 190 192 172C190 148 180 128 160 128Z" fill="#fff" stroke="#0f1b2d" stroke-width="3" stroke-linejoin="round" />
+            <path d="M60 140h10v8h8v10h-8v8H60v-8h-8v-10h8z" fill="#0f1b2d" />
+            <circle cx="160" cy="140" r="5" fill="#2f55c7" stroke="#0f1b2d" stroke-width="1.5" />
+            <circle cx="170" cy="150" r="5" fill="#b4532a" stroke="#0f1b2d" stroke-width="1.5"><animate attributeName="r" dur="0.8s" repeatCount="indefinite" values="5;4;5;5" keyTimes="0;0.15;0.3;1" /></circle>
+            <circle cx="160" cy="160" r="5" fill="#0e9384" stroke="#0f1b2d" stroke-width="1.5" />
+            <circle cx="150" cy="150" r="5" fill="#fff" stroke="#0f1b2d" stroke-width="1.5" />
+            <circle cx="92" cy="164" r="9" fill="#e7ebf0" stroke="#0f1b2d" stroke-width="2.5" />
+            <circle cx="128" cy="164" r="9" fill="#e7ebf0" stroke="#0f1b2d" stroke-width="2.5" />
+          </svg>
+          <span class="tag">Gaming</span>
+        </button>
+
+        <!-- 3D-Drucker -->
+        <button class="cell" type="button" data-id="nerd" data-side="in" aria-label="Ein bisschen Nerd">
+          <svg viewBox="0 0 250 210" preserveAspectRatio="xMidYMax meet" aria-hidden="true" data-smil>
+            <defs><clipPath id="build"><rect x="0" y="165" width="250" height="100"><animate attributeName="y" dur="7s" repeatCount="indefinite" values="165;104;104;165" keyTimes="0;0.82;0.96;1" /></rect></clipPath></defs>
+            <rect x="30" y="20" width="10" height="168" fill="#0f1b2d" />
+            <rect x="180" y="20" width="10" height="168" fill="#0f1b2d" />
+            <rect x="30" y="18" width="160" height="10" rx="2" fill="#0f1b2d" />
+            <rect x="18" y="182" width="184" height="20" rx="5" fill="#0f1b2d" />
+            <rect x="55" y="165" width="110" height="8" rx="2" fill="#7d8b99" />
+            <path d="M88 165L94 127H88V105H96V112H104V105H116V112H124V105H132V127H126L132 165Z" fill="#2f55c7" stroke="#0f1b2d" stroke-width="2" stroke-linejoin="round" clip-path="url(#build)" />
+            <g>
+              <animateTransform attributeName="transform" type="translate" dur="7s" repeatCount="indefinite" values="0 0;0 -61;0 -61;0 0" keyTimes="0;0.82;0.96;1" />
+              <rect x="40" y="140" width="140" height="5" fill="#0f1b2d" />
+              <g>
+                <animateTransform attributeName="transform" type="translate" dur="0.9s" repeatCount="indefinite" values="-20 0;20 0;-20 0" />
+                <rect x="100" y="134" width="20" height="20" rx="3" fill="#e7ebf0" stroke="#0f1b2d" stroke-width="2.5" />
+                <path d="M105 154H115L110 162Z" fill="#0f1b2d" />
+              </g>
+            </g>
+            <g transform="translate(222 64)"><g>
+              <animateTransform attributeName="transform" type="rotate" dur="4s" repeatCount="indefinite" values="0;360" />
+              <circle r="20" fill="#2f55c7" stroke="#0f1b2d" stroke-width="2.5" />
+              <circle r="6" fill="#fff" stroke="#0f1b2d" stroke-width="2" />
+              <path d="M0-20V-8M0 8V20M-20 0H-8M8 0H20" stroke="#0f1b2d" stroke-width="1.2" opacity=".5" />
+            </g></g>
+          </svg>
+          <span class="tag">Ein bisschen Nerd</span>
+        </button>
+      </div>
+
+      <ul class="list" data-list>
+        <li data-id="fussball"><h3>Fußball</h3><p>Ich spiele selbst.</p></li>
+        <li data-id="trainer"><h3>Trainer</h3><p>Und ich stehe als Trainer an der Seitenlinie.</p></li>
+        <li data-id="basketball"><h3>Basketball</h3><p>Neben Fußball der Sport, den ich am liebsten verfolge.</p></li>
+        <li data-id="ausgehen"><h3>Ausgehen</h3><p>Freunde treffen, raus in die Stadt, gern auch spontan.</p></li>
+        <li data-id="gaming"><h3>Gaming</h3><p>Zocken gehört für mich genauso dazu wie der Platz.</p></li>
+        <li data-id="nerd"><h3>Ein bisschen Nerd</h3><p>Drucke Teile mit dem 3D-Drucker und automatisiere eigene Projekte mit Claude.</p></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<script>
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const cells = [...document.querySelectorAll(".cell")];
+  const rows = [...document.querySelectorAll(".list li")];
+  const list = document.querySelector("[data-list]");
+  const byId = (id) => [cells.find((c) => c.dataset.id === id), rows.find((r) => r.dataset.id === id)];
+
+  // every drawing stands still on a telling frame until its compartment is lit
+  for (const s of document.querySelectorAll("[data-smil]")) { s.setCurrentTime(1.1); s.pauseAnimations(); }
+
+  // the tactics board plays its move in a loop while lit
+  const tac = document.querySelector("[data-tactic]");
+  const players = [...tac.querySelectorAll("[data-player]")];
+  const tball = tac.querySelector("[data-ball]");
+  const start = players.map((p) => [+p.getAttribute("cx"), +p.getAttribute("cy")]);
+  const goal = [...tac.querySelectorAll("[data-move]")].map((l) => [+l.getAttribute("x2"), +l.getAttribute("y2")]);
+  const pts = [[70, 135], [210, 155], [260, 62]];
+  const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
+  const place = (t) => {
+    players.forEach((p, i) => {
+      const k = ease(Math.min(Math.max(t * 2.2 - i * 0.1, 0), 1));
+      p.setAttribute("cx", start[i][0] + (goal[i][0] - start[i][0]) * k);
+      p.setAttribute("cy", start[i][1] + (goal[i][1] - start[i][1]) * k);
+    });
+    const pos = Math.min(Math.max((t - 0.5) * 2, 0), 0.999) * 2, j = Math.floor(pos), f = ease(pos - j);
+    tball.setAttribute("cx", pts[j][0] + (pts[j + 1][0] - pts[j][0]) * f);
+    tball.setAttribute("cy", pts[j][1] + (pts[j + 1][1] - pts[j][1]) * f);
+  };
+  let raf = 0, t0 = 0;
+  const tacLoop = (now) => { const t = ((now - t0) % 3400) / 2600; place(Math.min(t, 1)); raf = requestAnimationFrame(tacLoop); };
+
+  const lit = new Set();
+  const light = (id, on) => {
+    const [c, r] = byId(id);
+    if (!c || c.classList.contains("is-on") === on) return;
+    c.classList.toggle("is-on", on);
+    r.classList.toggle("is-on", on);
+    on ? lit.add(id) : lit.delete(id);
+    list.classList.toggle("has-on", lit.size > 0);
+    if (reduce) return;
+    const svg = c.querySelector("[data-smil]");
+    if (svg) on ? svg.unpauseAnimations() : svg.pauseAnimations();
+    if (id === "trainer") {
+      cancelAnimationFrame(raf);
+      if (on) { t0 = performance.now(); raf = requestAnimationFrame(tacLoop); } else place(0);
+    }
+  };
+  const only = (ids) => cells.forEach((c) => light(c.dataset.id, ids.includes(c.dataset.id)));
+
+  // pointing (shelf or list) lights one compartment; a tap keeps it lit (touch)
+  let pinned = [];
+  for (const el of [...cells, ...rows]) {
+    el.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") only([el.dataset.id]); });
+    el.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") only(pinned); });
+  }
+  for (const c of cells) {
+    c.addEventListener("focus", () => only([c.dataset.id]));
+    c.addEventListener("blur", () => only(pinned));
+    c.addEventListener("click", () => { pinned = pinned[0] === c.dataset.id && pinned.length === 1 ? [] : [c.dataset.id]; only(pinned); });
+  }
+
+  // the switch lights a whole side
+  const btns = [...document.querySelectorAll("button[data-mode]")];
+  btns.forEach((b) => b.addEventListener("click", () => {
+    btns.forEach((o) => o.setAttribute("aria-checked", String(o === b)));
+    const m = b.dataset.mode;
+    pinned = m === "all" ? [] : cells.filter((c) => c.dataset.side === m).map((c) => c.dataset.id);
+    only(pinned);
+  }));
+</script>
+</body>
+</html>
