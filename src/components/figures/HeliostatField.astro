@@ -304,8 +304,6 @@ const { tower: T, receiver: R, ground } = FIELD;
     // the right edge of the name, role and claim (not the portrait): the pointer sun stays right
     // of it, so it never sits in the words with its rays running across them
     let wordsR = -Infinity;
-    // the right edge of the whole text block incl. the portrait beside the name
-    let blockR = -Infinity;
     let hi = FIELD.last + 60;
     // Where the text stands wholly above the sun's sky (wide screens with the scaled-up
     // drawing: "band" layout), the sun drifts over the whole field below it and its arc peaks
@@ -340,7 +338,6 @@ const { tower: T, receiver: R, ground } = FIELD;
           textBottomU = Math.max(textBottomU, new DOMPoint(0, rect.bottom).matrixTransform(m.inverse()).y);
         });
       }
-      blockR = textR;
       const climb = 70 + 0.6 * Math.min(0, skyTop);
       // (90: the halo, r 70, plus air under the words)
       // (band while the arc's peak under the words still stands above its ends, 213; fit()
