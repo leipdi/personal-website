@@ -7,6 +7,7 @@ import Hobbys from "../components/sections/Hobbys.astro";
 import Kontakt from "../components/sections/Kontakt.astro";
 import { profile, topSkills, type TopSkillId } from "../data/cv";
 import { tool, uniqueSvg } from "../data/tools";
+import { url } from "../lib/url";
 
 // Long German compounds get soft hyphens for display only (the data keeps the plain word),
 // so a narrow box breaks "Bauteilkostenkalkulation" at a word joint instead of overflowing.
@@ -23,14 +24,14 @@ const displayTitle = (t: string) => titleBreaks[t] ?? t;
 const arts: Record<TopSkillId, { src: string; alt: string; w: number; h: number; bg?: string }> = {
   kosten: {
     bg: "#f4f8fb",
-    src: "/img/kompetenzen/kosten.webp",
+    src: url("/img/kompetenzen/kosten.webp"),
     alt: "Technische Explosionszeichnung eines Solartrackers: Spiegel, Rahmen, Antrieb, Stütze und Fundament auseinandergezogen, dazu Blechteile und eine Kostenaufstellung aus Material- und Fertigungskosten",
     w: 1586,
     h: 992,
   },
-  data: { src: "/img/kompetenzen/data.webp", alt: "Dokumente, ein Server und eine Tabelle fließen in einen Baustein und werden zu einem Balkendiagramm", w: 520, h: 351 },
-  prozesse: { src: "/img/kompetenzen/prozesse.webp", alt: "Prozessdiagramm mit zwei Bahnen, einer Entscheidung und einer abgehakten Checkliste", w: 520, h: 351 },
-  controlling: { src: "/img/kompetenzen/controlling.webp", alt: "Aufgeschlagenes Kassenbuch, Belegstapel, Balkendiagramm, Taschenrechner und Münzen", w: 520, h: 351 },
+  data: { src: url("/img/kompetenzen/data.webp"), alt: "Dokumente, ein Server und eine Tabelle fließen in einen Baustein und werden zu einem Balkendiagramm", w: 520, h: 351 },
+  prozesse: { src: url("/img/kompetenzen/prozesse.webp"), alt: "Prozessdiagramm mit zwei Bahnen, einer Entscheidung und einer abgehakten Checkliste", w: 520, h: 351 },
+  controlling: { src: url("/img/kompetenzen/controlling.webp"), alt: "Aufgeschlagenes Kassenbuch, Belegstapel, Balkendiagramm, Taschenrechner und Münzen", w: 520, h: 351 },
 };
 
 // a line icon before each card title (owner 2026-10-09, variant A from
@@ -57,7 +58,7 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
         <div class="hero-head">
           <h1 id="name" class="hero-name">Daniel<br />Lenski</h1>
           <div class="hero-photo">
-            <img src="/img/daniel-lenski-cutout.png" alt="Porträt von Daniel Lenski" width="400" height="400" />
+            <img src={url("/img/daniel-lenski-cutout.png")} alt="Porträt von Daniel Lenski" width="400" height="400" />
           </div>
         </div>
         <p class="hero-role">{profile.role}<br />{profile.location}</p>
@@ -739,8 +740,12 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
     .sheet-head {
       grid-area: head;
     }
+    /* the points stand in the middle of the room between the title strip and "Software"
+       (owner 2026-10-09: "text centralised in the middle of the card box"); the sheet with the
+       most text fills it anyway */
     .sheet-text {
       grid-area: text;
+      justify-content: center;
       padding-right: var(--sp-gap);
     }
     /* at the card's foot; in the pile (all sheets one height, this block one height via
@@ -770,7 +775,9 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
         var(--pic-bg) 60%
       );
     }
+    /* (centred like the points beside it) */
     .sheet-pic img {
+      object-position: 50% 50%;
       inset: 0.75rem 0.75rem 0.75rem var(--reach, var(--sp-gap));
       width: min(100% - 0.75rem - var(--reach, var(--sp-gap)), 48rem);
       height: calc(100% - 1.5rem);

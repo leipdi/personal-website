@@ -1,0 +1,6 @@
+# LF in the repo on every machine (the CI runs on Linux); Windows checkouts may still use CRLF
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.webp binary
+*.pdf binary
