@@ -1,5 +1,4 @@
 ---
-import FieldEnd from "../figures/FieldEnd.astro";
 import { profile } from "../../data/cv";
 import { cvPdf } from "../../data/nav";
 
@@ -8,6 +7,11 @@ const [user, domain] = profile.email.split("@");
 const liCut = profile.linkedin.lastIndexOf("/") + 1;
 const liHost = profile.linkedin.slice(0, liCut);
 const liPath = profile.linkedin.slice(liCut);
+
+// "Stand" = the build date (a static site: rebuild to move it)
+const months = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+const now = new Date();
+const stand = `${months[now.getMonth()]} ${now.getFullYear()}`;
 ---
 
 <section id="kontakt" class="sec" aria-labelledby="h-kontakt">
@@ -16,7 +20,7 @@ const liPath = profile.linkedin.slice(liCut);
 
     <!-- the page's one heavy grotesk moment: the e-mail, set apart from the serif titles -->
     <a class="mail" href={`mailto:${profile.email}`}>
-      {user}<wbr />@{domain}
+      <span class="mail-u">{user}<wbr />@{domain}</span>
     </a>
 
     <div class="card-row">
@@ -34,13 +38,31 @@ const liPath = profile.linkedin.slice(liCut);
 
     </div>
   </div>
-  <!-- the page ends on the device it opened with: the field on its ground line -->
-  <FieldEnd />
+  <!-- the page ends on one sign-off line (the field drawing that stood under it went, owner
+       2026-10-09: "no function") -->
+  <p class="wrap sign-off">
+    <span>Stand: {stand}</span>
+    <a class="prose-link" href="#top">Nach oben</a>
+  </p>
 </section>
 
 <style>
   .page {
     padding-top: var(--sp-section);
+  }
+
+  .sign-off {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 2rem;
+    margin-top: var(--sp-block);
+    padding-top: 1rem;
+    padding-bottom: var(--sp-gap);
+    /* the hairline over the content column only (a border spanned the gutters too) */
+    background: linear-gradient(var(--line), var(--line)) no-repeat var(--gutter) 0 / calc(100% - 2 * var(--gutter)) 1px;
+    font-size: 0.9375rem;
+    color: var(--ink-2);
   }
 
   .mail {
@@ -53,16 +75,24 @@ const liPath = profile.linkedin.slice(liCut);
     font-size: clamp(2rem, 0.8rem + 4.6vw, 5.25rem);
     line-height: 1;
     color: var(--ink);
-    text-decoration: underline;
-    text-decoration-thickness: 0.07em;
-    text-underline-offset: 0.12em;
-    text-decoration-color: var(--steel);
+    text-decoration: none;
     overflow-wrap: anywhere;
   }
 
-  .mail:hover {
-    text-decoration-thickness: 0.14em;
-    text-decoration-color: var(--ink);
+  /* the underline in the spectrum's dusk end (one of its two sprinkles, global.css), drawn as
+     a background so it can be a gradient; on the inline text, cloned per line, so where the
+     address wraps on phones each line is underlined to its own end (on the block it ran on
+     into empty space); thicker on hover */
+  .mail-u {
+    background: var(--spectrum-dusk) no-repeat 0 100% / 100% 0.07em;
+    padding-bottom: 0.1em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    transition: background-size 0.15s;
+  }
+
+  .mail:hover .mail-u {
+    background-size: 100% 0.14em;
   }
 
   .card-row {

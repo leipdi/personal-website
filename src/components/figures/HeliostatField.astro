@@ -9,12 +9,11 @@ import {
   FIELD,
   ROWS,
   SUN_START,
-  COST_TOWER,
+  COST_SHEET,
   fieldEfficiency,
   f1,
   poses,
   LINKED_MIRROR,
-  costTotal,
   rayOpacity,
   receiverGlow,
 } from "../../lib/heliostat";
@@ -23,20 +22,16 @@ const front = ROWS.length - 1;
 const start = poses(SUN_START.x, SUN_START.y);
 const eff0 = fieldEfficiency(start, SUN_START.y);
 const glow = receiverGlow(eff0);
-// the cost tower's segments, bottom up
-let acc = 0;
-const parts = COST_TOWER.parts.map((p) => {
-  const seg = { ...p, y: FIELD.ground - acc - p.h };
-  acc += p.h;
-  return seg;
-});
-const T0 = COST_TOWER;
-// the "Preis" bracket right of the column, and the leader from its middle to the ringed heliostat
-const brX = T0.x + T0.w + 12;
-const brTop = FIELD.ground - costTotal;
-const brMid = FIELD.ground - costTotal / 2;
+// the costing sheet, in px inside its group (origin: its bottom-right corner); the server
+// render uses the drawing's units per px at its own size (1.1333), the script refits it
+const CS = COST_SHEET;
+const U0 = 1.1333;
+const { full: SF, mini: SM } = CS;
+const barMax = 130;
+const vMax = Math.max(...CS.rows.map((r) => r.v));
 const L = LINKED_MIRROR;
 const ringR = 22;
+const leadY = FIELD.ground - (CS.lift + SF.h / 2) * U0;
 const { tower: T, receiver: R, ground } = FIELD;
 ---
 
@@ -76,21 +71,32 @@ const { tower: T, receiver: R, ground } = FIELD;
     <circle class="halo" cx={SUN_START.x} cy={SUN_START.y} r="70" data-halo></circle>
     <circle class="sun" cx={SUN_START.x} cy={SUN_START.y} r="20" data-sun></circle>
 
-    <!-- Wirtschaft: a cost calculation as one column on the same ground (a counterpart to the
-         solar tower): the cost types add up to the manufacturing costs (bracket) -->
-    <g class="cost">
-      {
-        parts.map((p, i) => (
-          <>
-            <rect class={`seg s${i}`} x={T0.x} y={p.y} width={T0.w} height={p.h} />
-            <text class="cost-lbl" x={T0.x - 12} y={p.y + p.h / 2} text-anchor="end" dominant-baseline="central">
-              {p.name}
-            </text>
-          </>
-        ))
-      }
-      <path class="bracket" d={`M${brX - 6} ${brTop} H${brX} V${FIELD.ground - 1} H${brX - 6}`}></path>
-      <text class="price-lbl" x={brX + 8} y={brTop} dominant-baseline="central">Fertigungskosten</text>
+    <!-- Wirtschaft: a costing sheet on the ground, the counterpart to the solar tower -->
+    <g class="cost" transform={`translate(${CS.x} ${FIELD.ground - CS.lift * U0}) scale(${U0})`} data-cost>
+      <g class="sheet-full" transform="rotate(-1)">
+        <rect class="paper" x={-SF.w} y={-SF.h} width={SF.w} height={SF.h}></rect>
+        <text class="s-title" x={-SF.w + 20} y={-SF.h + 36}>Kalkulation je Heliostat</text>
+        <line class="s-hair" x1={-SF.w + 20} x2={-20} y1={-SF.h + 50} y2={-SF.h + 50}></line>
+        {
+          CS.rows.map((r, i) => (
+            <>
+              <text class="s-lbl" x={-SF.w + 20} y={-SF.h + 84 + i * 30}>{r.name}</text>
+              <rect class={`s-bar b${i}`} x={-20 - barMax} y={-SF.h + 72 + i * 30} width={(barMax * r.v) / vMax} height="13"></rect>
+            </>
+          ))
+        }
+        <line class="s-rule" x1={-SF.w + 20} x2={-20} y1={-SF.h + 166} y2={-SF.h + 166}></line>
+        <text class="s-sum" x={-SF.w + 20} y={-SF.h + 196}>= Herstellkosten</text>
+        <text class="s-total" x={-20} y={-SF.h + 199} text-anchor="end">≈ {CS.total}</text>
+        <line class="s-rule thin" x1={-128} x2={-20} y1={-SF.h + 207} y2={-SF.h + 207}></line>
+        <line class="s-rule thin" x1={-128} x2={-20} y1={-SF.h + 211} y2={-SF.h + 211}></line>
+        <text class="s-note" x={-SF.w + 20} y={-14}>{CS.perM2}</text>
+      </g>
+      <g class="sheet-mini" transform="rotate(-1)">
+        <rect class="paper" x={-SM.w} y={-SM.h} width={SM.w} height={SM.h}></rect>
+        <text class="s-total small" x={-SM.w + 12} y={-SM.h + 30}>≈ {CS.total}</text>
+        <text class="s-note" x={-SM.w + 12} y={-12}>je Heliostat</text>
+      </g>
     </g>
 
     <!-- (far past both ends: the scaled-up drawing can show more than x0-w, the line closes the hero) -->
@@ -102,13 +108,10 @@ const { tower: T, receiver: R, ground } = FIELD;
       {start.map((m) => <line class={`r${m.row}`} x1={f1(m.x1)} y1={f1(m.y1)} x2={f1(m.x2)} y2={f1(m.y2)} />)}
     </g>
 
-    <!-- the link between the two sides: from the price bracket to the heliostat it prices -->
+    <!-- the link between the two sides: from the sheet to the heliostat it prices -->
     <g class="link">
-      <path class="leader" d={`M${brX} ${brMid} H${L.x} V${L.y - ringR}`}></path>
+      <path class="leader" d={`M${CS.x} ${leadY.toFixed(1)} H${L.x} V${L.y - ringR}`}></path>
       <circle class="ring" cx={L.x} cy={L.y} r={ringR}></circle>
-      <!-- (under the short leader by the bracket; with JS, where the cost column moved left and the
-           leader stretches across, over it at the field end by the ring: see shiftCost()) -->
-      <text class="link-lbl" x={brX + 8} y={brMid + 22} text-anchor="start">je Heliostat</text>
     </g>
 
     <rect class="tower" x={T.x} y={T.top} width={T.w} height={ground - T.top}></rect>
@@ -133,10 +136,9 @@ const { tower: T, receiver: R, ground } = FIELD;
     FIELD,
     ROWS,
     SUN_START,
-    COST_TOWER,
+    COST_SHEET,
     LINKED_MIRROR,
     clampSun,
-    costTotal,
     fieldEfficiency,
     poses,
     rayOpacity,
@@ -144,11 +146,8 @@ const { tower: T, receiver: R, ground } = FIELD;
   } from "../../lib/heliostat";
 
   const FRONT = ROWS.length - 1;
-  // the bracket over the cost column and the leader from its middle to the ringed heliostat
-  // (as in the server render above)
-  const BR_X = COST_TOWER.x + COST_TOWER.w + 12;
-  const BR_MID = FIELD.ground - costTotal / 2;
   const RING_R = 22;
+  const CS = COST_SHEET;
 
   for (const wrap of document.querySelectorAll<HTMLElement>("[data-field]")) {
     const svg = wrap.querySelector<SVGSVGElement>("[data-field-svg]")!;
@@ -167,49 +166,41 @@ const { tower: T, receiver: R, ground } = FIELD;
     // it, showing the scene from x 380 (chart to tower) at its own aspect.
     // Wide screens (owner 2026-10-06: everything sized and lined up, filling the section): the
     // text is the top row, the drawing the bottom row, lined up with the text's column: the
-    // cost column's left edge (with its labels) on the name's left edge, the receiver's right
-    // edge on the column's right edge. If the scene (ground to the top of the sun's arc, 430
+    // costing sheet's left edge on the name's left edge, the receiver's right edge on the
+    // column's right edge. If the scene (ground to the top of the sun's arc, 430
     // units) is too tall for the space under the text at that scale, it gets smaller and stays
     // on the right edge. The viewBox matches the SVG's box exactly.
     const wide = matchMedia("(min-width: 48rem)");
     const NARROW_X0 = 380;
     const SCENE_H = 430; // ground (500) to the top of the sun's arc (70)
     const SCENE_R = FIELD.receiver.x + 20; // the receiver's right edge
-    const costG = svg.querySelector<SVGGElement>(".cost")!;
+    const costG = svg.querySelector<SVGGElement>("[data-cost]")!;
     const leader = svg.querySelector<SVGPathElement>(".leader")!;
-    const linkLbl = svg.querySelector<SVGTextElement>(".link-lbl")!;
     const column = text.firstElementChild as HTMLElement | null;
     let skyTop = 0;
-    // Where the drawing is narrower than the column (limited by the height), the cost column
+    // Where the drawing is narrower than the column (limited by the height), the costing sheet
     // (Wirtschaft) moves left under the name, onto the column's left edge, and the dashed
     // leader to its heliostat (Technik) stretches across: the drawing spans the column at any
     // height (0 where the drawing spans the column anyway).
-    // the right edge of the cost column with its labels, as placed (viewBox units): the sun keeps
-    // right of it (the tall column's "Fertigungskosten" stands at the height of the sun's arc)
+    // the right edge of the sheet as placed (viewBox units): the sun keeps right of it
     let costR = -Infinity;
-    // The drawing's labels keep one size on screen (15px) instead of growing with the scaled-up
-    // drawing (a critic found them louder than the page text at 1920+): --u = viewBox units
-    // per screen px, used by the label CSS. Without JS they stay at their drawn size (u 1.133).
+    // The sheet keeps one size on screen instead of growing with the scaled-up drawing (as the
+    // drawing's labels did): uNow = viewBox units per screen px; k shrinks it where the space
+    // under the words is too low for it (short windows) or the phone strip too narrow.
     let uNow = 1.1333;
     const setLabelScale = (s: number) => {
       uNow = 1 / s;
-      svg.style.setProperty("--u", uNow.toFixed(4));
     };
+    const sheetOf = () => (wide.matches ? CS.full : CS.mini);
+    let k = 1;
     const shiftCost = (dx: number) => {
-      costG.setAttribute("transform", dx ? `translate(${dx.toFixed(1)} 0)` : "");
-      const bx = BR_X + dx;
-      leader.setAttribute("d", `M${bx.toFixed(1)} ${BR_MID} H${LINKED_MIRROR.x} V${LINKED_MIRROR.y - RING_R}`);
-      // "je Heliostat" over the leader by the ring; where the leader is too short for it (the
-      // column not moved), under the leader next to the bracket, as in the server render
-      const fits = LINKED_MIRROR.x - 12 - linkLbl.getComputedTextLength() > bx + 20 * uNow;
-      linkLbl.setAttribute("x", (fits ? LINKED_MIRROR.x - 12 : bx + 8).toFixed(1));
-      linkLbl.setAttribute("y", (fits ? BR_MID - 8 * uNow : BR_MID + 20 * uNow).toFixed(1));
-      linkLbl.setAttribute("text-anchor", fits ? "end" : "start");
-      const b = costG.getBBox();
-      costR = b.x + b.width + dx;
+      const x = CS.x + dx;
+      const g = uNow * k;
+      costG.setAttribute("transform", `translate(${x.toFixed(1)} ${(FIELD.ground - CS.lift * g).toFixed(1)}) scale(${g.toFixed(4)})`);
+      const ly = FIELD.ground - (CS.lift + sheetOf().h / 2) * g;
+      leader.setAttribute("d", `M${x.toFixed(1)} ${ly.toFixed(1)} H${LINKED_MIRROR.x} V${LINKED_MIRROR.y - RING_R}`);
+      costR = x;
     };
-    // the cost labels' right edge (they are right-aligned there, at a fixed screen size)
-    const LBL_X = COST_TOWER.x - 12;
     // the lowest edge of the words and the portrait, in px from the hero's top
     let textBottomPx = 0;
     const textRects = () =>
@@ -237,16 +228,24 @@ const { tower: T, receiver: R, ground } = FIELD;
         const colR = cr.right - parseFloat(cs.paddingRight) - r.left;
         // (24: air between the words and the top of the scene)
         const avail = r.height - textBottomPx - 24;
-        // The scene's left edge is the cost column incl. its labels (hidden below 64rem). The
-        // labels keep their screen width (labelPx) at any scale, so the width that fits the
-        // column is solved exactly: s * (SCENE_R - LBL_X) + labelPx = column width. (An
-        // estimate from the labels as last drawn made a fresh load and a resize disagree.)
-        const labelPx = Math.max(0, (LBL_X - costG.getBBox().x) / uNow);
+        // The scene's left edge is the sheet's, which keeps its screen width at any scale, so
+        // the width that fits the column is solved exactly: s * (SCENE_R - CS.x) + sheet px =
+        // column width. The sheet is at most 80 % of the scene's height (k), which changes its
+        // width, so solve twice.
         const colW = colR - colL;
-        const sWidth = labelPx > 0 ? (colW - labelPx) / (SCENE_R - LBL_X) : colW / (SCENE_R - COST_TOWER.x);
-        const s = Math.max(Math.min(sWidth, avail / SCENE_H), r.width / (FIELD.w - FIELD.x0));
+        const sh = CS.full;
+        // (ends on s, so the sheet's width and the scale it was solved with agree)
+        const solveS = () =>
+          Math.max(Math.min((colW - (sh.w + 5) * k) / (SCENE_R - CS.x), avail / SCENE_H), r.width / (FIELD.w - FIELD.x0));
+        k = 1;
+        let s = solveS();
+        for (let n = 0; n < 3; n++) {
+          k = Math.min(1, (0.8 * SCENE_H * s) / (sh.h + CS.lift));
+          s = solveS();
+        }
         setLabelScale(s);
-        const sceneL = labelPx > 0 ? LBL_X - labelPx / s : COST_TOWER.x;
+        // (+5: the sheet's slight tilt reaches past its left edge)
+        const sceneL = CS.x - ((sh.w + 5) * k) / s;
         W = r.width / s;
         H = r.height / s;
         // the receiver's right edge on the column's right edge
@@ -255,7 +254,10 @@ const { tower: T, receiver: R, ground } = FIELD;
         // = room on the left, so it moves there (only ever left, away from the field)
         shiftCost(Math.min(0, x0 + colL / s - sceneL));
       } else {
+        // phones: the small sheet, smaller still where it would reach past the strip's left edge
         setLabelScale(r.width / W);
+        // (16px clear of the screen edge)
+        k = Math.min(1, ((CS.x - x0) / uNow - 16) / CS.mini.w);
         shiftCost(0);
       }
       skyTop = FIELD.h - H;
@@ -388,8 +390,17 @@ const { tower: T, receiver: R, ground } = FIELD;
       // the pointer sun sits on the pointer (owner 2026-10-09: "the sun is not on my cursor";
       // keeping it right of / under the words pinned it to the window's edge on laptops), only
       // kept inside the visible drawing; place() keeps it above the mirrors
-      const x = Math.min(Math.max(pt.x, visLeft + 30), visRight - 30);
-      raf = requestAnimationFrame(() => place(x, pt.y));
+      let x = Math.min(Math.max(pt.x, visLeft + 30), visRight - 30);
+      let y = pt.y;
+      // ... except over the costing sheet, which hid the sun under its paper: there the sun and
+      // its halo stay just clear of it, above or right of it, whichever is the smaller move
+      const top = FIELD.ground - (CS.lift + sheetOf().h) * uNow * k;
+      const H = 75; // the halo (r 70) plus air
+      if (x < costR + H && y > top - H) {
+        if (costR + H - x < y - (top - H)) x = costR + H;
+        else y = top - H;
+      }
+      raf = requestAnimationFrame(() => place(x, y));
     };
     wrap.addEventListener("pointermove", follow);
     wrap.addEventListener("pointerdown", follow);
@@ -486,10 +497,9 @@ const { tower: T, receiver: R, ground } = FIELD;
        is set from 48rem below.) */
     overflow: hidden;
     touch-action: pan-y;
-    /* its own stacking group on the page colour, so slotted content can sit behind the
-       field (z-index -1) and still blend onto the paper */
+    /* its own stacking group, so slotted content can sit behind the field (z-index -1); no
+       background of its own: the day (dawn) and its light spots show through */
     isolation: isolate;
-    background: var(--bg);
   }
 
   /* the crosshair promises that the sun follows the pointer, which needs JS */
@@ -617,23 +627,76 @@ const { tower: T, receiver: R, ground } = FIELD;
     fill: var(--ink);
   }
 
-  /* the cost tower in colour (owner: more colour): the three validated chart hues, a 2px
-     paper gap between the segments; the price line in ink */
-  .cost .seg {
-    stroke: var(--bg);
-    stroke-width: 2;
-    vector-effect: non-scaling-stroke;
+  /* the costing sheet: paper with a hairline edge and a faint shadow, drawn in px (the script
+     scales its group to screen px); the full sheet from 48rem, the result alone on phones */
+  .paper {
+    fill: var(--paper);
+    stroke: var(--line);
+    filter: drop-shadow(0 3px 6px rgb(15 27 45 / 0.12));
   }
-  .cost .s0 {
+  .s-title {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 600;
+    fill: var(--ink);
+  }
+  .s-lbl,
+  .s-note {
+    font-family: var(--sans);
+    font-size: 14px;
+    fill: var(--ink-2);
+  }
+  .s-note {
+    font-size: 13px;
+  }
+  .s-sum {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 700;
+    fill: var(--ink);
+  }
+  .s-total {
+    font-family: var(--serif);
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    fill: var(--ink);
+  }
+  .s-total.small {
+    font-size: 24px;
+  }
+  .s-hair {
+    stroke: var(--line);
+  }
+  .s-rule {
+    stroke: var(--ink);
+    stroke-width: 1.5;
+  }
+  .s-rule.thin {
+    stroke-width: 1.2;
+  }
+  /* the three cost types in the validated chart hues */
+  .b0 {
     fill: var(--c-edu);
   }
-  .cost .s1 {
+  .b1 {
     fill: var(--c-work);
   }
-  .cost .s2 {
+  .b2 {
     fill: var(--c-thesis);
   }
-  .bracket,
+  .sheet-mini {
+    display: none;
+  }
+  @media (max-width: 47.99rem) {
+    .sheet-full {
+      display: none;
+    }
+    .sheet-mini {
+      display: inline;
+    }
+  }
+
   .leader {
     fill: none;
     stroke: var(--ink);
@@ -650,37 +713,6 @@ const { tower: T, receiver: R, ground } = FIELD;
     stroke: var(--ink);
     stroke-width: 1.5;
     vector-effect: non-scaling-stroke;
-  }
-
-  /* the labels keep 15px on screen at any scale of the drawing (--u from the script: viewBox
-     units per screen px); without JS their drawn size (17 / 16 units). Medium, not bold: the
-     annotations shouldn't outweigh the page's own text (a critic, 2026-10-06) */
-  .link-lbl {
-    font-family: var(--sans);
-    font-size: calc(var(--u, 1.0667) * 15px);
-    font-weight: 500;
-    fill: var(--ink);
-  }
-
-  .cost-lbl,
-  .price-lbl {
-    font-family: var(--sans);
-    font-size: calc(var(--u, 1.1333) * 15px);
-    fill: var(--ink-2);
-  }
-
-  .price-lbl {
-    fill: var(--ink);
-    font-weight: 500;
-  }
-
-  /* below 64rem the scene is drawn too small for readable labels (7-8px at 768) */
-  @media (max-width: 63.99rem) {
-    .cost-lbl,
-    .price-lbl,
-    .link-lbl {
-      display: none;
-    }
   }
 
   .rec-glow {

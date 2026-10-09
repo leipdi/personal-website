@@ -97,26 +97,28 @@ export function receiverGlow(eff: number) {
 
 export const f1 = (n: number) => n.toFixed(1);
 
-// The economics side of the hero (owner's pick 2026-10-02 from mockups, reworked): a price
-// calculation as one stacked column on the same ground line, a counterpart to the solar
-// tower: Material + Fertigung + Gemeinkosten, with a bracket over the whole column naming
-// them "Fertigungskosten" (owner's wording). A leader runs from the bracket to the first heliostat of the field, ringed: the
-// column is the cost of one of these mirrors (the owner's Bachelor thesis was exactly that).
-// Static: a version whose price followed the pointer sun made no sense to the owner. The
-// split is illustrative, not thesis data.
-export const COST_TOWER = {
-  x: 650, // left edge of the column (its labels clear of the portrait at every width)
-  w: 50,
-  parts: [
-    // (tall since 2026-10-06: in the two-row hero it stands under the name as the tower's
-    // counterweight; a critic found the low column dwarfed by the tower)
-    { name: "Material", h: 150 },
-    { name: "Fertigung", h: 96 },
-    { name: "Gemeinkosten", h: 68 },
+// The economics side of the hero: a costing sheet on the ground (owner's pick 2026-10-09,
+// mockup C, after a stacked cost column that showed a split but no price): the calculation
+// scheme Material + Fertigung + Gemeinkosten = Herstellkosten, double underlined, with the
+// real result of the owner's Bachelor thesis (about 116 € per heliostat in series, 58 €/m² of
+// mirror; cv.ts). The bars are illustrative, not thesis data. A dashed leader runs from the
+// sheet to the first heliostat of the field, ringed: the sheet is the cost of one of these.
+// The sheet is drawn in screen px (its own group, scaled by the drawing's units per px), so it
+// keeps one readable size at any scale of the drawing; x = its right edge in viewBox units,
+// on the ground. Phones get a small version with just the result.
+export const COST_SHEET = {
+  x: 760,
+  lift: 10, // px above the ground line
+  full: { w: 300, h: 252 },
+  mini: { w: 116, h: 60 }, // phones: "≈ 116 €" over "je Heliostat"
+  rows: [
+    { name: "Material", v: 150 },
+    { name: "+ Fertigung", v: 96 },
+    { name: "+ Gemeinkosten", v: 68 },
   ],
+  total: "116 €",
+  perM2: "58 €/m² Spiegelfläche, in Serie",
 };
 
-export const costTotal = COST_TOWER.parts.reduce((s, p) => s + p.h, 0);
-
-// the heliostat the column is about: the first one of the front row, and where its pivot is
+// the heliostat the sheet is about: the first one of the front row, and where its pivot is
 export const LINKED_MIRROR = { x: FIELD.first, y: FIELD.ground - ROWS[ROWS.length - 1].post };
