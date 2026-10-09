@@ -314,6 +314,7 @@ const { tower: T, receiver: R, ground } = FIELD;
     let band = false;
     // the right edge of what is visible of the drawing (viewBox units)
     let visRight = Infinity;
+    let visLeft = -Infinity;
     // the words' lowest edge in viewBox units, and the peak of the sun's day arc
     let textBottomU = -Infinity;
     let peakY = 70;
@@ -322,6 +323,7 @@ const { tower: T, receiver: R, ground } = FIELD;
       const visL = toFieldX(box.left);
       const visR = toFieldX(box.right);
       if (visR !== null) visRight = visR;
+      if (visL !== null) visLeft = visL;
       const m = svg.getScreenCTM();
       if (visL === null || visR === null || !m) return;
       let textR = -Infinity;
@@ -386,14 +388,11 @@ const { tower: T, receiver: R, ground } = FIELD;
       if (!pt) return;
       active = true;
       cancelAnimationFrame(raf);
-      // the pointer sun stays over the field: never over the cost tower, and off the words and
-      // the portrait (75: its halo, r 70, stays off them too): under them in the band layout,
-      // right of them otherwise
-      const x = Math.min(Math.max(pt.x, band ? -Infinity : blockR + 75, FIELD.first + 30, costR + 75), visRight - 30);
-      // (85: the halo, r 70, plus air under the words; and the disc stays inside the visible drawing,
-      // or at the right edge it was cut by the window, its halo on the claim)
-      const y = band && x < blockR + 85 ? Math.max(pt.y, textBottomU + 85) : pt.y;
-      raf = requestAnimationFrame(() => place(x, y));
+      // the pointer sun sits on the pointer (owner 2026-10-09: "the sun is not on my cursor";
+      // keeping it right of / under the words pinned it to the window's edge on laptops), only
+      // kept inside the visible drawing; place() keeps it above the mirrors
+      const x = Math.min(Math.max(pt.x, visLeft + 30), visRight - 30);
+      raf = requestAnimationFrame(() => place(x, pt.y));
     };
     wrap.addEventListener("pointermove", follow);
     wrap.addEventListener("pointerdown", follow);
