@@ -218,8 +218,11 @@ const order = (g: (typeof groups)[number], i: number) => (g.id === "lang" ? grou
 
   /* wide: the pillars stand on one ground line, Software and Sprachen side by side */
   @media (min-width: 48rem) {
+    /* top-aligned (owner 2026-10-09: Software and Sprachen on the same level): every pillar has
+       the same label height and block stack, so both headings and both ground lines line up;
+       bottom-aligned, Software's two-line names pushed Sprachen down */
     .yard {
-      align-items: end;
+      align-items: start;
       gap: var(--sp-gap);
       padding-bottom: 0;
       border-bottom: 1.5px solid var(--ink);
