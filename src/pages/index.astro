@@ -86,9 +86,12 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
                       </li>
                     ))}
                   </ul>
-                  <div class="sheet-meta">
-                    {s.tools.length > 0 && (
-                      <ul class="tools" aria-label="Software">
+                </div>
+                <div class="sheet-meta" data-kk-fade>
+                  {s.tools.length > 0 && (
+                    <div class="sw">
+                      <p class="lbl" id={`sw-${s.id}`}>Software</p>
+                      <ul class="tools" aria-labelledby={`sw-${s.id}`}>
                         {s.tools.map((key) => {
                           const t = tool(key);
                           return t.svg ? (
@@ -107,18 +110,9 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
                           );
                         })}
                       </ul>
-                    )}
-                    {s.toolsQuestion && <p class="tools-open">{s.toolsQuestion}</p>}
-                    <p class="skill-src">
-                      <span class="lbl">Gelernt bei</span>{" "}
-                      {s.learned.map((l, k) => (
-                        <>
-                          {k > 0 && ", "}
-                          <a href={l.href}>{l.label}</a>
-                        </>
-                      ))}
-                    </p>
-                  </div>
+                    </div>
+                  )}
+                  {s.toolsQuestion && <p class="tools-open">{s.toolsQuestion}</p>}
                 </div>
                 <div class="sheet-pic" data-kk-fade>
                   <img src={arts[s.id].src} alt={arts[s.id].alt} width="520" height="351" loading="lazy" decoding="async" />
@@ -153,6 +147,7 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
   const sheets = [...document.querySelectorAll<HTMLElement>("[data-kk-panel]")];
   if (pile && sheets.length) {
     const fades = sheets.map((s) => [...s.querySelectorAll<HTMLElement>("[data-kk-fade]")]);
+    const metas = sheets.map((s) => s.querySelector<HTMLElement>(".sheet-meta")!);
     const topBar = document.querySelector<HTMLElement>(".top");
     const wide = matchMedia("(min-width: 56rem)");
     const reduce = matchMedia("(prefers-reduced-motion: reduce)");
@@ -172,6 +167,7 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
       pile.classList.remove("is-pile");
       delete pile.dataset.fit;
       pile.style.removeProperty("--kk-h");
+      pile.style.removeProperty("--kk-meta");
       sheets.forEach((s) => {
         s.style.removeProperty("--stick");
         s.style.removeProperty("--gap");
@@ -194,7 +190,11 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
           if (fit) pile.dataset.fit = fit;
           else delete pile.dataset.fit;
           air = fit ? rem / 2 : rem;
-          tab = sheets[0].querySelector<HTMLElement>(".sheet-head")!.offsetHeight;
+          // the software block one height on every sheet, so "Software" stands at one place
+          pile.style.removeProperty("--kk-meta");
+          const metaH = Math.max(...metas.map((m) => m.offsetHeight));
+          pile.style.setProperty("--kk-meta", `${metaH}px`);
+          tab =sheets[0].querySelector<HTMLElement>(".sheet-head")!.offsetHeight;
           H = Math.ceil(Math.max(...sheets.map((s) => s.offsetHeight)));
           if (base + air + (n - 1) * tab + H <= innerHeight - air) {
             on = true;
@@ -526,7 +526,7 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
     display: flex;
     flex-direction: column;
     min-width: 0;
-    padding: 1.25rem 0;
+    padding-top: 1.25rem;
   }
 
   /* main points in the serif with an ink disc; their sub-points smaller in the grotesk, the
@@ -582,14 +582,21 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
     border-top: 1.5px solid var(--steel);
   }
 
-  /* software and where it comes from, under the points */
+  /* software and where it comes from, under the points (in the tightest pile: under the picture) */
   .sheet-meta {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    min-width: 0;
     margin-top: var(--sp-gap);
-    padding-top: 1rem;
+    padding: 1rem 0 1.25rem;
     border-top: 1px solid var(--line);
+  }
+
+  /* "Software" over the logos */
+  .sw {
+    display: grid;
+    gap: 0.4rem;
   }
 
   /* the picture on its own light ground, a panel set off by a hairline; its edges fade into
@@ -635,12 +642,24 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
   @media (min-width: 56rem) {
     .sheet {
       grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-      grid-template-rows: auto minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      grid-template-areas: "head head" "text pic" "meta pic";
+    }
+    .sheet-head {
+      grid-area: head;
     }
     .sheet-text {
+      grid-area: text;
       padding-right: var(--sp-gap);
     }
+    /* at the card's foot; in the pile (all sheets one height, this block one height via
+       --kk-meta) "Software" stands at the same place on every sheet */
+    .sheet-meta {
+      grid-area: meta;
+      margin-right: var(--sp-gap);
+    }
     .sheet-pic {
+      grid-area: pic;
       aspect-ratio: auto;
       max-height: none;
       min-height: 14rem;
@@ -680,7 +699,13 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
   }
 
   .is-pile .sheet-text {
-    padding: var(--pad);
+    padding: var(--pad) var(--pad) 0;
+  }
+
+  .is-pile .sheet-meta {
+    min-height: var(--kk-meta, auto);
+    margin-inline: var(--pad);
+    padding-bottom: var(--pad);
   }
 
   /* Short windows (laptops: 600-730px under the browser's bars): the script steps the pile's
@@ -698,7 +723,7 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
   }
 
   .is-pile[data-fit] .sheet-text {
-    padding-block: 0.9rem;
+    padding-top: 0.9rem;
   }
 
   .is-pile[data-fit] .proof {
@@ -713,7 +738,7 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
   .is-pile[data-fit] .sheet-meta {
     gap: 0.5rem;
     margin-top: 1rem;
-    padding-top: 0.7rem;
+    padding-block: 0.7rem 0.9rem;
   }
 
   .is-pile[data-fit="tight"] .sheet-head {
@@ -744,7 +769,7 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
 
   .is-pile[data-fit="tight"] .sheet-meta {
     margin-top: 0.7rem;
-    padding-top: 0.5rem;
+    padding-block: 0.5rem 0.7rem;
   }
 
   .pile.is-measuring,
@@ -823,30 +848,6 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
     padding: 0.45rem 0.7rem;
     max-width: 30rem;
     overflow-wrap: anywhere;
-  }
-
-  .skill-src {
-    font-size: 0.875rem;
-    line-height: 1.5;
-    color: var(--ink-2);
-  }
-
-  .skill-src a {
-    color: var(--ink-2);
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.2em;
-    text-decoration-color: var(--steel);
-  }
-
-  .skill-src a:hover {
-    color: var(--ink);
-    text-decoration-thickness: 3px;
-    text-decoration-color: var(--ink);
-  }
-
-  .skill-src a:focus-visible {
-    outline-offset: 1px;
   }
 
 </style>

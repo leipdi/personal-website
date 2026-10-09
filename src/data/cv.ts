@@ -414,7 +414,7 @@ export const topSkills: TopSkill[] = [
     title: "Bauteilkostenkalkulation",
     proof: [
       {
-        text: "Bottom-Up-Kostenmodell für den Stahlbau von Heliostaten",
+        text: "Bachelorarbeit beim DLR: Herstellkostenanalyse eines Heliostaten",
         sub: [
           "Aus den CAD-Daten Fertigungsstücklisten und Baumstrukturen abgeleitet",
           "Je Bauteil ein Verfahren gewählt, Bearbeitungszeiten, Maschinenstundensätze und Materialkosten berechnet",
@@ -422,25 +422,37 @@ export const topSkills: TopSkill[] = [
         ],
       },
       {
-        text: "Bachelorarbeit am DLR, veröffentlicht bei SolarPACES",
-        sub: ["Kalkulationssoftware verglichen; Costing24 ließ sich nur teilweise nutzen"],
+        text: "Ringprojekt im Studium: Turbolader als Gruppe konstruiert und hergestellt, meine Aufgabe PPS",
+        sub: ["Planung und Steuerung der Laborbesuche",
+          "Herstellkosten anhand von Materialdaten und Maschinendaten",
+          "Vorstellen der Ergebnisse an ein Plenum"],
       },
     ],
     // Software laut Daniel (2026-09-25): CAD in Inventor, Kalkulation per Hand in Excel
     tools: ["Autodesk Inventor", "Excel"],
-    learned: [{ label: "Bachelorarbeit am DLR", href: "#bachelorarbeit" }],
+    learned: [
+      { label: "Bachelorarbeit am DLR", href: "#bachelorarbeit" },
+      { label: "Ringprojekt (B.Eng.)", href: "#bachelor" },
+    ],
   },
   {
     id: "data",
     title: "Data & AI",
     proof: [
       {
-        text: "ETL-Strecken und Berichte in Power BI und Jedox",
-        sub: ["ETL-Strecken für Kunden und intern aufgebaut", "Kunden die Lösung vorgestellt"],
+        text: "Praktikum bei Atvisio",
+        sub: [
+          "ETL-Strecken für Kunden und intern aufgebaut",
+          "Kunden die Lösung vorgestellt",
+          "Webinar sowie Schulung zu Copilot in Power BI konzipiert",
+        ],
       },
       {
-        text: "Selbst konzipierte Schulung zu Copilot in Power BI",
-        sub: ["Im Praktikum BI Consulting bei ATVISIO, seit Mai 2026"],
+        text: "KI Enthusiast",
+        sub: [
+          "KOMAcons GmbH: Integration eines geeigneten KI-Tools + Schulung der MA",
+          "„Vibe Coding“ Beispiele: Portfolio Website",
+        ],
       },
     ],
     // Python und Jedox auf Wunsch von Daniel (2026-09-25) nicht als Software-Logo
@@ -455,18 +467,27 @@ export const topSkills: TopSkill[] = [
     title: "Prozesse und Projekte",
     proof: [
       {
-        text: "Timebutler eingeführt, Kolleg:innen geschult",
-        sub: ["Neues Zeiterfassungssystem bei IGH Infotec", "Lean Six Sigma Yellow Belt (2025)"],
+        text: "Werkstudent Finanzen & Controlling bei IGH Infotec",
+        sub: ["Timebutler als neue Zeiterfassung eingeführt, die Kolleg:innen geschult"],
       },
       {
-        text: "Kundentermine vor- und nachbereitet",
-        sub: ["SAP-Tabellen in Kundensystemen gepflegt", "In Produktions- und Logistikfragen beraten"],
+        text: "Praktikum Projektmanagement bei IGH Infotec",
+        sub: [
+          "Kundentermine vor- und nachbereitet, SAP-Tabellen beim Kunden gepflegt",
+          "In Produktions- und Logistikfragen beraten",
+        ],
       },
+      {
+        text: "Ringprojekt (siehe auch Bauteilkostenkalkulation)",
+        sub: ["Planung und Steuerung der Laborbesuche", "Vorstellen der Ergebnisse an ein Plenum"],
+      },
+      { text: "Lean Six Sigma Yellow Belt (2025)" },
     ],
     tools: ["Timebutler", "SAP"],
     learned: [
       { label: "Timebutler-Einführung (IGH Infotec)", href: "#werkstudent-controlling" },
       { label: "Praktikum Projektmanagement (IGH Infotec)", href: "#praktikum-pm" },
+      { label: "Ringprojekt (B.Eng.)", href: "#bachelor" },
       { label: "Lean Six Sigma Yellow Belt", href: "#z-lean-six-sigma" },
     ],
   },
@@ -475,12 +496,12 @@ export const topSkills: TopSkill[] = [
     title: "Controlling",
     proof: [
       {
-        text: "Ein Jahr Mitarbeitercontrolling und Monatsabschlüsse",
-        sub: ["Mit Excel und Pivot-Tabellen", "Werkstudent Finanzen & Controlling bei IGH Infotec, Feb 2023 bis Feb 2024"],
-      },
-      {
-        text: "Operative Aufgaben im Tagesgeschäft",
-        sub: ["Rechnungen überprüft und eingescannt", "Offene Forderungen nachgehalten"],
+        text: "Werkstudent Finanzen & Controlling bei IGH Infotec, Feb 2023 bis Feb 2024",
+        sub: [
+          "Ein Jahr Mitarbeitercontrolling und Monatsabschlüsse mit Excel und Pivot-Tabellen",
+          "Operative Aufgaben im Tagesgeschäft: Rechnungen überprüft und eingescannt",
+          "Offene Forderungen nachgehalten",
+        ],
       },
     ],
     tools: ["Excel"],
