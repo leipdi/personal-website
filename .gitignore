@@ -33,3 +33,10 @@ pnpm-debug.log*
 # QA run output (qa/check.mjs)
 /qa/shots/
 /qa/last-report.json
+
+# editor/agent folders: shared config is committed, personal files are not
+.claude/settings.local.json
+.claude/**/*.local.*
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
