@@ -1,6 +1,5 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import Placeholder from "../components/Placeholder.astro";
 import HeliostatField from "../components/figures/HeliostatField.astro";
 import Werdegang from "../components/sections/Werdegang.astro";
 import Kenntnisse from "../components/sections/Kenntnisse.astro";
@@ -22,6 +21,16 @@ const arts: Record<TopSkillId, { src: string; alt: string }> = {
   data: { src: "/img/kompetenzen/data.webp", alt: "Dokumente, ein Server und eine Tabelle fließen in einen Baustein und werden zu einem Balkendiagramm" },
   prozesse: { src: "/img/kompetenzen/prozesse.webp", alt: "Prozessdiagramm mit zwei Bahnen, einer Entscheidung und einer abgehakten Checkliste" },
   controlling: { src: "/img/kompetenzen/controlling.webp", alt: "Aufgeschlagenes Kassenbuch, Belegstapel, Balkendiagramm, Taschenrechner und Münzen" },
+};
+
+// a line icon before each card title (owner 2026-10-09, variant A from
+// .superpowers/brainstorm/kk-icons.html): ink, 1.5 stroke on a 24 grid, like the card drawings;
+// the cost column with its bracket is the hero's cost tower
+const icons: Record<TopSkillId, string> = {
+  kosten: '<rect x="6" y="5" width="7" height="15"/><path d="M6 10h7M6 15h7M16.5 5h1.5v15h-1.5"/>',
+  data: '<ellipse cx="10" cy="6" rx="6.5" ry="2.5"/><path d="M3.5 6v11.5c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5V6M3.5 11.8c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5M20 2.5v4M18 4.5h4"/>',
+  prozesse: '<rect x="2.5" y="11" width="6" height="6"/><rect x="15.5" y="11" width="6" height="6"/><path d="M8.5 14h7M13 11.5l2.5 2.5-2.5 2.5M18.5 11V6.5h-13V11M7.5 8.5 5.5 11 3.5 8.5"/>',
+  controlling: '<path d="M3 20.5h18"/><rect x="5" y="13" width="3.5" height="7.5"/><rect x="10.25" y="9" width="3.5" height="11.5"/><rect x="15.5" y="4.5" width="3.5" height="16"/>',
 };
 
 // neutral and factual (name, role, fields named in the CV): the AI-drafted claim must not end up in search results
@@ -55,16 +64,13 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
   <section id="kompetenzen" class="kk" aria-labelledby="h-kk">
     <div class="wrap">
       <h2 id="h-kk" class="display page-title kk-head">Kern&shy;kompetenzen</h2>
-      <Placeholder
-        kind="vorschlag"
-        note="Punkte, Unterpunkte und Zuordnung von Stationen und Software KI-abgeleitet; gestrichelte Logos sind Logo-Platzhalter"
-      >
         <ol class="pile" data-kk>
           {
             topSkills.map((s, i) => (
               <li class="sheet" id={`kk-${s.id}`} data-kk-panel data-kk-card aria-labelledby={`sk-${s.id}`} style={`--i: ${i}`}>
                 <div class="sheet-head">
                   <h3 id={`sk-${s.id}`} class="sheet-title">
+                    <svg class="sheet-icon" viewBox="0 0 24 24" aria-hidden="true" set:html={icons[s.id]} />
                     <a href={`#kk-${s.id}`}>{displayTitle(s.title)}</a>
                   </h3>
                   <span class="sheet-of" aria-label={`${i + 1} von ${topSkills.length}`}>
@@ -122,7 +128,6 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
             ))
           }
         </ol>
-      </Placeholder>
     </div>
   </section>
 
@@ -503,6 +508,20 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
     letter-spacing: -0.015em;
     hyphens: manual;
     overflow-wrap: anywhere;
+  }
+
+  /* the line icon before the title, sized by the title (so every fit level shrinks it too) */
+  .sheet-icon {
+    display: inline-block;
+    width: 0.85em;
+    height: 0.85em;
+    margin-right: 0.3em;
+    vertical-align: -0.1em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
   .sheet-title a {

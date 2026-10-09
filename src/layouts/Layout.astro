@@ -32,10 +32,6 @@ const { title, description } = Astro.props;
     <a href="#inhalt" class="skip">Zum Inhalt springen</a>
 
 
-    <!-- remove once every Placeholder / ImagePlaceholder is replaced -->
-    <p class="draft-note">
-      Entwurf: Magenta markierte Stellen sind KI-Platzhalter (Texte, Daten, Bildideen) und werden noch ersetzt.
-    </p>
 
     <header class="top is-hero">
       <div class="wrap top-in">
@@ -150,15 +146,6 @@ const { title, description } = Astro.props;
 
 
 <style>
-  .draft-note {
-    background: var(--ph);
-    color: #fff;
-    font-size: 0.8125rem;
-    line-height: 1.4;
-    padding: 0.4rem 1.25rem;
-    text-align: center;
-  }
-
   /* fixed, so focusing it doesn't scroll the page to the top */
   .skip {
     position: fixed;

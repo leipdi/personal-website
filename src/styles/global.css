@@ -38,6 +38,9 @@
   --c-edu: #2f55c7; /* Ausbildung */
   --c-thesis: #b4532a; /* Abschlussarbeiten: Ziegel (was Senf #c98500, read as sun yellow) */
   --c-work: #0e9384; /* Praxis */
+  /* Kenntnisse: the KI pillars under Software, a violet step away from its cobalt (owner
+     2026-10-09: "slightly different color"); fill only, never text */
+  --c-ai: #6a4fc4;
   /* Placeholder marker for AI-drafted content (components/Placeholder, ImagePlaceholder).
      Not part of the palette: it should look like scaffolding. 7:1 on --bg. */
   --ph: #a3175f;

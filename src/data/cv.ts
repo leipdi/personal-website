@@ -1,15 +1,15 @@
 // Quelle: Lebenslauf (PDF) + LinkedIn-Datenexport.
 //
-// KI-PLATZHALTER: Fakten (Titel, Arbeitgeber, Orte, Zeiträume, Noten, Software-Einstufungen,
+// Fakten (Titel, Arbeitgeber, Orte, Zeiträume, Noten, Software-Einstufungen,
 // Zertifikate, Kontaktdaten) stammen aus CV/LinkedIn. Alle Fließtexte und Zuordnungen sind
-// dagegen KI-Entwürfe und auf der Seite magenta als Platzhalter markiert:
+// dagegen aus KI-Entwürfen entstanden (seit 2026-10-09 von Daniel übernommen, auf der Seite
+// nicht mehr markiert):
 //   profile.claim, career[].story, projects[].title/context/approach/result,
 //   topSkills (komplett: Auswahl, Titel, Belegzeilen, Zuordnung von Stationen und Software),
 //   competencies[].skill (Zuordnung CV-Methode -> Kernkompetenz), notes.
 // Seit 2026-09-26 stützen sich die Texte zu Bachelor- und Masterarbeit (career-Stories, projects)
 // zusätzlich auf die beiden Abschlussarbeiten ("Input Data/", nicht im Repo). Daniel hat die
 // Veröffentlichung trotz Sperrvermerk freigegeben. Zahlen daraus sind echt, die Formulierung KI.
-// Beim Ersetzen durch eigene Texte auch den <Placeholder>-Wrapper in der Seite entfernen.
 // profile.claim: *Wort* wird kursiv gesetzt (Betonung, index.astro).
 
 export const profile = {
@@ -342,7 +342,12 @@ export const projects: Project[] = [
   },
 ];
 
-export type RatedSkill = { name: string; level: 1 | 2 | 3 | 4 | 5; levelLabel: string; group: "Software & BI" | "Sprachen" };
+export type RatedSkill = {
+  name: string;
+  level: 1 | 2 | 3 | 4 | 5;
+  levelLabel: string;
+  group: "Software & BI" | "KI" | "Sprachen";
+};
 
 // Nur Skills mit expliziter Selbsteinschätzung im Original-CV, keine geschätzten Werte.
 export const ratedSkills: RatedSkill[] = [
@@ -352,6 +357,12 @@ export const ratedSkills: RatedSkill[] = [
   { name: "Jedox", level: 2, levelLabel: "Grundkenntnisse", group: "Software & BI" },
   { name: "Autodesk Fusion", level: 2, levelLabel: "Grundkenntnisse", group: "Software & BI" },
   { name: "Autodesk Inventor", level: 2, levelLabel: "Grundkenntnisse", group: "Software & BI" },
+  // KI-Kenntnisse: Auswahl und Stufen von Daniel abgestimmt (2026-10-09), nicht aus dem CV.
+  { name: "Agentic Coding", level: 4, levelLabel: "gut", group: "KI" },
+  { name: "Prompt & Context Engineering", level: 4, levelLabel: "gut", group: "KI" },
+  { name: "Multi-Agent-Workflows", level: 3, levelLabel: "fortgeschritten", group: "KI" },
+  { name: "MCP & Connectors", level: 3, levelLabel: "fortgeschritten", group: "KI" },
+  { name: "Skills & Plugins", level: 3, levelLabel: "fortgeschritten", group: "KI" },
   { name: "Deutsch", level: 5, levelLabel: "Muttersprache", group: "Sprachen" },
   { name: "Englisch", level: 4, levelLabel: "C1", group: "Sprachen" },
 ];
