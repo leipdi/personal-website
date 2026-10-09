@@ -7,10 +7,13 @@ import { ratedSkills, otherCompetencies, certifications } from "../../data/cv";
 // level word sits on top. Phones: the pillars lie down as bars. Only what the CV rates.
 const groups = [
   { id: "sw", name: "Software", skills: ratedSkills.filter((s) => s.group === "Software & BI") },
+  // KI-Kenntnisse under Software (owner 2026-10-09), in a colour a step away from Software's
+  { id: "ai", name: "KI", skills: ratedSkills.filter((s) => s.group === "KI") },
   { id: "lang", name: "Sprachen", skills: ratedSkills.filter((s) => s.group === "Sprachen") },
 ];
 const SLOTS = 5;
-// each pillar's place in the build-up animation (Software first, then Sprachen)
+// each pillar's place in the build-up animation (Software first, then Sprachen; KI is a row of
+// its own and builds when it scrolls in)
 const order = (g: (typeof groups)[number], i: number) => (g.id === "lang" ? groups[0].skills.length : 0) + i;
 ---
 
@@ -18,14 +21,14 @@ const order = (g: (typeof groups)[number], i: number) => (g.id === "lang" ? grou
   <div class="wrap page">
     <h2 id="h-kenntnisse" class="display page-title">Kenntnisse</h2>
 
-    <div class="yard" data-pillars>
+    <div class="yard">
       {
         groups.map((g) => (
-          <section class:list={["grp", `grp-${g.id}`]} aria-labelledby={`k-${g.id}`}>
+          <section class:list={["grp", `grp-${g.id}`]} aria-labelledby={`k-${g.id}`} data-pillars>
             <h3 id={`k-${g.id}`} class="grp-name">
               {g.name}
             </h3>
-            <ul class="pillars">
+            <ul class="pillars" style={g.id !== groups[0].id ? `--cols:${groups[0].skills.length}` : undefined}>
               {g.skills.map((s, i) => (
                 <li class="pillar" style={`--lv:${s.level};--p:${order(g, i)}`}>
                   <span class="lvl">{s.levelLabel.replace("Grundkenntnisse", "Grund\u00adkenntnisse")}</span>
@@ -73,18 +76,24 @@ const order = (g: (typeof groups)[number], i: number) => (g.id === "lang" ? grou
   // the pillars are built when they scroll into view (owner 2026-10-03): the dashed scaffold
   // first, then the blocks drop onto the stack one by one, pillar by pillar; again each time
   // the reader comes back from above (not with reduced motion; without JS they just stand)
-  const yard = document.querySelector<HTMLElement>("[data-pillars]");
-  if (yard && !matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window) {
-    yard.classList.add("is-waiting");
+  // each group on its own, so the KI row under Software builds when it comes into view
+  const grps = document.querySelectorAll<HTMLElement>("[data-pillars]");
+  if (grps.length && !matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window) {
     const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.intersectionRatio >= 0.35) yard.classList.remove("is-waiting");
-        // fully out of view below the window (scrolled back up): ready to build again
-        else if (!e.isIntersecting && e.boundingClientRect.top > 0) yard.classList.add("is-waiting");
+      (entries) => {
+        for (const e of entries) {
+          const g = e.target as HTMLElement;
+          if (e.intersectionRatio >= 0.35) g.classList.remove("is-waiting");
+          // fully out of view below the window (scrolled back up): ready to build again
+          else if (!e.isIntersecting && e.boundingClientRect.top > 0) g.classList.add("is-waiting");
+        }
       },
       { threshold: [0, 0.35] },
     );
-    io.observe(yard);
+    for (const g of grps) {
+      g.classList.add("is-waiting");
+      io.observe(g);
+    }
   }
 </script>
 
@@ -114,6 +123,26 @@ const order = (g: (typeof groups)[number], i: number) => (g.id === "lang" ? grou
   }
   .grp-lang {
     --c: var(--c-work);
+  }
+  .grp-ai {
+    --c: var(--c-ai);
+  }
+
+  /* KI follows Software in the reading order (phones and tablets); from 64rem Sprachen stands
+     beside Software and KI goes under it (side by side at 48rem the columns were 72px and
+     "fortgeschritten", "Engineering" ran into each other) */
+  @media (min-width: 64rem) {
+    .yard {
+      grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+    }
+    .grp-lang {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    .grp-ai {
+      grid-column: 1;
+      grid-row: 2;
+    }
   }
 
   /* phones: the pillars lie down, one bar per skill */
@@ -190,7 +219,6 @@ const order = (g: (typeof groups)[number], i: number) => (g.id === "lang" ? grou
   /* wide: the pillars stand on one ground line, Software and Sprachen side by side */
   @media (min-width: 48rem) {
     .yard {
-      grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
       align-items: end;
       gap: var(--sp-gap);
       padding-bottom: 0;
@@ -204,6 +232,18 @@ const order = (g: (typeof groups)[number], i: number) => (g.id === "lang" ? grou
       grid-auto-columns: minmax(0, 1fr);
       gap: clamp(0.75rem, 0.3rem + 1.4vw, 2rem);
       align-items: start;
+    }
+
+    /* the KI row stands on Software's columns, so its pillars line up under the ones above
+       (on tablets Sprachen too, as the third row) */
+    .grp-ai .pillars {
+      grid-auto-flow: row;
+      grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    }
+
+    /* English terms: break between words, not "Con-text" */
+    .grp-ai .nm {
+      hyphens: manual;
     }
 
     .pillar {
@@ -248,6 +288,14 @@ const order = (g: (typeof groups)[number], i: number) => (g.id === "lang" ? grou
       margin-top: 0.6rem;
       font-size: clamp(0.9375rem, 0.85rem + 0.3vw, 1.125rem);
       hyphens: auto;
+    }
+  }
+
+  /* tablets: Sprachen as a third row on Software's columns too */
+  @media (min-width: 48rem) and (max-width: 63.99rem) {
+    .grp-lang .pillars {
+      grid-auto-flow: row;
+      grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
     }
   }
 
