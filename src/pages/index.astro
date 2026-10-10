@@ -438,6 +438,11 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
     max-width: 24em;
     text-wrap: pretty;
   }
+  /* The italic is a text= subset whose ascent/descent differ from the full
+     font; a zero line box keeps the marked words from growing their line. */
+  .hero-claim em {
+    line-height: 0;
+  }
 
   /* The portrait directly beside the name (owner 2026-10-02): cut out of its studio
      background, exactly as tall as the name, with a hard foot. Behind
