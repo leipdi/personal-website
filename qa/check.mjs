@@ -226,6 +226,26 @@ async function checkSize(browser, { w, h }) {
     }
   }
 
+  // Hobbys: the 3D shelf builds once its stage is on screen (or steps aside cleanly without
+  // WebGL); console errors from it land in `errors` like any other. Headless software GL is
+  // slow, hence the long limit
+  {
+    const hb = await page.evaluate(async () => {
+      const st = document.querySelector("[data-stage]");
+      if (!st) return null;
+      st.scrollIntoView({ block: "center" });
+      const t0 = performance.now();
+      while (performance.now() - t0 < 45000) {
+        if (st.classList.contains("is-ready")) return { state: "ready", ms: Math.round(performance.now() - t0) };
+        if (st.closest(".no-3d")) return { state: "no-3d" };
+        await new Promise((r) => setTimeout(r, 250));
+      }
+      return { state: "timeout" };
+    });
+    if (hb?.state === "timeout") fails.push("Hobbys: the 3D shelf never finished building (45 s)");
+    else if (hb) notes.push(`Hobbys shelf: ${hb.state}${hb.ms ? ` after ${hb.ms} ms` : ""}`);
+  }
+
   // screenshots, one per section
   if (shots) {
     const dir = `qa/shots/${w}x${h}`;

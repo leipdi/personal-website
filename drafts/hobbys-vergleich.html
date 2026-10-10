@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hobbys Vergleich</title>
+<style>
+  /* Switches between the Hobbys shelf drafts, one at a time at full width (the 3D shelf
+     needs the room). Keys 1-3 switch too. */
+  :root { --ink: #0f1b2d; --paper: #fff; --bg: #f4f6f8; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body { display: flex; flex-direction: column; background: var(--bg); color: var(--ink); font: 15px/1.4 "Schibsted Grotesk", system-ui, sans-serif; }
+  nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; border-bottom: 1.5px solid var(--ink); background: var(--paper); }
+  nav b { font-weight: 700; }
+  .tabs { display: inline-flex; padding: 3px; border: 1.5px solid var(--ink); border-radius: 999px; }
+  .tabs button { padding: 0.35rem 0.9rem; border: 0; border-radius: 999px; background: transparent; font: 600 0.875rem inherit; color: inherit; cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--ink); color: var(--paper); }
+  nav small { color: #434f5e; }
+  iframe { flex: 1; width: 100%; border: 0; display: none; }
+  iframe.is-on { display: block; }
+</style>
+</head>
+<body>
+<nav>
+  <b>Hobbys-Regal</b>
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-i="0">1 3D neu</button>
+    <button role="tab" aria-selected="false" data-i="1">2 3D vorher</button>
+    <button role="tab" aria-selected="false" data-i="2">3 Fotos</button>
+  </div>
+  <small>Auf die Fächer zeigen, am Handy antippen. Tasten 1–3 wechseln.</small>
+</nav>
+<iframe class="is-on" src="hobbys-regal-3d-v4.html" title="3D-Regal neu"></iframe>
+<iframe data-src="hobbys-regal-3d.html" title="3D-Regal vorher"></iframe>
+<iframe data-src="hobbys-regal-foto.html" title="Regal mit Fotos"></iframe>
+<script>
+  const tabs = [...document.querySelectorAll("[role=tab]")];
+  const frames = [...document.querySelectorAll("iframe")];
+  const show = (i) => {
+    tabs.forEach((t, k) => t.setAttribute("aria-selected", String(k === i)));
+    frames.forEach((f, k) => {
+      f.classList.toggle("is-on", k === i);
+      if (k === i && !f.src) f.src = f.dataset.src; // load the 3D scene only when asked for
+    });
+  };
+  tabs.forEach((t, i) => t.addEventListener("click", () => show(i)));
+  addEventListener("keydown", (e) => { if (["1", "2", "3"].includes(e.key)) show(+e.key - 1); });
+</script>
+</body>
+</html>
