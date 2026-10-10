@@ -206,8 +206,8 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
         const base = topBar ? topBar.getBoundingClientRect().height : 0;
         // measure the natural heights in pile style, roomy first, then tighter (`data-fit`) until
         // the pile fits: laptop windows are often only 600-730px tall under the browser's bars.
-        // No transitions while measuring: with reduced motion global.css gives every element a
-        // 0.01ms one, and the old spacing would be measured.
+        // No transitions while measuring (`.is-measuring`): a running transition would leave the
+        // old spacing to be measured.
         pile.classList.add("is-pile", "is-measuring");
         let air = rem;
         for (const fit of FITS) {
