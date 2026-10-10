@@ -33,6 +33,8 @@ Design history, so a redesign doesn't circle back:
 - `npm run preview` — serve the production build locally (daemonizes; `npx astro preview stop` to stop)
 - `npx astro check` — type/diagnostics check
 - `npm run qa` — build + standard browser QA pass (`qa/check.mjs`, see Process note)
+- `node scripts/og-image.mjs` (after `npm run build`) — redraws the share preview `public/og.jpg` (1200x630 shot of the hero); rerun when the hero changes. Layout.astro carries the OG/Twitter tags, canonical and a schema.org `Person`; they need `SITE_URL` (set by the deploy) for absolute URLs.
+- Fonts: Newsreader italic is loaded only as a subset of the claim's `*marked*` letters (Layout.astro, `text=`); other italic text needs the full italic back in the font link.
 - **Deploy**: `.github/workflows/deploy.yml` (GitHub Actions → GitHub Pages) on every push to `master`; one-time setup: Settings → Pages → Source "GitHub Actions". It passes `SITE_URL`/`BASE_PATH` from `actions/configure-pages` to `astro.config.mjs`, so the site may live under `/<repo>/`: **every root-absolute path to a `public/` file or the page itself goes through `url()` from `src/lib/url.ts`** (`url("/img/…")`), never a bare `"/img/…"`. In-page anchors (`#werdegang`) and imported assets need nothing.
 
 ### Design concept (v4)
