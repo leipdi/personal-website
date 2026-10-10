@@ -174,9 +174,19 @@ const hobbies = [
     align-items: start;
   }
 
+  /* the list stands at the shelf's middle, not hugging its top (a critic found the shelf
+     floating beside a short list on wide screens, 2026-10-10); from 100rem the shelf takes
+     three quarters of the column */
   @media (min-width: 64rem) {
     .room {
       grid-template-columns: 8fr 4fr;
+      align-items: center;
+    }
+  }
+
+  @media (min-width: 100rem) {
+    .room {
+      grid-template-columns: 3fr 1fr;
     }
   }
 
@@ -184,7 +194,7 @@ const hobbies = [
   .stage {
     display: none;
     position: relative;
-    aspect-ratio: 16 / 10.5;
+    aspect-ratio: 16 / 10;
     touch-action: pan-y;
   }
 

@@ -222,7 +222,7 @@ export function initShelf(root: HTMLElement) {
     layoutKey = k;
     L = LAYOUTS[k];
     ({ W, H } = sizeOf(L));
-    stage.style.aspectRatio = k === "tall" ? "4 / 5" : "16 / 10.5";
+    stage.style.aspectRatio = k === "tall" ? "4 / 5" : "16 / 10";
     buildShelf();
     placeItems();
   }
