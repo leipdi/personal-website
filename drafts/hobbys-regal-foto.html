@@ -10,7 +10,7 @@
 <style>
   /* Mockup E (2026-10-10): the shelf of C/D, but with real photographed objects, as on
      devanshuchauhan.in (cut-out photos that come alive on hover). Free-licence photos, cut out
-     by scripts/cutout.mjs into public/img/hobbys/regal/ (credits.json). Still until pointed
+     by scripts/cutout.mjs into drafts/regal-img/ (credits.json). Still until pointed
      at; then the compartment lamp lights (sun yellow = light), the objects lift off the floor
      and each does one small thing. The list traces both ways; tap on phones. */
   :root {
@@ -214,39 +214,39 @@
       <div class="shelf" data-shelf>
 
         <button class="cell" type="button" data-id="fussball" data-side="out" aria-label="Fußball">
-          <span class="obj" style="--x: 10%; --w: 27%; --b: 9%"><img src="../public/img/hobbys/regal/fussballschuhe.webp" alt="" /></span>
-          <span class="obj roll" style="--x: 52%; --w: 32%; --b: 8%"><img src="../public/img/hobbys/regal/fussball.webp" alt="" /></span>
+          <span class="obj" style="--x: 10%; --w: 27%; --b: 9%"><img src="regal-img/fussballschuhe.webp" alt="" /></span>
+          <span class="obj roll" style="--x: 52%; --w: 32%; --b: 8%"><img src="regal-img/fussball.webp" alt="" /></span>
           <span class="dim"></span><span class="tag">Fußball</span>
         </button>
 
         <button class="cell" type="button" data-id="trainer" data-side="out" aria-label="Trainer">
-          <span class="obj bob" style="--x: 18%; --w: 64%; --b: 10%"><img src="../public/img/hobbys/regal/taktik-klemmbrett.webp" alt="" /></span>
+          <span class="obj bob" style="--x: 18%; --w: 64%; --b: 10%"><img src="regal-img/taktik-klemmbrett.webp" alt="" /></span>
           <span class="dim"></span><span class="tag">Trainer</span>
         </button>
 
         <button class="cell" type="button" data-id="basketball" data-side="out" aria-label="Basketball">
-          <span class="obj wall swing" style="--x: 50%; --w: 46%; --b: 34%"><img src="../public/img/hobbys/regal/basketballkorb.webp" alt="" /></span>
-          <span class="obj bounce" style="--x: 12%; --w: 30%; --b: 8%"><img src="../public/img/hobbys/regal/basketball.webp" alt="" /></span>
+          <span class="obj wall swing" style="--x: 50%; --w: 46%; --b: 34%"><img src="regal-img/basketballkorb.webp" alt="" /></span>
+          <span class="obj bounce" style="--x: 12%; --w: 30%; --b: 8%"><img src="regal-img/basketball.webp" alt="" /></span>
           <span class="dim"></span><span class="tag">Basketball</span>
         </button>
 
         <button class="cell" type="button" data-id="ausgehen" data-side="out" aria-label="Ausgehen">
           <span class="specks"></span>
-          <span class="obj hang sway" style="--x: 66%; --w: 20%; --t: 12%"><img src="../public/img/hobbys/regal/discokugel.webp" alt="" /></span>
-          <span class="obj tilt-r" style="--x: 14%; --w: 12%; --b: 9%"><img src="../public/img/hobbys/regal/bierflasche.webp" alt="" /></span>
-          <span class="obj tilt-l" style="--x: 32%; --w: 22%; --b: 8%"><img src="../public/img/hobbys/regal/cocktail.webp" alt="" /></span>
+          <span class="obj hang sway" style="--x: 66%; --w: 20%; --t: 12%"><img src="regal-img/discokugel.webp" alt="" /></span>
+          <span class="obj tilt-r" style="--x: 14%; --w: 12%; --b: 9%"><img src="regal-img/bierflasche.webp" alt="" /></span>
+          <span class="obj tilt-l" style="--x: 32%; --w: 22%; --b: 8%"><img src="regal-img/cocktail.webp" alt="" /></span>
           <span class="dim"></span><span class="tag">Ausgehen</span>
         </button>
 
         <button class="cell" type="button" data-id="gaming" data-side="in" aria-label="Gaming">
-          <span class="obj bob" style="--x: 44%; --w: 50%; --b: 14%"><img src="../public/img/hobbys/regal/kopfhoerer.webp" alt="" /></span>
-          <span class="obj rumble" style="--x: 8%; --w: 50%; --b: 8%"><img src="../public/img/hobbys/regal/controller.webp" alt="" /></span>
+          <span class="obj bob" style="--x: 44%; --w: 50%; --b: 14%"><img src="regal-img/kopfhoerer.webp" alt="" /></span>
+          <span class="obj rumble" style="--x: 8%; --w: 50%; --b: 8%"><img src="regal-img/controller.webp" alt="" /></span>
           <span class="dim"></span><span class="tag">Gaming</span>
         </button>
 
         <button class="cell" type="button" data-id="nerd" data-side="in" aria-label="Ein bisschen Nerd">
-          <span class="obj hum" style="--x: 3%; --w: 52%; --b: 8%"><img src="../public/img/hobbys/regal/3d-drucker.webp" alt="" /></span>
-          <span class="obj" style="--x: 52%; --w: 45%; --b: 8%"><img src="../public/img/hobbys/regal/laptop.webp" alt="" /></span>
+          <span class="obj hum" style="--x: 3%; --w: 52%; --b: 8%"><img src="regal-img/3d-drucker.webp" alt="" /></span>
+          <span class="obj" style="--x: 52%; --w: 45%; --b: 8%"><img src="regal-img/laptop.webp" alt="" /></span>
           <span class="screen" style="--sx: 62%; --sy: 43%; --sw: 22%; --sh: 14%; --skx: -12deg; --sky: -9deg">&gt; <span>claude "Report"</span></span>
           <span class="dim"></span><span class="tag">Ein bisschen Nerd</span>
         </button>
@@ -305,7 +305,7 @@
     only(pinned);
   }));
 
-  // credits (copied from public/img/hobbys/regal/credits.json; fetch() is blocked on file://)
+  // credits (copied from drafts/regal-img/credits.json; fetch() is blocked on file://)
   const credits = [
     ["Fußball", "viagallery.com", "CC BY 2.0", "https://www.flickr.com/photos/15932083@N05/6373805699"],
     ["Fußballschuhe", "Philip Blystone", "Unsplash", "https://unsplash.com/photos/gray-and-white-nike-athletic-shoe-ZfuZRprX2qs"],

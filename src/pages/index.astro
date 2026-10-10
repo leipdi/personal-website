@@ -379,6 +379,23 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
   }
 </script>
 
+<script>
+  // A fresh visit to /#section (Kenntnisse, a certificate, Hobbys, Kontakt): the browser jumps once
+  // at load, before the hero, the Kernkompetenzen pile and Werdegang have settled their heights,
+  // and landed hundreds of px off. Land again once they have. (Kernkompetenzen sheets and
+  // Werdegang stations land themselves; a reload or Back restores its saved position instead.)
+  const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+  const ownLanding = (el: HTMLElement) => el.id.startsWith("kk-") || !!el.closest("[data-stations]");
+  if (target && !ownLanding(target) && typeof history.state?.wdY !== "number") {
+    const land = () =>
+      document.fonts.ready.then(() =>
+        requestAnimationFrame(() => requestAnimationFrame(() => target.scrollIntoView({ block: "start" }))),
+      );
+    if (document.readyState === "complete") land();
+    else addEventListener("load", land, { once: true });
+  }
+</script>
+
 
 <style>
   /* ---------- hero: the heliostat field, name and role in its sky ---------- */

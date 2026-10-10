@@ -169,7 +169,10 @@ body {
   *,
   *::before,
   *::after {
-    transition-duration: 0.01ms !important;
+    /* 0s, not the usual 0.01ms: transition-property defaults to `all`, so 0.01ms turned every
+       layout change (padding, heights) into a tiny transition, and a script measuring right
+       after a change read the old value (the Werdegang text twitched at each lane switch) */
+    transition-duration: 0s !important;
     animation-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }

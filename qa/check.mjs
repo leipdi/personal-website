@@ -228,8 +228,11 @@ async function checkSize(browser, { w, h }) {
 
   // Hobbys: the 3D shelf builds once its stage is on screen (or steps aside cleanly without
   // WebGL); console errors from it land in `errors` like any other. Headless software GL is
-  // slow, hence the long limit
+  // slow, hence the long limit. (On a software renderer the page shows the list instead;
+  // `?force3d` keeps the shelf, so this still tests it.)
   {
+    await page.goto(base + "/?force3d", { waitUntil: "load" });
+    await page.evaluate(() => document.fonts.ready);
     const hb = await page.evaluate(async () => {
       const st = document.querySelector("[data-stage]");
       if (!st) return null;

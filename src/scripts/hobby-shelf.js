@@ -20,15 +20,29 @@ export function initShelf(root) {
   // ---------- renderer ----------
   let renderer;
   try {
-    if (!document.createElement("canvas").getContext("webgl2")) throw new Error("no WebGL 2");
+    const probe = document.createElement("canvas").getContext("webgl2");
+    if (!probe) throw new Error("no WebGL 2");
+    // a software renderer (the GPU is blocklisted or missing) draws this scene at about one
+    // frame a second: then the list alone is the better page
+    const dbg = probe.getExtension("WEBGL_debug_renderer_info");
+    const gpu = dbg ? String(probe.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : "";
+    probe.getExtension("WEBGL_lose_context")?.loseContext();
+    if (/swiftshader|llvmpipe|software|microsoft basic render/i.test(gpu) && !location.search.includes("force3d")) throw new Error("software GL");
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
   } catch {
     // no WebGL: the stage steps aside, the list tells the same
     root.classList.add("no-3d");
     return;
   }
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  // weaker laptops: render at 1.5x at most, and step down to 1x (then 0.8x) by itself when
+  // the animation runs slow (see the loop)
+  let dpr = Math.min(devicePixelRatio, 1.5);
+  renderer.setPixelRatio(dpr);
   renderer.shadowMap.enabled = true;
+  // the shadow map was half of every frame (all objects drawn twice): it is redrawn only when
+  // something moves (at most 30 times a second), not for camera moves (the light stays put)
+  renderer.shadowMap.autoUpdate = false;
+  let shadowDirty = true, shadowAt = 0;
   renderer.shadowMap.type = THREE.PCFShadowMap; // honours shadow.radius: soft edges
   renderer.toneMapping = THREE.NeutralToneMapping;
   renderer.toneMappingExposure = 0.95;
@@ -41,13 +55,17 @@ export function initShelf(root) {
   scene.environmentIntensity = 0.75;
   const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 80);
 
+  // the lamp light, shared: every point light costs every pixel, lit or not, so there is one
+  // (it follows the brightest compartment) instead of one per compartment
+  const lampL = new THREE.PointLight("#ffd9a0", 0, 1.0, 1.6);
+  scene.add(lampL);
   const HEMI = 0.42, KEY = 1.9;
   const hemi = new THREE.HemisphereLight("#fff6ee", "#d8cfc6", HEMI);
   scene.add(hemi);
   const key = new THREE.DirectionalLight("#fff8f0", KEY);
   key.position.set(-1.6, 3.4, 7);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.mapSize.set(1024, 1024); // soft (radius) anyway; 2048 cost fill rate for nothing
   Object.assign(key.shadow.camera, { left: -2.4, right: 2.4, top: 2, bottom: -2, near: 2, far: 16 });
   key.shadow.radius = 6;
   key.shadow.blurSamples = 16;
@@ -280,6 +298,7 @@ export function initShelf(root) {
     shelf.add(at(blob(W * 1.08, D * 1.5, 0.55), 0, -H / 2 - 0.079, 0.02));
     shelf.traverse((o) => { if (o.isMesh && !o.userData.noShadow) { o.castShadow = true; o.receiveShadow = true; } });
     scene.add(shelf);
+    shadowDirty = true;
   }
 
   // the light cone fades from the lamp to the floor
@@ -319,8 +338,9 @@ export function initShelf(root) {
     pool.rotation.x = -Math.PI / 2;
     const wash = noShadow(at(new THREE.Mesh(new THREE.PlaneGeometry(CW * 0.95, CH * 1.1), poolMat), 0, CH * 0.78, -D / 2 + 0.056));
     g.add(pool, wash);
-    const lamp = new THREE.PointLight("#ffd9a0", 0, 1.0, 1.6);
-    scene.add(lamp);
+    // where this compartment's lamp light would be; the one real light (lampL) goes to the
+    // brightest compartment each frame
+    const lamp = { position: new THREE.Vector3(), intensity: 0 };
     const hit = at(new THREE.Mesh(new THREE.BoxGeometry(CW, CH, D), new THREE.MeshBasicMaterial({ visible: false })), 0, CH / 2, 0);
     hit.userData.id = id;
     g.add(hit);
@@ -765,7 +785,7 @@ export function initShelf(root) {
     dotTex.center.set(0.5, 0.5);
     const spot = new THREE.SpotLight("#ffffff", 0, 1.6, 0.62, 0.25, 1);
     spot.map = dotTex;
-    spot.castShadow = true;
+    spot.castShadow = false;
     spot.shadow.mapSize.set(512, 512);
     spot.shadow.camera.near = 0.05;
     scene.add(spot, spot.target);
@@ -893,8 +913,8 @@ export function initShelf(root) {
     kb.add(at(rbox(0.34, 0.016, 0.11, 0.005, plastic("#22252b", 0.4)), 0, 0.008, 0));
     kb.add(at(keysMesh(15, 4, 0.32, 0.092, [0.0175, 0.008, 0.0175], plastic("#2e323a", 0.38, { clearcoat: 0.4 })), 0, 0.016, 0));
     g.add(kb, at(blob(0.42, 0.18), -0.1, 0.002, 0));
-    const glowL = new THREE.PointLight("#6c96ff", 0, 0.9, 1.6);
-    scene.add(glowL);
+    // (no light of its own: the RGB plane carries the glow; one point light less per pixel)
+    const glowL = { position: new THREE.Vector3(), intensity: 0, color: new THREE.Color() };
     // the controller: DualShock outline, extruded and bevelled
     const s = new THREE.Shape();
     s.moveTo(0, 0.052); s.lineTo(0.07, 0.052);
@@ -1176,7 +1196,8 @@ export function initShelf(root) {
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    baseZ = fit(W / 2 + 0.15, H / 2 + 0.2) + D / 2;
+    // (phones: the tall shelf framed tighter, every pixel counts there)
+    baseZ = (layoutKey === "tall" ? fit(W / 2 + 0.06, H / 2 + 0.1) : fit(W / 2 + 0.15, H / 2 + 0.2)) + D / 2;
     kick();
   }
 
@@ -1228,7 +1249,20 @@ export function initShelf(root) {
     else if (id) focusOn(id);
   });
   backBtn.addEventListener("click", () => { focusOn(null); rows.find((r) => r.dataset.id === lastFocus)?.focus({ preventScroll: true }); });
+  // zoomed in: step to the previous / next compartment (buttons, or the arrow keys)
+  const step = (d) => {
+    if (!focused) return;
+    const ids = items.map((i) => i.id);
+    focusOn(ids[(ids.indexOf(focused) + d + ids.length) % ids.length]);
+  };
+  root.querySelector("[data-prev]")?.addEventListener("click", () => step(-1));
+  root.querySelector("[data-next]")?.addEventListener("click", () => step(1));
   addEventListener("keydown", (e) => {
+    if (focused && (e.key === "ArrowLeft" || e.key === "ArrowRight") && !e.target.closest?.("[role=radiogroup], input, textarea")) {
+      e.preventDefault();
+      step(e.key === "ArrowLeft" ? -1 : 1);
+      return;
+    }
     if (e.key !== "Escape" || !focused) return;
     const inStage = stage.contains(document.activeElement);
     focusOn(null);
@@ -1267,6 +1301,8 @@ export function initShelf(root) {
   }
   const v = new THREE.Vector3();
   const yaw = Math.tan(THREE.MathUtils.degToRad(8));
+  const slow = [];
+  let strikes = 0, readyAt = 0;
   function frame(now) {
     raf = 0;
     const dt = Math.min((now - last) / 1000, 0.05);
@@ -1279,7 +1315,8 @@ export function initShelf(root) {
     const f = focused && items.find((i) => i.id === focused);
     if (f) {
       goalLook.set(f.g.position.x, f.g.position.y + CH * 0.46, 0);
-      const dist = fit(0.6, 0.48) + D / 2;
+      // (the tall phone stage zooms in a little closer, so less of the neighbours shows)
+      const dist = (layoutKey === "tall" ? fit(0.54, 0.43) : fit(0.6, 0.48)) + D / 2;
       const side = f.g.position.x > 0.01 ? -1 : 1;
       goalPos.set(goalLook.x + side * dist * yaw + par.x * 0.1, goalLook.y + 0.18 - par.y * 0.06, dist);
     } else {
@@ -1311,7 +1348,7 @@ export function initShelf(root) {
         it.running = true;
         const before = it.time;
         it.time += dt / it.dur;
-        if (!it.on && Math.floor(it.time) > Math.floor(before)) { it.time = 0; it.running = false; it.api.rest(); it.api.off?.(); }
+        if (!it.on && Math.floor(it.time) > Math.floor(before)) { it.time = 0; it.running = false; it.api.rest(); it.api.off?.(); shadowDirty = true; }
         else it.api.update(it.time % 1, clock, dt, it.glow);
       } else if (!reduce) it.api.idle?.(clock, dt);
       const tag = tags.get(it.id);
@@ -1319,14 +1356,43 @@ export function initShelf(root) {
       tag.classList.toggle("is-on", showTag);
       if (showTag) {
         v.set(it.g.position.x, it.g.position.y + 0.03, D / 2).project(camera);
-        tag.style.transform = `translate(${(v.x * 0.5 + 0.5) * stage.clientWidth}px, ${Math.min((-v.y * 0.5 + 0.5) * stage.clientHeight, stage.clientHeight - 20)}px) translate(-50%, -60%)`;
+        // zoomed in, the name sits in the control bar at the bottom, between ‹ and ›
+        if (focused) tag.style.transform = `translate(${stage.clientWidth / 2}px, ${stage.clientHeight - 32}px) translate(-50%, -50%)`;
+        else tag.style.transform = `translate(${(v.x * 0.5 + 0.5) * stage.clientWidth}px, ${Math.min((-v.y * 0.5 + 0.5) * stage.clientHeight, stage.clientHeight - 20)}px) translate(-50%, -60%)`;
       }
     }
+    if (shadowDirty || (items.some((i) => i.running) && now - shadowAt > 33)) {
+      renderer.shadowMap.needsUpdate = true;
+      shadowAt = now;
+      shadowDirty = false;
+    }
+    let lit = items[0];
+    for (const it of items) if (it.lamp.intensity > lit.lamp.intensity) lit = it;
+    lampL.position.copy(lit.lamp.position);
+    lampL.intensity = lit.lamp.intensity;
     renderer.render(scene, camera);
-    if (!ready) { ready = true; stage.classList.add("is-ready"); }
+    if (!ready) { ready = true; readyAt = now; stage.classList.add("is-ready"); }
+    // weaker GPUs: while frames run back to back (animating), average their time over 60
+    // frames, from 3 s after the first frame (the first frames are slow everywhere). Two slow
+    // windows in a row (under ~30 fps) step the resolution down: 1.5x → 1x; only under ~20 fps
+    // on to 0.8x. Never back up (a resize would show it flicker between the two).
+    if (busy && dt > 0 && now - readyAt > 3000) {
+      slow.push(dt);
+      if (slow.length >= 60) {
+        const avg = slow.reduce((a, b) => a + b, 0) / slow.length;
+        slow.length = 0;
+        const want = avg > 1 / 20 ? 0.8 : avg > 1 / 30 ? 1 : dpr;
+        strikes = want < dpr ? strikes + 1 : 0;
+        if (strikes >= 2) {
+          strikes = 0;
+          dpr = dpr > 1 ? Math.max(want, 1) : want;
+          renderer.setPixelRatio(dpr);
+        }
+      }
+    } else if (!busy) slow.length = 0;
     if (!visible) return;
     if (busy) raf = requestAnimationFrame(frame);
-    else if (!reduce) idleTimer = setTimeout(() => { idleTimer = 0; raf = requestAnimationFrame(frame); }, 45);
+    else if (!reduce) idleTimer = setTimeout(() => { idleTimer = 0; raf = requestAnimationFrame(frame); }, 90);
   }
 
   // first time on screen: the shelf wakes up, lamp by lamp, each object plays once
@@ -1354,9 +1420,9 @@ export function initShelf(root) {
 
   // test hooks (qa and testers)
   window.__shelf = {
-    items, sync, renderer, focus: focusOn,
+    items, sync, renderer, camera, focus: focusOn,
     hover: (id) => { hovered = id; sync(); },
-    pose: (id, p) => { const it = items.find((i) => i.id === id); it.on = true; it.glow = 1; it.lamp.intensity = 1.3; it.bulbMat.emissiveIntensity = 3; it.coneMat.opacity = 0.03; it.poolMat.opacity = 0.32; it.api.update(p, p * it.dur, 0.016, 1); renderer.render(scene, camera); },
+    pose: (id, p) => { const it = items.find((i) => i.id === id); it.on = true; it.glow = 1; it.lamp.intensity = 1.3; lampL.position.copy(it.lamp.position); lampL.intensity = 1.3; it.bulbMat.emissiveIntensity = 3; it.coneMat.opacity = 0.03; it.poolMat.opacity = 0.32; it.api.update(p, p * it.dur, 0.016, 1); renderer.shadowMap.needsUpdate = true; renderer.render(scene, camera); },
   };
 
 }
