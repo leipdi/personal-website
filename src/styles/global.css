@@ -3,8 +3,7 @@
 /* Tailwind is only here for its reset (preflight) and `sr-only`; the site styles itself with
    the tokens below, not utility classes. --font-sans feeds the reset's default font. */
 @theme {
-  --font-sans: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
-  --font-serif: "Newsreader", Georgia, serif;
+  --font-sans: "Schibsted Grotesk", "Schibsted Grotesk Fallback", "Helvetica Neue", Arial, sans-serif;
 }
 
 :root {
@@ -51,8 +50,8 @@
      Not part of the palette: it should look like scaffolding. 7:1 on --bg. */
   --ph: #a3175f;
 
-  --sans: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
-  --serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --sans: "Schibsted Grotesk", "Schibsted Grotesk Fallback", "Helvetica Neue", Arial, sans-serif;
+  --serif: "Newsreader", "Newsreader Fallback", Georgia, "Times New Roman", serif;
   /* content column: 72rem up to laptop size, then it keeps growing with the screen (84 % of
      the width) up to 130rem, so large screens aren't half margin (owner 2026-10-06: at 62 %
      the borders were "huge", ~330px a side at 1920); long prose keeps its own --measure */

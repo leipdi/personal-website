@@ -3,7 +3,12 @@ import { nav, cvPdf } from "../data/nav";
 import { url } from "../lib/url";
 import { profile } from "../data/cv";
 import { DAY } from "../data/day";
+import "../styles/fonts.css";
 import "../styles/global.css";
+// the two fonts the first screen needs, preloaded (the hero name and claim, the top bar)
+import newsreaderLatin from "../assets/fonts/newsreader-latin.woff2?url";
+import schibstedLatin from "../assets/fonts/schibsted-grotesk-latin.woff2?url";
+import italicFont from "../assets/fonts/italic-text.json";
 
 interface Props {
   title: string;
@@ -12,8 +17,12 @@ interface Props {
 
 const { title, description } = Astro.props;
 
-// the letters of the claim's *marked* words, the only italic on the site (font subset below)
+// the letters of the claim's *marked* words, the only italic on the site: the self-hosted
+// Newsreader italic holds just these (scripts/fonts.mjs); a new letter needs a new subset
 const italicText = [...new Set((profile.claim.match(/\*(.+?)\*/g) ?? []).join("").replace(/\*/g, ""))].join("");
+const missing = [...italicText].filter((c) => !italicFont.italicText.includes(c));
+if (missing.length)
+  throw new Error(`The claim's italic words use letters not in the italic font subset (${missing.join("")}): run node scripts/fonts.mjs`);
 
 // share previews (LinkedIn, messengers) and search engines need absolute URLs: the deploy
 // sets SITE_URL (astro.config.mjs); locally they fall back to the dev server's address
@@ -43,19 +52,9 @@ const person = {
     <meta name="color-scheme" content="light" />
     <meta name="theme-color" content={DAY[0].bg} />
     <link rel="icon" type="image/svg+xml" href={url("/favicon.svg")} />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..900&family=Newsreader:opsz,wght@6..72,300..700&display=swap"
-    />
-    <!-- Newsreader italic sets only the claim's marked words: a subset of just their letters
-         (~7 KB instead of the full italic, ~130 KB). New italic text elsewhere needs its letters
-         here (or the full italic back in the link above). -->
-    <link
-      rel="stylesheet"
-      href={`https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@1,6..72,400&text=${encodeURIComponent(italicText)}&display=swap`}
-    />
+    <!-- self-hosted fonts (styles/fonts.css, scripts/fonts.mjs); no request to a third party -->
+    <link rel="preload" href={newsreaderLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={schibstedLatin} as="font" type="font/woff2" crossorigin />
     <link rel="canonical" href={canonical} />
     <meta property="og:type" content="profile" />
     <meta property="og:locale" content="de_DE" />
