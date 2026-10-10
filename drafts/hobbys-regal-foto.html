@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hobbys: Regal mit Fotos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&display=swap" rel="stylesheet" />
+<style>
+  /* Mockup E (2026-10-10): the shelf of C/D, but with real photographed objects, as on
+     devanshuchauhan.in (cut-out photos that come alive on hover). Free-licence photos, cut out
+     by scripts/cutout.mjs into public/img/hobbys/regal/ (credits.json). Still until pointed
+     at; then the compartment lamp lights (sun yellow = light), the objects lift off the floor
+     and each does one small thing. The list traces both ways; tap on phones. */
+  :root {
+    --bg: #ffcdb5;
+    --paper: #ffffff;
+    --ink: #0f1b2d;
+    --ink-2: #434f5e;
+    --ink-3: #4e5a67;
+    --line: rgb(15 27 45 / 0.17);
+    --sun: #f2a900;
+    --sans: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+    --serif: "Newsreader", Georgia, serif;
+    --wrap: min(max(72rem, 84vw), 130rem);
+    --gutter: clamp(1rem, 4vw, 3rem);
+    --sp-gap: clamp(1.25rem, 3vw, 3rem);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font: 1.0625rem/1.5 var(--sans); color: var(--ink);
+    background:
+      radial-gradient(60rem 40rem at 80% 90%, rgb(255 170 120 / 0.35), transparent 70%),
+      radial-gradient(50rem 30rem at 10% 10%, rgb(255 230 210 / 0.5), transparent 70%),
+      var(--bg);
+    min-height: 100vh;
+  }
+  .note-top { font-size: 0.875rem; color: var(--ink-2); padding: 0.75rem var(--gutter); border-bottom: 1px solid var(--line); background: rgb(255 255 255 / 0.4); }
+  .wrap { width: min(var(--wrap), 100% - 2 * var(--gutter)); margin-inline: auto; }
+  section { padding: clamp(3rem, 6vw, 6rem) 0 clamp(2rem, 4vw, 3rem); border-top: 1.5px solid var(--ink); }
+
+  .head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 2rem; margin-bottom: var(--sp-gap); }
+  h2 { font-family: var(--serif); font-weight: 500; letter-spacing: -0.02em; font-size: clamp(2.75rem, 1.5rem + 4vw, 5rem); line-height: 1; }
+  .switch { display: inline-flex; padding: 4px; border: 1.5px solid var(--ink); border-radius: 999px; background: var(--paper); }
+  .switch button { padding: 0.45rem 1rem; border: 0; border-radius: 999px; background: transparent; font: 600 0.9375rem var(--sans); color: var(--ink-2); cursor: pointer; }
+  .switch button[aria-checked="true"] { background: var(--ink); color: var(--paper); }
+
+  .room { display: grid; gap: var(--sp-gap); align-items: center; }
+  @media (min-width: 64rem) { .room { grid-template-columns: 8fr 4fr; } }
+
+  /* ---------- the shelf: light wood, so the photos sit on something real ---------- */
+  .shelf {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    padding: 12px;
+    background: linear-gradient(#d9b98f, #c9a275);
+    border-radius: 6px;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4), 0 2px 0 rgb(15 27 45 / 0.12), 0 34px 50px -26px rgb(15 27 45 / 0.55);
+    position: relative;
+  }
+  .shelf::before, .shelf::after {
+    content: ""; position: absolute; bottom: -16px; width: 16px; height: 16px;
+    background: var(--ink); border-radius: 0 0 3px 3px;
+  }
+  .shelf::before { left: 12%; } .shelf::after { right: 12%; }
+
+  .cell {
+    position: relative; aspect-ratio: 4 / 3;
+    border: 0; border-radius: 3px; padding: 0;
+    /* back wall, then the compartment floor (the lower 16 %) */
+    background:
+      linear-gradient(transparent 84%, #b98f60 84%, #c99f70 86%, #d6b080),
+      linear-gradient(#e9e2d8, #f3eee7 60%, #efe8de);
+    box-shadow: inset 0 12px 16px -10px rgb(15 27 45 / 0.4), inset 8px 0 12px -10px rgb(15 27 45 / 0.3), inset -8px 0 12px -10px rgb(15 27 45 / 0.3);
+    cursor: pointer; font: inherit; color: inherit;
+    overflow: hidden;
+    container-type: inline-size;
+  }
+  .cell:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  /* the lamp under the top board, and its light */
+  .cell::before {
+    content: ""; position: absolute; top: 0; left: 50%; translate: -50% 0;
+    width: 30%; height: 5px; border-radius: 0 0 4px 4px; background: var(--ink); z-index: 5;
+  }
+  .cell::after {
+    content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none;
+    background:
+      radial-gradient(40% 8% at 50% 0%, rgb(255 236 180 / 0.9), transparent),
+      radial-gradient(75% 95% at 50% 0%, rgb(242 169 0 / 0.38), rgb(242 169 0 / 0.1) 55%, transparent 80%);
+    mix-blend-mode: soft-light;
+    opacity: 0; transition: opacity 0.35s;
+  }
+  .cell.is-on::after { opacity: 1; mix-blend-mode: normal; }
+  .cell .dim { position: absolute; inset: 0; z-index: 3; background: rgb(15 27 45 / 0.07); transition: opacity 0.35s; pointer-events: none; }
+  .cell.is-on .dim { opacity: 0; }
+
+  /* ---------- objects: a photo on a contact shadow ---------- */
+  .obj { position: absolute; z-index: 2; left: var(--x); bottom: var(--b, 8%); width: var(--w); }
+  .obj img { display: block; width: 100%; height: auto; transform-origin: 50% 100%; transition: translate 0.4s cubic-bezier(.3,1.5,.5,1), rotate 0.4s; filter: drop-shadow(0 2px 2px rgb(15 27 45 / 0.25)); }
+  .obj::after { /* contact shadow on the floor */
+    content: ""; position: absolute; left: 8%; right: 8%; bottom: -3%; height: 9cqi; max-height: 22px;
+    translate: 0 50%; z-index: -1;
+    background: radial-gradient(closest-side, rgb(30 20 10 / 0.45), transparent);
+    transition: scale 0.4s, opacity 0.4s;
+  }
+  .obj.hang { bottom: auto; top: var(--t); }
+  .obj.hang::after { display: none; }
+  .obj.hang::before { content: ""; position: absolute; left: 50%; bottom: 96%; height: 40cqi; width: 1.5px; background: var(--ink); }
+  .obj.wall::after { display: none; }
+
+  /* lit: everything lifts a little off the floor, the shadow tightens */
+  .cell.is-on .obj:not(.hang):not(.wall) img { translate: 0 -4%; }
+  .cell.is-on .obj:not(.hang):not(.wall)::after { scale: 0.8; opacity: 0.7; }
+
+  /* ---------- one small thing per object, only while lit ---------- */
+  .cell .obj img { animation-play-state: paused; }
+  .cell.is-on .obj img { animation-play-state: running; }
+  .roll img { animation: roll 2.8s ease-in-out infinite; transform-origin: 50% 50%; }
+  @keyframes roll { 0%, 100% { transform: translateX(0) rotate(0); } 50% { transform: translateX(-28%) rotate(-100deg); } }
+  .bounce img { animation: bounce 1.1s cubic-bezier(.5,0,.5,1) infinite; }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0) scale(1.06, 0.92); }
+    10% { transform: translateY(-4%) scale(0.97, 1.04); }
+    50% { transform: translateY(-38%) scale(1, 1); }
+    90% { transform: translateY(-3%) scale(0.98, 1.03); }
+  }
+  .bounce::after { animation: bounce-shadow 1.1s cubic-bezier(.5,0,.5,1) infinite; animation-play-state: paused; }
+  .cell.is-on .bounce::after { animation-play-state: running; }
+  @keyframes bounce-shadow { 0%, 100% { scale: 1; opacity: 1; } 50% { scale: 0.55; opacity: 0.45; } }
+  .tilt-r img { animation: clink-r 2.6s ease-in-out infinite; }
+  .tilt-l img { animation: clink-l 2.6s ease-in-out infinite; }
+  @keyframes clink-r { 0%, 30%, 70%, 100% { transform: rotate(0); } 45%, 55% { transform: rotate(9deg); } }
+  @keyframes clink-l { 0%, 30%, 70%, 100% { transform: rotate(0); } 45%, 55% { transform: rotate(-7deg); } }
+  .sway img { animation: sway 3.4s ease-in-out infinite; transform-origin: 50% -40%; }
+  @keyframes sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+  .rumble img { animation: rumble 1.6s linear infinite; }
+  @keyframes rumble {
+    0%, 40%, 100% { transform: translate(0, 0) rotate(0); }
+    44% { transform: translate(-1.2%, 0) rotate(-1deg); } 48% { transform: translate(1.2%, 0) rotate(1deg); }
+    52% { transform: translate(-1%, 0) rotate(-0.8deg); } 56% { transform: translate(1%, 0) rotate(0.8deg); } 60% { transform: translate(0, 0); }
+  }
+  .bob img { animation: bob 2.2s ease-in-out infinite; }
+  @keyframes bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-5%) rotate(-2deg); } }
+  .hum img { animation: hum 0.18s linear infinite; }
+  @keyframes hum { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(0.4%); } }
+  .swing img { animation: swing 2.4s ease-in-out infinite; transform-origin: 70% 0; }
+  @keyframes swing { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(1.5deg); } }
+
+  /* disco ball: specks of light wander over the back wall while lit */
+  .specks { position: absolute; inset: 0; z-index: 1; opacity: 0; transition: opacity 0.4s; pointer-events: none;
+    background-image:
+      radial-gradient(3px 3px at 12% 30%, var(--sun), transparent), radial-gradient(2px 2px at 30% 18%, #fff, transparent),
+      radial-gradient(3px 3px at 46% 46%, var(--sun), transparent), radial-gradient(2px 2px at 64% 64%, #fff, transparent),
+      radial-gradient(3px 3px at 82% 24%, var(--sun), transparent), radial-gradient(2px 2px at 22% 62%, #fff, transparent),
+      radial-gradient(3px 3px at 90% 58%, var(--sun), transparent), radial-gradient(2px 2px at 56% 12%, #fff, transparent);
+    animation: specks 6s linear infinite; animation-play-state: paused; }
+  .cell.is-on .specks { opacity: 1; animation-play-state: running; }
+  @keyframes specks { to { background-position: 140px 0, 140px 0, 140px 0, 140px 0, 140px 0, 140px 0, 140px 0, 140px 0; } }
+
+  /* the laptop screen: a terminal that types while lit */
+  .screen { position: absolute; z-index: 3; left: var(--sx); top: var(--sy); width: var(--sw); height: var(--sh);
+    transform: skew(var(--skx), var(--sky)); font: 600 max(7px, 2.4cqi)/1.2 ui-monospace, Consolas, monospace; color: #d9f6e4; overflow: hidden; white-space: nowrap; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  .cell.is-on .screen { opacity: 1; }
+  .screen span { display: inline-block; overflow: hidden; width: 0; vertical-align: bottom; }
+  .cell.is-on .screen span { animation: type 3.2s steps(16) infinite; }
+  @keyframes type { 0% { width: 0; } 60%, 100% { width: 16ch; } }
+
+  /* the name tag, as on devanshuchauhan.in */
+  .tag {
+    position: absolute; left: 50%; bottom: 6px; translate: -50% 6px; z-index: 6;
+    padding: 0.2rem 0.7rem; border: 1.5px solid var(--ink); border-radius: 999px;
+    background: var(--paper); font: 600 0.8125rem var(--sans); white-space: nowrap;
+    opacity: 0; transition: opacity 0.25s, translate 0.25s;
+  }
+  .cell.is-on .tag { opacity: 1; translate: -50% 0; }
+
+  /* ---------- the list beside it ---------- */
+  .list { list-style: none; padding: 0; display: grid; gap: 0.25rem; }
+  .list li { position: relative; padding: 0.55rem 0 0.55rem 1rem; border-left: 3px solid transparent; cursor: default; transition: opacity 0.25s, border-color 0.25s; }
+  .list h3 { font: 600 1.25rem/1.2 var(--serif); }
+  .list p { font-size: 0.9375rem; line-height: 1.45; color: var(--ink-2); margin-top: 0.15rem; }
+  .list li.is-on { border-left-color: var(--ink); }
+  .list.has-on li:not(.is-on) { opacity: 0.55; }
+
+  .credits { margin-top: calc(var(--sp-gap) + 16px); font-size: 0.8125rem; color: var(--ink-3); max-width: 60rem; }
+  .credits a { color: inherit; }
+
+  /* ---------- phones ---------- */
+  @media (max-width: 40rem) {
+    .shelf { grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 8px; }
+    .tag { font-size: 0.75rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .obj img, .obj::after, .specks, .screen span { animation: none !important; transition: none; }
+    .cell.is-on .screen span { width: 16ch; }
+  }
+</style>
+</head>
+<body>
+<p class="note-top">Mockup Hobbys E, „Regal mit Fotos“: dasselbe Regal, aber mit echten, frei lizenzierten Fotos statt gezeichneter Dinge. Alles steht still, bis man darauf zeigt: Licht an, die Sachen heben ab und machen je eine kleine Bewegung. Am Handy: antippen.</p>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <h2>Hobbys</h2>
+      <div class="switch" role="radiogroup" aria-label="Welche Seite zeigen">
+        <button type="button" role="radio" aria-checked="false" data-mode="out">Draußen</button>
+        <button type="button" role="radio" aria-checked="true" data-mode="all">Beides</button>
+        <button type="button" role="radio" aria-checked="false" data-mode="in">Drinnen</button>
+      </div>
+    </div>
+
+    <div class="room">
+      <div class="shelf" data-shelf>
+
+        <button class="cell" type="button" data-id="fussball" data-side="out" aria-label="Fußball">
+          <span class="obj" style="--x: 10%; --w: 27%; --b: 9%"><img src="../public/img/hobbys/regal/fussballschuhe.webp" alt="" /></span>
+          <span class="obj roll" style="--x: 52%; --w: 32%; --b: 8%"><img src="../public/img/hobbys/regal/fussball.webp" alt="" /></span>
+          <span class="dim"></span><span class="tag">Fußball</span>
+        </button>
+
+        <button class="cell" type="button" data-id="trainer" data-side="out" aria-label="Trainer">
+          <span class="obj bob" style="--x: 18%; --w: 64%; --b: 10%"><img src="../public/img/hobbys/regal/taktik-klemmbrett.webp" alt="" /></span>
+          <span class="dim"></span><span class="tag">Trainer</span>
+        </button>
+
+        <button class="cell" type="button" data-id="basketball" data-side="out" aria-label="Basketball">
+          <span class="obj wall swing" style="--x: 50%; --w: 46%; --b: 34%"><img src="../public/img/hobbys/regal/basketballkorb.webp" alt="" /></span>
+          <span class="obj bounce" style="--x: 12%; --w: 30%; --b: 8%"><img src="../public/img/hobbys/regal/basketball.webp" alt="" /></span>
+          <span class="dim"></span><span class="tag">Basketball</span>
+        </button>
+
+        <button class="cell" type="button" data-id="ausgehen" data-side="out" aria-label="Ausgehen">
+          <span class="specks"></span>
+          <span class="obj hang sway" style="--x: 66%; --w: 20%; --t: 12%"><img src="../public/img/hobbys/regal/discokugel.webp" alt="" /></span>
+          <span class="obj tilt-r" style="--x: 14%; --w: 12%; --b: 9%"><img src="../public/img/hobbys/regal/bierflasche.webp" alt="" /></span>
+          <span class="obj tilt-l" style="--x: 32%; --w: 22%; --b: 8%"><img src="../public/img/hobbys/regal/cocktail.webp" alt="" /></span>
+          <span class="dim"></span><span class="tag">Ausgehen</span>
+        </button>
+
+        <button class="cell" type="button" data-id="gaming" data-side="in" aria-label="Gaming">
+          <span class="obj bob" style="--x: 44%; --w: 50%; --b: 14%"><img src="../public/img/hobbys/regal/kopfhoerer.webp" alt="" /></span>
+          <span class="obj rumble" style="--x: 8%; --w: 50%; --b: 8%"><img src="../public/img/hobbys/regal/controller.webp" alt="" /></span>
+          <span class="dim"></span><span class="tag">Gaming</span>
+        </button>
+
+        <button class="cell" type="button" data-id="nerd" data-side="in" aria-label="Ein bisschen Nerd">
+          <span class="obj hum" style="--x: 3%; --w: 52%; --b: 8%"><img src="../public/img/hobbys/regal/3d-drucker.webp" alt="" /></span>
+          <span class="obj" style="--x: 52%; --w: 45%; --b: 8%"><img src="../public/img/hobbys/regal/laptop.webp" alt="" /></span>
+          <span class="screen" style="--sx: 62%; --sy: 43%; --sw: 22%; --sh: 14%; --skx: -12deg; --sky: -9deg">&gt; <span>claude "Report"</span></span>
+          <span class="dim"></span><span class="tag">Ein bisschen Nerd</span>
+        </button>
+      </div>
+
+      <ul class="list" data-list>
+        <li data-id="fussball"><h3>Fußball</h3><p>Ich spiele selbst.</p></li>
+        <li data-id="trainer"><h3>Trainer</h3><p>Und ich stehe als Trainer an der Seitenlinie.</p></li>
+        <li data-id="basketball"><h3>Basketball</h3><p>Neben Fußball der Sport, den ich am liebsten verfolge.</p></li>
+        <li data-id="ausgehen"><h3>Ausgehen</h3><p>Freunde treffen, raus in die Stadt, gern auch spontan.</p></li>
+        <li data-id="gaming"><h3>Gaming</h3><p>Zocken gehört für mich genauso dazu wie der Platz.</p></li>
+        <li data-id="nerd"><h3>Ein bisschen Nerd</h3><p>Drucke Teile mit dem 3D-Drucker und automatisiere eigene Projekte mit Claude.</p></li>
+      </ul>
+    </div>
+
+    <p class="credits" data-credits>Fotos: </p>
+  </div>
+</section>
+
+<script>
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const cells = [...document.querySelectorAll(".cell")];
+  const rows = [...document.querySelectorAll(".list li")];
+  const list = document.querySelector("[data-list]");
+  const byId = (id) => [cells.find((c) => c.dataset.id === id), rows.find((r) => r.dataset.id === id)];
+
+  const lit = new Set();
+  const light = (id, on) => {
+    const [c, r] = byId(id);
+    if (!c || c.classList.contains("is-on") === on) return;
+    c.classList.toggle("is-on", on);
+    r.classList.toggle("is-on", on);
+    on ? lit.add(id) : lit.delete(id);
+    list.classList.toggle("has-on", lit.size > 0);
+  };
+  const only = (ids) => cells.forEach((c) => light(c.dataset.id, ids.includes(c.dataset.id)));
+
+  // pointing (shelf or list) lights one compartment; a tap keeps it lit (touch)
+  let pinned = [];
+  for (const el of [...cells, ...rows]) {
+    el.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") only([el.dataset.id]); });
+    el.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") only(pinned); });
+  }
+  for (const c of cells) {
+    c.addEventListener("focus", () => only([c.dataset.id]));
+    c.addEventListener("blur", () => only(pinned));
+    c.addEventListener("click", () => { pinned = pinned[0] === c.dataset.id && pinned.length === 1 ? [] : [c.dataset.id]; only(pinned); });
+  }
+
+  // the switch lights a whole side
+  const btns = [...document.querySelectorAll("button[data-mode]")];
+  btns.forEach((b) => b.addEventListener("click", () => {
+    btns.forEach((o) => o.setAttribute("aria-checked", String(o === b)));
+    const m = b.dataset.mode;
+    pinned = m === "all" ? [] : cells.filter((c) => c.dataset.side === m).map((c) => c.dataset.id);
+    only(pinned);
+  }));
+
+  // credits (copied from public/img/hobbys/regal/credits.json; fetch() is blocked on file://)
+  const credits = [
+    ["Fußball", "viagallery.com", "CC BY 2.0", "https://www.flickr.com/photos/15932083@N05/6373805699"],
+    ["Fußballschuhe", "Philip Blystone", "Unsplash", "https://unsplash.com/photos/gray-and-white-nike-athletic-shoe-ZfuZRprX2qs"],
+    ["Klemmbrett", "Mario Verduzco", "Unsplash", "https://unsplash.com/photos/a-notebook-sitting-on-the-side-of-a-football-field-Rn6n5Lh1BdA"],
+    ["Basketball", "Kedibone Isaac Makhumisane", "Unsplash", "https://unsplash.com/photos/a-basketball-is-shown-against-a-dark-background-m-A-rbdsT30"],
+    ["Korb", "Joshua Hoehne", "Unsplash", "https://unsplash.com/photos/blue-basketball-hoop-with-basketball-hoop-IEVckSmPyKc"],
+    ["Discokugel", "Bennie Bates", "Unsplash", "https://unsplash.com/photos/a-silver-ball-sitting-on-top-of-a-wooden-floor-Cp-eXiwYysU"],
+    ["Bier", "Zhivko Minkov", "Unsplash", "https://unsplash.com/photos/beer-bottle-with-swing-top-cap-bVNdqNwXDqM"],
+    ["Cocktail", "Katrin Hauf", "Unsplash", "https://unsplash.com/photos/juice-with-sliced-lemon-on-top-ZM5vr_JISEc"],
+    ["Kopfhörer", "Arturo Añez", "Unsplash", "https://unsplash.com/photos/headphones-rest-on-a-white-surface-n6r2IO8oqdI"],
+    ["Controller", "Michal Ilenda", "Unsplash", "https://unsplash.com/photos/black-sony-ps-4-game-controller-UzwsrV3bFdU"],
+    ["3D-Drucker", "US Embassy New Zealand", "gemeinfrei", "https://commons.wikimedia.org/wiki/File:Dr._Vandi_Verma_visit_to_STEM_Day_with_High_School_Students_at_University_of_Auckland_on_17_September_2024_-_32.jpg"],
+    ["Laptop", "Erick Cerritos", "Unsplash", "https://unsplash.com/photos/dell-laptop-on-white-surface-i5UV2HpITYA"],
+  ];
+  const cr = document.querySelector("[data-credits]");
+  credits.forEach(([what, who, lic, url], i) => {
+    const s = document.createElement(url ? "a" : "span");
+    if (url) { s.href = url; s.target = "_blank"; s.rel = "noopener"; }
+    s.textContent = `${what}: ${who} (${lic})`;
+    cr.append(s, i < credits.length - 1 ? "; " : ".");
+  });
+</script>
+</body>
+</html>

@@ -11,6 +11,8 @@ export default defineConfig({
   site: process.env.SITE_URL || undefined,
   base: process.env.BASE_PATH || '/',
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    // the Hobbys shelf (three.js, ~570 kB) is its own chunk, fetched only near that section
+    build: { chunkSizeWarningLimit: 700 }
   }
 });
