@@ -140,7 +140,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   </div>
 
   <!-- the chart stays pinned up to the last station's top, then scrolls away above it (script) -->
-  <div class="scope" data-scope>
+  <div class="scope is-named" data-scope>
     <nav
       class="plan-wrap frost"
       aria-label="Projektplan: alle Stationen"
@@ -455,12 +455,38 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   // enough that at the very end the last station's top reaches the reading line.
   let spTop = 0;
   let spBottom = 0;
-  const layout = () => {
+  // Phones name the bars only at rest (.is-named): the names need lines of their own, so the
+  // chart is taller then. It stays named for that extra height's worth of scrolling after it
+  // pins (namedGap; the stations pass under it), then drops the names, and the height it loses
+  // goes on above it (the scope's top padding, off screen behind the top bar): the text keeps
+  // its place and no hole opens under the chart. Measured with every lane shown.
+  let namedGap = 0;
+  const measureNamed = () => {
+    const off = lanes.filter((l) => l.classList.contains("is-off"));
+    const named = scope.classList.contains("is-named");
+    off.forEach((l) => l.classList.remove("is-off"));
+    scope.classList.remove("is-named");
     pack();
+    const compact = planWrap.offsetHeight;
+    scope.classList.add("is-named");
+    pack();
+    namedGap = Math.max(0, planWrap.offsetHeight - compact);
+    scope.classList.toggle("is-named", named);
+    off.forEach((l) => l.classList.add("is-off"));
+    pack();
+    return compact;
+  };
+  const layout = () => {
+    if (phone.matches) fullH = measureNamed();
+    else {
+      namedGap = 0;
+      pack();
+    }
+    scope.style.paddingTop = laneKey !== "" && namedGap ? `${namedGap}px` : "";
     settle(); // a pin re-settles after layout moves things
     if (topBar) root.style.setProperty("--top-bar-h", `${topBar.getBoundingClientRect().height}px`);
     root.style.setProperty("--plan-h", `${planWrap.offsetHeight}px`);
-    if (laneKey === "") fullH = planWrap.offsetHeight;
+    if (laneKey === "" && !phone.matches) fullH = planWrap.offsetHeight;
     // a lane that has just become visible gets its final height only here (packing): the
     // padding that keeps the text in place follows it in the same frame
     laneGap = laneKey === "" ? 0 : Math.max(0, fullH - planWrap.offsetHeight);
@@ -527,15 +553,18 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     // how far the page has scrolled since the chart pinned (negative before)
     const since = stickyTop() - scope.getBoundingClientRect().top;
     // at rest: the chart hasn't pinned yet, nothing is pinned, and this isn't the page end
-    const rest = pinned < 0 && !end && since < -0.5;
+    // (phones: until the named chart has been pinned for its extra height, see namedGap)
+    const rest = pinned < 0 && !end && since < namedGap - 0.5;
     // When the chart pins, the first station(s) may already have passed the reading line (tall
     // screens, a short first station). The line then starts at the first station's top and
     // sinks to its usual place at half the scroll speed, so each station still gets its turn.
     // (from the whole plan's bottom, not the current lanes': a smaller chart would move the line
     // up, pick another station, show other lanes and flip back and forth)
     let line = readingLine(planBottom + laneGap);
-    const firstAtPin = sts[0].getBoundingClientRect().top + Math.max(since, 0);
-    if (firstAtPin < line) line = Math.min(line, firstAtPin + 1 + Math.max(since, 0) * 0.5);
+    // (counted from where the reading starts: on phones the named chart stays a while, namedGap)
+    const read = Math.max(since - namedGap, 0);
+    const firstAtPin = sts[0].getBoundingClientRect().top + read;
+    if (firstAtPin < line) line = Math.min(line, firstAtPin + 1 + read * 0.5);
 
     let i = 0;
     let t = t0;
@@ -613,9 +642,17 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     const show = rest ? "" : [...new Set(cur.map((j) => sts[j].dataset.cat))].join(" ");
     if (show !== laneKey) {
       laneKey = show;
+      // phones name the bars only at rest, where the chart stands in the page; pinned over the
+      // text it stays compact and the caption names the station being read. The names need
+      // their own lines, so the lanes are packed again (the height change is absorbed below).
+      scope.classList.toggle("is-named", show === "");
+      if (phone.matches) {
+        pack();
+        scope.style.paddingTop = show !== "" && namedGap ? `${namedGap}px` : "";
+      }
       for (const l of lanes) l.classList.toggle("is-off", show !== "" && !show.split(" ").includes(l.dataset.cat!));
       const h = planWrap.offsetHeight;
-      if (show === "") fullH = h;
+      if (show === "") fullH = h - namedGap;
       // (from the whole plan's height, not step by step: a step measured mid-change drifted)
       laneGap = show === "" ? 0 : Math.max(0, fullH - h);
       // (padding, on top of the list's own 1rem)
@@ -1125,6 +1162,28 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
 
   .seg-lbl {
     display: none;
+  }
+
+  /* phones: the bar names only at rest (.is-named, script), when the chart stands in the page
+     (owner's critic 2026-10-10: unlabelled bars said nothing until one scrolled); their lines
+     get a label zone of their own */
+  @media (max-width: 47.99rem) {
+    :global(html.js) .is-named .plan-wrap {
+      --lz: 0.95rem;
+    }
+    :global(html.js) .is-named .seg-lbl {
+      display: block;
+      position: absolute;
+      z-index: 2;
+      left: -2px;
+      top: 0;
+      padding: 0 2px;
+      background: var(--bg);
+      font-size: 0.6875rem;
+      font-weight: 600;
+      line-height: 1.15;
+      white-space: nowrap;
+    }
   }
 
   /* labels sit on a page-coloured backing above the grid lines and the playhead, with 2px
