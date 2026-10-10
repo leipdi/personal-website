@@ -122,3 +122,9 @@ export const COST_SHEET = {
 
 // the heliostat the sheet is about: the first one of the front row, and where its pivot is
 export const LINKED_MIRROR = { x: FIELD.first, y: FIELD.ground - ROWS[ROWS.length - 1].post };
+// the ink ring around it (viewBox units)
+export const RING_R = 22;
+
+// viewBox units per screen px of the server-rendered drawing at its own size; the script
+// refits the sheet to the real scale
+export const SERVER_UNITS_PER_PX = 1.1333;

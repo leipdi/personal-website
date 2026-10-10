@@ -14,6 +14,8 @@ import {
   f1,
   poses,
   LINKED_MIRROR,
+  RING_R,
+  SERVER_UNITS_PER_PX,
   rayOpacity,
   receiverGlow,
 } from "../../lib/heliostat";
@@ -25,12 +27,11 @@ const glow = receiverGlow(eff0);
 // the costing sheet, in px inside its group (origin: its bottom-right corner); the server
 // render uses the drawing's units per px at its own size (1.1333), the script refits it
 const CS = COST_SHEET;
-const U0 = 1.1333;
+const U0 = SERVER_UNITS_PER_PX;
 const { full: SF, mini: SM } = CS;
 const barMax = 130;
 const vMax = Math.max(...CS.rows.map((r) => r.v));
 const L = LINKED_MIRROR;
-const ringR = 22;
 const leadY = FIELD.ground - (CS.lift + SF.h / 2) * U0;
 const { tower: T, receiver: R, ground } = FIELD;
 ---
@@ -110,8 +111,8 @@ const { tower: T, receiver: R, ground } = FIELD;
 
     <!-- the link between the two sides: from the sheet to the heliostat it prices -->
     <g class="link">
-      <path class="leader" d={`M${CS.x} ${leadY.toFixed(1)} H${L.x} V${L.y - ringR}`}></path>
-      <circle class="ring" cx={L.x} cy={L.y} r={ringR}></circle>
+      <path class="leader" d={`M${CS.x} ${leadY.toFixed(1)} H${L.x} V${L.y - RING_R}`}></path>
+      <circle class="ring" cx={L.x} cy={L.y} r={RING_R}></circle>
     </g>
 
     <rect class="tower" x={T.x} y={T.top} width={T.w} height={ground - T.top}></rect>
@@ -138,6 +139,8 @@ const { tower: T, receiver: R, ground } = FIELD;
     SUN_START,
     COST_SHEET,
     LINKED_MIRROR,
+    RING_R,
+    SERVER_UNITS_PER_PX,
     clampSun,
     fieldEfficiency,
     poses,
@@ -146,7 +149,6 @@ const { tower: T, receiver: R, ground } = FIELD;
   } from "../../lib/heliostat";
 
   const FRONT = ROWS.length - 1;
-  const RING_R = 22;
   const CS = COST_SHEET;
 
   for (const wrap of document.querySelectorAll<HTMLElement>("[data-field]")) {
@@ -187,7 +189,7 @@ const { tower: T, receiver: R, ground } = FIELD;
     // The sheet keeps one size on screen instead of growing with the scaled-up drawing (as the
     // drawing's labels did): uNow = viewBox units per screen px; k shrinks it where the space
     // under the words is too low for it (short windows) or the phone strip too narrow.
-    let uNow = 1.1333;
+    let uNow = SERVER_UNITS_PER_PX;
     const setLabelScale = (s: number) => {
       uNow = 1 / s;
     };
