@@ -1348,6 +1348,11 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     border-top: 1px solid var(--line);
   }
 
+  /* phones: the title first, then the meta line (category, dates, place), then the rest
+     (the main column's children join the station's grid, so the order applies to them) */
+  .main {
+    display: contents;
+  }
   .title {
     order: 1;
   }
@@ -1443,6 +1448,13 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   .story {
     font-size: 1.1875rem;
     transition: color 0.3s;
+  }
+
+  /* phones: the meta line stands between title and story, so the story needs air above */
+  @media (max-width: 47.99rem) {
+    .story {
+      margin-top: 0.85rem;
+    }
   }
 
   /* the same list as in the Kernkompetenzen cards: serif, plain discs */
