@@ -1,14 +1,8 @@
 @import "tailwindcss";
 
+/* Tailwind is only here for its reset (preflight) and `sr-only`; the site styles itself with
+   the tokens below, not utility classes. --font-sans feeds the reset's default font. */
 @theme {
-  --color-bg: var(--bg);
-  --color-paper: var(--paper);
-  --color-ink: var(--ink);
-  --color-ink-2: var(--ink-2);
-  --color-steel: var(--steel);
-  --color-sun: var(--sun);
-  --color-line: var(--line);
-
   --font-sans: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
   --font-serif: "Newsreader", Georgia, serif;
 }

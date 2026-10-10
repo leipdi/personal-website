@@ -29,7 +29,6 @@ const stand = `${months[now.getMonth()]} ${now.getFullYear()}`;
         <strong>{profile.name}</strong>
         <span>{profile.role}</span>
         <span>{profile.location}</span>
-        <a class="prose-link" href={`tel:${profile.phone.replace(/\s/g, "")}`}>{profile.phone}</a>
         <a class="prose-link" href={profile.linkedinUrl} target="_blank" rel="noreferrer"
           >{liHost}<wbr /><span class="nobr">{liPath}</span></a
         >

@@ -19,7 +19,6 @@ export const profile = {
     "Bindeglied zwischen *Technik* und *Wirtschaft*. Und die Frage, wie KI wirklich bei Prozessen und Projekten hilft",
   location: "Langenfeld (Rheinland) / Düsseldorf",
   email: "daniel.lenski@hotmail.com",
-  phone: "+49 157 74585248",
   linkedin: "linkedin.com/in/daniel-lenski-de",
   linkedinUrl: "https://linkedin.com/in/daniel-lenski-de",
 };
@@ -338,9 +337,9 @@ export const ratedSkills: RatedSkill[] = [
   // KI-Kenntnisse: Auswahl und Stufen von Daniel abgestimmt (2026-10-09), nicht aus dem CV.
   { name: "Agentic Coding", level: 4, levelLabel: "gut", group: "KI" },
   { name: "Prompt & Context Engineering", level: 4, levelLabel: "gut", group: "KI" },
-  { name: "Multi-Agent-Workflows", level: 3, levelLabel: "fortgeschritten", group: "KI" },
-  { name: "MCP & Connectors", level: 3, levelLabel: "fortgeschritten", group: "KI" },
-  { name: "Skills & Plugins", level: 3, levelLabel: "fortgeschritten", group: "KI" },
+  { name: "Multi-Agent-Workflows", level: 3, levelLabel: "solide", group: "KI" },
+  { name: "MCP & Connectors", level: 3, levelLabel: "solide", group: "KI" },
+  { name: "Skills & Plugins", level: 3, levelLabel: "solide", group: "KI" },
   { name: "Deutsch", level: 5, levelLabel: "Muttersprache", group: "Sprachen" },
   { name: "Englisch", level: 4, levelLabel: "C1", group: "Sprachen" },
 ];
