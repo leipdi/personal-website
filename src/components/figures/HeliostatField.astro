@@ -237,15 +237,23 @@ const { tower: T, receiver: R, ground } = FIELD;
         // width, so solve twice.
         const colW = colR - colL;
         const sh = CS.full;
+        // the sheet grows with large screens (1x at 1440px, up to 1.5x from 2160px), or at 2560
+        // it was a small card in a huge drawing (critic 2026-10-10)
+        const grow = Math.min(Math.max(innerWidth / 1440, 1), 1.5);
         // (ends on s, so the sheet's width and the scale it was solved with agree)
         const solveS = () =>
           Math.max(Math.min((colW - (sh.w + 5) * k) / (SCENE_R - CS.x), avail / SCENE_H), r.width / (FIELD.w - FIELD.x0));
-        k = 1;
+        k = grow;
         let s = solveS();
         for (let n = 0; n < 3; n++) {
-          k = Math.min(1, (0.8 * SCENE_H * s) / (sh.h + CS.lift));
+          k = Math.min(grow, (0.8 * SCENE_H * s) / (sh.h + CS.lift));
           s = solveS();
         }
+        // Where the column's width, not the height, limits the scene (portrait tablets), filling
+        // the screen only left a band of empty sky between the words and the drawing (~450px at
+        // 768x1024, critic 2026-10-10): the hero then ends where the scene does (CSS --hero-need)
+        const sW = Math.max((colW - (sh.w + 5) * k) / (SCENE_R - CS.x), r.width / (FIELD.w - FIELD.x0));
+        wrap.style.setProperty("--hero-need", `${Math.ceil(textBottomPx + 24 + SCENE_H * sW)}px`);
         setLabelScale(s);
         // (+5: the sheet's slight tilt reaches past its left edge)
         const sceneL = CS.x - ((sh.w + 5) * k) / s;
@@ -534,7 +542,11 @@ const { tower: T, receiver: R, ground } = FIELD;
       /* the text stands at the top, the drawing (scaled up by fit()) fills the space below; at
          least the drawing's own height, or "slice" would crop its sky and the sun, and at
          least the first screen */
-      min-height: max(calc(100vw * 502 / 1920), calc(100svh - var(--hero-top, calc(var(--top-h) + 1.5px))));
+      /* (with JS at most as tall as the scene needs: --hero-need, fit()) */
+      min-height: max(
+        calc(100vw * 502 / 1920),
+        min(calc(100svh - var(--hero-top, calc(var(--top-h) + 1.5px))), var(--hero-need, 100svh))
+      );
     }
     /* the text layer paints above the absolutely placed field */
     .field-text {
