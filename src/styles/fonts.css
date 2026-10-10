@@ -55,6 +55,14 @@
   line-gap-override: 0%;
 }
 @font-face {
+  font-family: "Newsreader Name Fallback";
+  src: local("Georgia");
+  size-adjust: 103.29%;
+  ascent-override: 71.64%;
+  descent-override: 26.14%;
+  line-gap-override: 0%;
+}
+@font-face {
   font-family: "Schibsted Grotesk Fallback";
   src: local("Arial");
   size-adjust: 103.87%;

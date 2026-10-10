@@ -387,6 +387,19 @@ const hobbies = [
     margin-top: 0.15rem;
   }
 
+  /* beside the larger shelf (from 100rem) the list grows with it, or it read as a footnote */
+  @media (min-width: 100rem) {
+    .row {
+      padding-block: 0.8rem;
+    }
+    .row .t {
+      font-size: 1.5rem;
+    }
+    .row .d {
+      font-size: 1.0625rem;
+    }
+  }
+
   .row:hover {
     border-left-color: var(--line);
   }

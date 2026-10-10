@@ -107,7 +107,7 @@ const icons: Record<TopSkillId, string> = {
                 {s.toolsQuestion && <p class="tools-open">{s.toolsQuestion}</p>}
               </div>
               <div class:list={["sheet-pic", arts[s.id].bg && "is-own"]} data-kk-fade style={arts[s.id].bg ? `--pic-bg:${arts[s.id].bg};--pic-pos:50% 50%` : undefined}>
-                <img src={arts[s.id].src} srcset={arts[s.id].srcset} sizes={arts[s.id].srcset ? "(min-width: 56rem) min(42rem, 45vw), min(100vw, 24rem)" : undefined} alt={arts[s.id].alt} width={arts[s.id].w} height={arts[s.id].h} loading="lazy" decoding="async" />
+                <img src={arts[s.id].src} srcset={arts[s.id].srcset} sizes={arts[s.id].srcset ? "(min-width: 56rem) min(42rem, 45vw), min(100vw, 24rem)" : undefined} alt={arts[s.id].alt} width={arts[s.id].w} height={arts[s.id].h} loading={i === 0 ? "eager" : "lazy"} decoding="async" />
                 <span class="ai-tag">Generiert mit KI</span>
               </div>
             </li>

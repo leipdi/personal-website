@@ -68,7 +68,8 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
 
   /* the name in the content serif (owner's pick 2026-10-01, the heavy grotesk read clunky) */
   .hero-name {
-    font-family: var(--serif);
+    /* (its own fallback, matched on the name: scripts/fonts.mjs) */
+    font-family: "Newsreader", "Newsreader Name Fallback", Georgia, serif;
     font-optical-sizing: auto;
     font-size: var(--fs);
     font-weight: 500;

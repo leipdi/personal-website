@@ -456,10 +456,11 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   let spTop = 0;
   let spBottom = 0;
   // Phones name the bars only at rest (.is-named): the names need lines of their own, so the
-  // chart is taller then. It stays named for that extra height's worth of scrolling after it
-  // pins (namedGap; the stations pass under it), then drops the names, and the height it loses
-  // goes on above it (the scope's top padding, off screen behind the top bar): the text keeps
-  // its place and no hole opens under the chart. Measured with every lane shown.
+  // chart is taller then. The moment it pins it drops the names, and the height it loses
+  // (namedGap) goes on above it (the scope's top padding): its bottom edge and the text stay
+  // where they were, the compact chart sits on the text and then pins as the page scrolls on.
+  // (Keeping the named chart pinned a while let the first title slide under its frosted glass
+  // and reappear, a critic found.) Measured with every lane shown.
   let namedGap = 0;
   const measureNamed = () => {
     const off = lanes.filter((l) => l.classList.contains("is-off"));
@@ -553,16 +554,16 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     // how far the page has scrolled since the chart pinned (negative before)
     const since = stickyTop() - scope.getBoundingClientRect().top;
     // at rest: the chart hasn't pinned yet, nothing is pinned, and this isn't the page end
-    // (phones: until the named chart has been pinned for its extra height, see namedGap)
-    const rest = pinned < 0 && !end && since < namedGap - 0.5;
+    // (phones: the names go the moment the chart pins, see namedGap)
+    const rest = pinned < 0 && !end && since < -0.5;
     // When the chart pins, the first station(s) may already have passed the reading line (tall
     // screens, a short first station). The line then starts at the first station's top and
     // sinks to its usual place at half the scroll speed, so each station still gets its turn.
     // (from the whole plan's bottom, not the current lanes': a smaller chart would move the line
     // up, pick another station, show other lanes and flip back and forth)
     let line = readingLine(planBottom + laneGap);
-    // (counted from where the reading starts: on phones the named chart stays a while, namedGap)
-    const read = Math.max(since - namedGap, 0);
+    // (counted from where the chart pinned)
+    const read = Math.max(since, 0);
     const firstAtPin = sts[0].getBoundingClientRect().top + read;
     if (firstAtPin < line) line = Math.min(line, firstAtPin + 1 + read * 0.5);
 

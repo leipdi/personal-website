@@ -237,9 +237,10 @@ const { tower: T, receiver: R, ground } = FIELD;
         // width, so solve twice.
         const colW = colR - colL;
         const sh = CS.full;
-        // the sheet grows with large screens (1x at 1440px, up to 1.5x from 2160px), or at 2560
-        // it was a small card in a huge drawing (critic 2026-10-10)
-        const grow = Math.min(Math.max(innerWidth / 1440, 1), 1.5);
+        // the sheet grows a little with large screens (1x at 1440px, up to 1.2x from 1728px), or at 2560
+        // it was a small card in a huge drawing (critic 2026-10-10; at 1.5x its price read as a
+        // second headline)
+        const grow = Math.min(Math.max(innerWidth / 1440, 1), 1.2);
         // (ends on s, so the sheet's width and the scale it was solved with agree)
         const solveS = () =>
           Math.max(Math.min((colW - (sh.w + 5) * k) / (SCENE_R - CS.x), avail / SCENE_H), r.width / (FIELD.w - FIELD.x0));

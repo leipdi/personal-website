@@ -21,6 +21,9 @@ const KEEP = ["latin", "latin-ext"];
 // in width), ascent/descent = the web font's, divided by size-adjust
 const FALLBACK = {
   serif: { size: "93.39%", ascent: "79.24%", descent: "28.91%" }, // Newsreader on Georgia
+  // the hero name alone (Newsreader 500 at display size is wider than at text size): matched on
+  // "Daniel Lenski" at 80-190px, so the portrait and the claim beside it don't shift (critic)
+  name: { size: "103.29%", ascent: "71.64%", descent: "26.14%" },
   sans: { size: "103.87%", ascent: "94.35%", descent: "25.03%" }, // Schibsted Grotesk on Arial
 };
 
@@ -80,6 +83,14 @@ const fallbacks = `/* metric-matched fallbacks (measured, see scripts/fonts.mjs)
   size-adjust: ${FALLBACK.serif.size};
   ascent-override: ${FALLBACK.serif.ascent};
   descent-override: ${FALLBACK.serif.descent};
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Newsreader Name Fallback";
+  src: local("Georgia");
+  size-adjust: ${FALLBACK.name.size};
+  ascent-override: ${FALLBACK.name.ascent};
+  descent-override: ${FALLBACK.name.descent};
   line-gap-override: 0%;
 }
 @font-face {
