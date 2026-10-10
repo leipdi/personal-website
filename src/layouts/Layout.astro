@@ -112,8 +112,11 @@ const { title, description } = Astro.props;
         let raf = 0;
         let tops: number[] = [];
         let pageH = 0;
-        const measure = () => {
+        const measureTops = () => {
           tops = els.map((el) => (el ? el.getBoundingClientRect().top + scrollY : Infinity));
+        };
+        const measure = () => {
+          measureTops();
           paint();
         };
         const paint = () => {
@@ -123,7 +126,7 @@ const { title, description } = Astro.props;
           const h = document.documentElement.scrollHeight;
           if (h !== pageH) {
             pageH = h;
-            tops = els.map((el) => (el ? el.getBoundingClientRect().top + scrollY : Infinity));
+            measureTops();
           }
           // where we are: a line that runs from the window's top (page start) to its bottom (page
           // end), the middle in between, so the short first and last sections reach their own
