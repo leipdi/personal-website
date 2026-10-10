@@ -1,6 +1,7 @@
 ---
 import { nav, cvPdf } from "../data/nav";
 import { url } from "../lib/url";
+import { profile } from "../data/cv";
 import "../styles/global.css";
 
 interface Props {
@@ -9,6 +10,25 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
+
+// the letters of the claim's *marked* words, the only italic on the site (font subset below)
+const italicText = [...new Set((profile.claim.match(/\*(.+?)\*/g) ?? []).join("").replace(/\*/g, ""))].join("");
+
+// share previews (LinkedIn, messengers) and search engines need absolute URLs: the deploy
+// sets SITE_URL (astro.config.mjs); locally they fall back to the dev server's address
+const origin = Astro.site ?? Astro.url;
+const canonical = new URL(url("/"), origin).href;
+const ogImage = new URL(url("/og.jpg"), origin).href;
+const person = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: profile.name,
+  jobTitle: "Wirtschaftsingenieur",
+  url: canonical,
+  image: new URL(url("/img/daniel-lenski.jpg"), origin).href,
+  address: { "@type": "PostalAddress", addressLocality: "Langenfeld (Rheinland)", addressCountry: "DE" },
+  sameAs: [profile.linkedinUrl],
+};
 ---
 
 <!doctype html>
@@ -26,8 +46,30 @@ const { title, description } = Astro.props;
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..900&family=Newsreader:opsz,wght@6..72,300..700&display=swap"
     />
+    <!-- Newsreader italic sets only the claim's marked words: a subset of just their letters
+         (~7 KB instead of the full italic, ~130 KB). New italic text elsewhere needs its letters
+         here (or the full italic back in the link above). -->
+    <link
+      rel="stylesheet"
+      href={`https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@1,6..72,400&text=${encodeURIComponent(italicText)}&display=swap`}
+    />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="profile" />
+    <meta property="og:locale" content="de_DE" />
+    <meta property="og:site_name" content={profile.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${profile.name}, ${profile.role}`} />
+    <meta property="profile:first_name" content="Daniel" />
+    <meta property="profile:last_name" content="Lenski" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json" set:html={JSON.stringify(person)} />
   </head>
   <body id="top">
     <a href="#inhalt" class="skip">Zum Inhalt springen</a>
