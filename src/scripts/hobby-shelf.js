@@ -34,10 +34,14 @@ export function initShelf(root) {
     root.classList.add("no-3d");
     return;
   }
-  // weaker laptops: render at 1.5x at most, and step down to 1x (then 0.8x) by itself when
-  // the animation runs slow (see the loop)
-  let dpr = Math.min(devicePixelRatio, 1.5);
-  renderer.setPixelRatio(dpr);
+  // Resolution: as sharp as the screen can show. 1x screens are supersampled at 1.5x (smoother
+  // edges than antialiasing alone), high-dpi screens get their own ratio, up to 2x. On a weaker
+  // GPU `dpr` (the ratio while animating) steps down by itself (see the loop); whenever nothing
+  // moves, the frame is drawn at full sharpness again.
+  const maxDpr = Math.min(Math.max(devicePixelRatio, 1) * (devicePixelRatio < 1.5 ? 1.5 : 1), 2);
+  let dpr = maxDpr;
+  renderer.setPixelRatio(maxDpr);
+  const maxAniso = Math.min(renderer.capabilities.getMaxAnisotropy(), 16);
   renderer.shadowMap.enabled = true;
   // the shadow map was half of every frame (all objects drawn twice): it is redrawn only when
   // something moves (at most 30 times a second), not for camera moves (the light stays put)
@@ -79,8 +83,15 @@ export function initShelf(root) {
     c.width = w; c.height = h;
     const t = new THREE.CanvasTexture(c);
     if (srgb) t.colorSpace = THREE.SRGBColorSpace;
-    t.anisotropy = 8;
+    t.anisotropy = maxAniso;
     return [c.getContext("2d"), t];
+  };
+  // the same at k times the pixels, drawn in the original coordinates (labels, screens, prints
+  // that the zoom brings close)
+  const canvasTex2 = (w, h, k = 2) => {
+    const [x, t] = canvasTex(w * k, h * k);
+    x.scale(k, k);
+    return [x, t];
   };
   // fine roughness variation, so no surface is CG-perfect (values near white: roughness x 0.8-1)
   const microTex = (() => {
@@ -364,7 +375,7 @@ export function initShelf(root) {
     const powder = plastic("#f5f5f1", 0.32, { clearcoat: 0.6, clearcoatRoughness: 0.2 });
     // the pitch spans the whole bay (this cell and the trainer's), in world units
     const PW = 2 * CW + T - 0.08, PD = 0.6;
-    const [px, ptex] = canvasTex(1024, 300);
+    const [px, ptex] = canvasTex2(1024, 300);
     for (let i = 0; i < 12; i++) { px.fillStyle = i % 2 ? "#4c8459" : "#568e62"; px.fillRect((i * 1024) / 12, 0, 1024 / 12 + 1, 300); }
     for (let i = 0; i < 9000; i++) { px.fillStyle = Math.random() > 0.5 ? "rgba(255,255,230,0.08)" : "rgba(10,40,20,0.12)"; px.fillRect(Math.random() * 1024, Math.random() * 300, 1.5, 3); }
     px.strokeStyle = "rgba(255,255,255,0.92)"; px.lineWidth = 3.5;
@@ -517,7 +528,7 @@ export function initShelf(root) {
     board.add(at(rbox(0.72, 0.5, 0.03, 0.01, alu), 0, 0.235, -0.004));
     board.add(at(box(0.68, 0.46, 0.02, plastic("#e9ece9", 0.5)), 0, 0.23, 0.004));
     // the printed pitch on the board surface
-    const [bx, btex] = canvasTex(680, 460);
+    const [bx, btex] = canvasTex2(680, 460);
     bx.fillStyle = "#3a7552"; bx.fillRect(0, 0, 680, 460);
     for (let i = 0; i < 10; i++) { bx.fillStyle = i % 2 ? "rgba(255,255,255,0.035)" : "rgba(0,0,0,0.035)"; bx.fillRect(i * 68, 0, 68, 460); }
     bx.strokeStyle = "#f4f6f2"; bx.lineWidth = 4;
@@ -640,7 +651,7 @@ export function initShelf(root) {
   slot("basketball", "out", 1.1, 2.8, (g) => {
     const BZ = -D / 2 / 1.1 + 0.02;
     // backboard: clear-coated white board with the printed red frame and shooter's square
-    const [hx, htex] = canvasTex(380, 250);
+    const [hx, htex] = canvasTex2(380, 250);
     hx.fillStyle = "#2b74b8"; hx.fillRect(0, 0, 380, 250);
     hx.strokeStyle = "#f4f6f8"; hx.lineWidth = 7; hx.strokeRect(14, 14, 352, 222);
     hx.lineWidth = 6; hx.strokeRect(135, 112, 110, 76);
@@ -683,7 +694,7 @@ export function initShelf(root) {
       g.add(b, at(blob(r * 3, r * 3), x, 0.002, z));
     }
     // the scoreboard, standing on the floor at the left back
-    const [sx, stex] = canvasTex(128, 64);
+    const [sx, stex] = canvasTex2(128, 64, 3);
     let score = 24;
     const drawScore = (n) => {
       sx.fillStyle = "#101418"; sx.fillRect(0, 0, 128, 64);
@@ -796,7 +807,7 @@ export function initShelf(root) {
     const glass = new THREE.Group();
     glass.add(lathe([[0, 0], [0.045, 0], [0.046, 0.004], [0.012, 0.009], [0.0045, 0.02], [0.0045, 0.105], [0.008, 0.112], [0.078, 0.19], [0.0785, 0.193]], glassMat));
     glass.add(lathe([[0, 0.113], [0.006, 0.113], [0.064, 0.176], [0, 0.176]], phys({ color: "#ef4f3a", roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.05 })));
-    const [lx, ltex] = canvasTex(128, 128);
+    const [lx, ltex] = canvasTex2(128, 128);
     lx.fillStyle = "#4f8f1c"; lx.beginPath(); lx.arc(64, 64, 64, 0, 7); lx.fill();
     lx.fillStyle = "#f0f6c8"; lx.beginPath(); lx.arc(64, 64, 57, 0, 7); lx.fill();
     for (let k = 0; k < 9; k++) {
@@ -814,7 +825,7 @@ export function initShelf(root) {
     const bottle = new THREE.Group();
     bottle.add(lathe([[0, 0], [0.032, 0], [0.034, 0.006], [0.034, 0.15], [0.031, 0.17], [0.019, 0.205], [0.0145, 0.24], [0.0145, 0.268], [0.017, 0.272], [0.017, 0.28], [0, 0.28]],
       phys({ color: "#3a1907", roughness: 0.05, transparent: true, opacity: 0.93, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 1.8 })));
-    const [bl, bltex] = canvasTex(512, 200);
+    const [bl, bltex] = canvasTex2(512, 200);
     bl.fillStyle = "#f3ead6"; bl.fillRect(0, 0, 512, 200);
     bl.fillStyle = "#b51f24"; bl.beginPath(); bl.ellipse(256, 100, 150, 86, 0, 0, 7); bl.fill();
     bl.strokeStyle = "#c9a24a"; bl.lineWidth = 6; bl.beginPath(); bl.ellipse(256, 100, 142, 78, 0, 0, 7); bl.stroke();
@@ -877,7 +888,7 @@ export function initShelf(root) {
   // 5 Gaming: Pong on a thin-bezel monitor (slow at rest), a DualShock-style controller that
   // buzzes, a mechanical keyboard, game cases, leather-band headphones on a stand
   slot("gaming", "in", 1.15, 3, (g, outer) => {
-    const [ctx, tex] = canvasTex(320, 180);
+    const [ctx, tex] = canvasTex2(320, 180);
     const draw = (time) => {
       ctx.fillStyle = "#0e2240"; ctx.fillRect(0, 0, 320, 180);
       ctx.fillStyle = "rgba(230,237,245,.35)";
@@ -1105,7 +1116,7 @@ export function initShelf(root) {
     g.add(pr);
     g.add(at(blob(0.5, 0.42), 0.08, 0.002, -0.06));
     // the laptop with a terminal
-    const [tc, ttex] = canvasTex(320, 200);
+    const [tc, ttex] = canvasTex2(320, 200);
     const cmd = 'claude "Report"';
     const term = (n, done, blink) => {
       tc.fillStyle = "#0d1117"; tc.fillRect(0, 0, 320, 200);
@@ -1370,23 +1381,26 @@ export function initShelf(root) {
     for (const it of items) if (it.lamp.intensity > lit.lamp.intensity) lit = it;
     lampL.position.copy(lit.lamp.position);
     lampL.intensity = lit.lamp.intensity;
+    const ratio = busy ? dpr : maxDpr;
+    if (renderer.getPixelRatio() !== ratio) renderer.setPixelRatio(ratio);
     renderer.render(scene, camera);
     if (!ready) { ready = true; readyAt = now; stage.classList.add("is-ready"); }
     // weaker GPUs: while frames run back to back (animating), average their time over 60
     // frames, from 3 s after the first frame (the first frames are slow everywhere). Two slow
-    // windows in a row (under ~30 fps) step the resolution down: 1.5x → 1x; only under ~20 fps
-    // on to 0.8x. Never back up (a resize would show it flicker between the two).
+    // windows in a row (under ~30 fps) step the animating resolution down: to 1.25x, then 1x;
+    // only under ~20 fps on to 0.8x. Never back up while animating (it would flicker); still
+    // frames are always drawn at full sharpness (above).
     if (busy && dt > 0 && now - readyAt > 3000) {
       slow.push(dt);
       if (slow.length >= 60) {
         const avg = slow.reduce((a, b) => a + b, 0) / slow.length;
         slow.length = 0;
-        const want = avg > 1 / 20 ? 0.8 : avg > 1 / 30 ? 1 : dpr;
-        strikes = want < dpr ? strikes + 1 : 0;
+        const next = dpr > 1.25 ? 1.25 : dpr > 1 ? 1 : 0.8;
+        const slowNow = avg > 1 / 30 && (next >= 1 || avg > 1 / 20) && next < dpr;
+        strikes = slowNow ? strikes + 1 : 0;
         if (strikes >= 2) {
           strikes = 0;
-          dpr = dpr > 1 ? Math.max(want, 1) : want;
-          renderer.setPixelRatio(dpr);
+          dpr = next;
         }
       }
     } else if (!busy) slow.length = 0;
