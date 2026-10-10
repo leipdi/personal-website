@@ -295,7 +295,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   // Playhead: each station gets its own stretch of scrolling (sequential, for reading); the
   // playhead moves in real time between the stations' start dates (chronological, for the
   // eye). The station crossing the reading line (a third of the way down the space left
-  // under the pinned chart) is current: its bar is sun, later rows fade. Before the chart
+  // under the pinned chart) is current: its bar is ringed in ink, later ones are outlines. Before the chart
   // pins (page top) it is a plain full-strength plan: nothing current, no playhead.
   const root = document.documentElement;
   const planWrap = document.querySelector<HTMLElement>("[data-plan]")!;
@@ -311,7 +311,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   const tracks = [...document.querySelectorAll<HTMLElement>("[data-track]")];
   const lanes = [...document.querySelectorAll<HTMLElement>(".lane[data-cat]")];
   const topBar = document.querySelector<HTMLElement>(".top");
-  const tabbar = document.querySelector<HTMLElement>(".tabbar");
   const rowOf = new Map(rows.map((r) => [r.dataset.row!, r]));
   const rowAt = sts.map((s) => rowOf.get(s.dataset.st!)!);
   // the chart's scale as it was built (a static site: the visitor's clock would drift from the
@@ -339,11 +338,8 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     return k * k * (3 - 2 * k);
   };
 
-  const tabH = () => (tabbar && getComputedStyle(tabbar).display !== "none" ? tabbar.offsetHeight : 0);
   const stickyTop = () => parseFloat(getComputedStyle(planWrap).top) || 0;
-  // where the chart's bottom edge sits while it is pinned
-  const pinnedBottom = () => stickyTop() + planWrap.offsetHeight;
-  const readingLine = (planBottom: number) => planBottom + (innerHeight - tabH() - planBottom) * 0.33;
+  const readingLine = (planBottom: number) => planBottom + (innerHeight - planBottom) * 0.33;
   // "the end" is the end of this section, not of the page (Kenntnisse and Kontakt follow):
   // the scroll position where the last station has reached its end place and the list has
   // scrolled fully into view (layout). The end state (today) holds from there on.
@@ -387,9 +383,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     schedule();
   };
 
-  // Layout numbers: the top bar's real height (the pinned chart tucks 1px under its rule, so
-  // no slit shows), the chart's height for scroll-padding, and the list's bottom padding: just
-  // enough that at the very end the last station's top reaches the reading line.
   // ---- lane packing: the server guessed the label widths; here the real ones are measured
   // (at the bold weight of the current station, so nothing moves when it turns current) along
   // with the flag names, and each station, in date order, goes on the first line of its lane
@@ -503,6 +496,9 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     }
   };
 
+  // Layout numbers: the top bar's real height (the pinned chart tucks 1px under its rule, so
+  // no slit shows), the chart's height for scroll-padding, and the list's bottom padding: just
+  // enough that at the very end the last station's top reaches the reading line.
   let spTop = 0;
   let spBottom = 0;
   const layout = () => {
@@ -536,7 +532,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     list.style.paddingBottom = `${padNew}px`;
     const listBottom = list.getBoundingClientRect().bottom + scrollY;
     endY = Math.min(
-      Math.max(lastTop - endTop, listBottom - (innerHeight - tabH())),
+      Math.max(lastTop - endTop, listBottom - innerHeight),
       root.scrollHeight - root.clientHeight,
     );
     // The chart's sticky scope can end early (negative margin on the list, given back to the
@@ -798,7 +794,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   const inView = (el: HTMLElement) => {
     const b = el.getBoundingClientRect();
     const top = planWrap.getBoundingClientRect().bottom;
-    return b.bottom > top + 24 && b.top < innerHeight - tabH() - 24;
+    return b.bottom > top + 24 && b.top < innerHeight - 24;
   };
   for (const r of rows) {
     const st = document.getElementById(r.dataset.row!);
