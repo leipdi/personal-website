@@ -10,7 +10,7 @@ export const FIELD = {
   h: 502, // ends just under the ground line, which doubles as the rule closing the hero
   ground: 500,
   tower: { x: 1330, top: 170, w: 22 },
-  receiver: { x: 1341, y: 150 },
+  receiver: { x: 1341, y: 150, hw: 20, hh: 16 }, // centre, half width, half height
   first: 810, // the field starts right of the cost column and its labels
   last: 1230,
   gap: 38,

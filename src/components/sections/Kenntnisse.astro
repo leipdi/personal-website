@@ -73,12 +73,13 @@ const order = (g: (typeof groups)[number], i: number) => (g.id === "lang" ? grou
 </section>
 
 <script>
+  import { reduceMotion } from "../../scripts/page";
   // the pillars are built when they scroll into view (owner 2026-10-03): the dashed scaffold
   // first, then the blocks drop onto the stack one by one, pillar by pillar; again each time
   // the reader comes back from above (not with reduced motion; without JS they just stand)
   // each group on its own, so the KI row under Software builds when it comes into view
   const grps = document.querySelectorAll<HTMLElement>("[data-pillars]");
-  if (grps.length && !matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window) {
+  if (grps.length && !reduceMotion.matches && "IntersectionObserver" in window) {
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {

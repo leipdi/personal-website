@@ -209,3 +209,15 @@ body {
   mix-blend-mode: soft-light;
   background-image: var(--grain);
 }
+
+/* Frosted bars over the day (the top bar, the pinned Werdegang chart): the day and its light
+   spots show through, blurred (opaque, they read as pasted boxes over a spot); 92 % keeps what
+   scrolls under them out of the way (at 80 % it showed as smudges); the grain fixed to the
+   window, so it lines up with the page grain behind */
+.frost {
+  background: var(--grain), color-mix(in srgb, var(--bg) 92%, transparent);
+  background-blend-mode: soft-light, normal;
+  background-attachment: fixed, scroll;
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+}

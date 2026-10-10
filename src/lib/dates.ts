@@ -1,7 +1,9 @@
-const months: Record<string, number> = {
-  jan: 0, feb: 1, mär: 2, mar: 2, apr: 3, mai: 4, jun: 5,
-  jul: 6, aug: 7, sep: 8, okt: 9, nov: 10, dez: 11,
-};
+export const MONTHS = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+/** "Jan", "Feb", "Mär", … as the CV writes them */
+export const MONTHS_SHORT = MONTHS.map((m) => m.slice(0, 3));
+
+// "okt" -> 9 (and the umlaut-free "mar")
+const months: Record<string, number> = { ...Object.fromEntries(MONTHS_SHORT.map((m, i) => [m.toLowerCase(), i])), mar: 2 };
 
 export const today = new Date();
 // Fixed at build time (static site): rebuild to move "heute" forward.

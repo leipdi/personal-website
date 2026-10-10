@@ -3,6 +3,7 @@ import ImagePlaceholder from "../ImagePlaceholder.astro";
 import Heliostat from "../figures/Heliostat.astro";
 import { career } from "../../data/cv";
 import { toFrac, todayFrac } from "../../lib/dates";
+import { packLane } from "../../lib/ganttPack";
 
 // Werdegang as a project plan (owner, 2026-09-28): a Gantt chart pinned under the top bar with
 // the categories as swimlanes on the left (Ausbildung, Abschlussarbeiten, Praxis), one colour
@@ -61,65 +62,57 @@ type Seg = {
   w: number;
   lblMax: number;
   right: boolean;
-  from: number;
-  to: number;
   ms: number | null;
   flagLeft: boolean;
-  f0: number;
-  f1: number;
 };
-const free = (a0: number, a1: number, b0: number, b1: number) => a1 <= b0 - 0.5 || a0 >= b1 + 0.5;
 const lanes = cats.map((c) => {
-  const lines: Seg[][] = [];
-  const items: Seg[] = [];
-  for (const r of rows.filter((x) => x.cat === c.id)) {
-    const l = pct(r.start);
-    const w = Math.max(pct(barEnd(r)) - l, 0.6);
-    // labels that would run past the chart's right edge hang left from the bar's end
-    const right = l + labelW(r) > 100;
-    const from = right ? l + w - labelW(r) : l;
-    const to = right ? l + w : Math.max(l + w, l + labelW(r));
-    const m = msAt(r);
-    const ms = m === null ? null : pct(m);
-    const flagLeft = ms !== null && ms + flagW(r) > 100;
-    const f0 = ms === null ? 0 : flagLeft ? ms - flagW(r) : ms;
-    const f1 = ms === null ? 0 : flagLeft ? ms + 1 : ms + flagW(r);
-    const seg: Seg = { r, k: 0, fb: 0, l, w, lblMax: 0, right, from, to, ms, flagLeft, f0, f1 };
-    let k = lines.findIndex((ln) =>
-      ln.every(
-        (s) =>
-          free(l, l + w, s.l, s.l + s.w) &&
-          free(from, to, s.from, s.to) &&
-          (ms === null || s.ms === null || free(f0, f1, s.f0, s.f1)),
-      ),
-    );
-    if (k < 0) k = lines.push([]) - 1;
-    seg.k = k;
-    lines[k].push(seg);
-    items.push(seg);
-  }
+  const segs = rows
+    .filter((x) => x.cat === c.id)
+    .map((r) => {
+      const l = pct(r.start);
+      const w = Math.max(pct(barEnd(r)) - l, 0.6);
+      // labels that would run past the chart's right edge hang left from the bar's end
+      const right = l + labelW(r) > 100;
+      const m = msAt(r);
+      const ms = m === null ? null : pct(m);
+      return { r, l, w, right, ms, from: right ? l + w - labelW(r) : l, to: right ? l + w : Math.max(l + w, l + labelW(r)) };
+    });
+  const packed = packLane(
+    segs.map(({ r, l, w, ms, from, to }) => ({
+      b0: l,
+      b1: l + w,
+      l0: from,
+      l1: to,
+      lbl: true,
+      flag:
+        ms === null
+          ? null
+          : { right: [ms, ms + flagW(r)], left: [ms - flagW(r), ms + 1], n0: ms + 0.5, w: flagW(r), hangLeft: ms + flagW(r) > 100 },
+    })),
+    { bar: 0.5, lbl: 0.5 },
+  );
   // each label may run up to the next bar on its line (or the chart's end)
-  for (const ln of lines) {
-    const byX = [...ln].sort((a, b) => a.l - b.l);
-    byX.forEach((s, k) => {
-      const next = byX[k + 1]?.l ?? 100;
-      s.lblMax = s.right ? s.l + s.w - (byX[k - 1] ? byX[k - 1].to + 0.5 : 0) : next - s.l - 0.5;
+  const lblMax = segs.map(() => 0);
+  for (const ln of packed.lines) {
+    const byX = [...ln].sort((a, b) => segs[a].l - segs[b].l);
+    byX.forEach((i, k) => {
+      const sg = segs[i];
+      const next = byX[k + 1] !== undefined ? segs[byX[k + 1]].l : 100;
+      lblMax[i] = sg.right ? sg.l + sg.w - (byX[k - 1] !== undefined ? segs[byX[k - 1]].to + 0.5 : 0) : next - sg.l - 0.5;
     });
   }
-  // a flag name right of its pole must not sit under the next bar on its line: it hangs left
-  for (const ln of lines) {
-    for (const s of ln) {
-      if (s.ms === null || s.flagLeft) continue;
-      if (ln.some((o) => o !== s && o.l < s.f1 && o.l + o.w > s.ms! + 0.5)) {
-        s.flagLeft = true;
-        s.f0 = s.ms - flagW(s.r);
-        s.f1 = s.ms + 1;
-      }
-    }
-  }
-  const flagLine = lines.map((ln) => ln.some((s) => s.ms !== null));
-  for (const s of items) s.fb = flagLine.slice(0, s.k).filter(Boolean).length;
-  return { ...c, items, nLines: lines.length, nFlag: flagLine.filter(Boolean).length };
+  const items: Seg[] = segs.map(({ r, l, w, right, ms }, i) => ({
+    r,
+    l,
+    w,
+    right,
+    ms,
+    k: packed.placed[i].line,
+    fb: packed.placed[i].fb,
+    flagLeft: packed.placed[i].hangLeft,
+    lblMax: lblMax[i],
+  }));
+  return { ...c, items, nLines: packed.nLines, nFlag: packed.nFlag };
 });
 
 // how long a job or thesis ran (months, counted inclusively), or since when it runs
@@ -149,7 +142,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   <!-- the chart stays pinned up to the last station's top, then scrolls away above it (script) -->
   <div class="scope" data-scope>
     <nav
-      class="plan-wrap"
+      class="plan-wrap frost"
       aria-label="Projektplan: alle Stationen"
       data-plan
       data-t0={t0}
@@ -292,6 +285,9 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
 </section>
 
 <script>
+  import { MONTHS_SHORT as months } from "../../lib/dates";
+  import { packLane } from "../../lib/ganttPack";
+  import { onScrollFrame, requestFrame, savedY, saveY, settled } from "../../scripts/page";
   // Playhead: each station gets its own stretch of scrolling (sequential, for reading); the
   // playhead moves in real time between the stations' start dates (chronological, for the
   // eye). The station crossing the reading line (a third of the way down the space left
@@ -332,7 +328,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     ongoing.length > 1
       ? `${ongoing.map((j) => rowAt[j].dataset.name).join(" und ")}, beide bis heute`
       : rowAt[rowAt.length - 1].dataset.cap!;
-  const months = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
   const smooth = (x: number) => {
     const k = Math.min(Math.max(x, 0), 1);
     return k * k * (3 - 2 * k);
@@ -392,20 +387,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   const BAR_GAP = 3; // px between two bars on a line
   const PENNANT = 10; // px from a pole to its flag name (0.75rem minus the 2px backing)
   const FLAG_IN = 3.3; // px a left-hanging flag name stays clear of its pole
-  type Box = {
-    b0: number;
-    b1: number;
-    l0: number;
-    l1: number;
-    f0: number;
-    f1: number;
-    lbl: boolean;
-    flag: boolean;
-    fx: number; // the flag pole's x
-    fw: number; // the flag name's width
-    fel: HTMLElement | null;
-  };
-  const clear = (a0: number, a1: number, b0: number, b1: number, gap: number) => a1 + gap <= b0 || b1 + gap <= a0;
   const pack = () => {
     const W = tracks.find((t) => t.clientWidth)?.clientWidth ?? 0;
     if (!W) return;
@@ -425,9 +406,9 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
 
     for (const t of tracks) {
       if (!t.clientWidth) continue;
-      const lines: Box[][] = [];
-      const placed: { s: HTMLElement; f: HTMLElement | null; k: number }[] = [];
-      for (const s of segsOf(t)) {
+      const segs = segsOf(t);
+      const flags = segs.map((s) => flagOf(t, s));
+      const boxes = segs.map((s, i) => {
         const bl = s.offsetLeft;
         const bw = s.offsetWidth;
         const w = lw.get(s)!; // label box incl. its 2px backing on each side
@@ -441,58 +422,31 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
         lbl.style.right = "auto";
         lbl.style.maxWidth = w > W + 4 ? `${W + 4}px` : "none";
         s.classList.remove("seg-right");
-
-        const f = flagOf(t, s);
-        let f0 = 0;
-        let f1 = 0;
-        let fx = 0;
-        let fw = 0;
+        const f = flags[i];
+        let flag = null;
         if (f) {
-          fx = f.offsetLeft;
-          fw = f.querySelector<HTMLElement>(".flag-lbl")!.getBoundingClientRect().width;
-          const left = fw > 0 && fx + PENNANT + fw > W + 2;
-          f.classList.toggle("flag-left", left);
-          f0 = left ? fx - FLAG_IN - fw : fx;
-          f1 = left ? fx + PENNANT : fx + PENNANT + fw;
+          const fx = f.offsetLeft;
+          const fw = f.querySelector<HTMLElement>(".flag-lbl")!.getBoundingClientRect().width;
+          flag = {
+            right: [fx, fx + PENNANT + fw] as [number, number],
+            left: [fx - FLAG_IN - fw, fx + PENNANT] as [number, number],
+            n0: fx + PENNANT,
+            w: fw,
+            hangLeft: fw > 0 && fx + PENNANT + fw > W + 2,
+          };
         }
-        const box: Box = { b0: bl, b1: bl + bw, l0, l1, f0, f1, lbl: w > 0, flag: !!f, fx, fw, fel: f };
-        let k = lines.findIndex((ln) =>
-          ln.every(
-            (o) =>
-              clear(box.b0, box.b1, o.b0, o.b1, BAR_GAP) &&
-              (!box.lbl || !o.lbl || clear(box.l0, box.l1, o.l0, o.l1, LBL_GAP)) &&
-              (!box.flag || !o.flag || clear(box.f0, box.f1, o.f0, o.f1, LBL_GAP)),
-          ),
-        );
-        if (k < 0) k = lines.push([]) - 1;
-        lines[k].push(box);
-        placed.push({ s, f, k });
-      }
-      // A flag name hanging right of its pole must not sit under the next station's bar on
-      // the same line (the grade at the end of the Abitur ran under the B.Eng. bar): it then
-      // hangs left, under its own bar.
-      for (const ln of lines) {
-        for (const o of ln) {
-          if (!o.fel || !o.fw || o.fel.classList.contains("flag-left")) continue;
-          const n0 = o.fx + PENNANT;
-          const underBar = ln.some((p) => p !== o && p.b0 < o.f1 && p.b1 > n0);
-          if (underBar) {
-            o.fel.classList.add("flag-left");
-            o.f0 = o.fx - FLAG_IN - o.fw;
-            o.f1 = o.fx + PENNANT;
-          }
-        }
-      }
-      const flagLine = lines.map((ln) => ln.some((o) => o.flag));
-      for (const { s, f, k } of placed) {
-        const fb = flagLine.slice(0, k).filter(Boolean).length;
-        for (const el of [s, f]) {
-          el?.style.setProperty("--line", String(k));
+        return { b0: bl, b1: bl + bw, l0, l1, lbl: w > 0, flag };
+      });
+      const packed = packLane(boxes, { bar: BAR_GAP, lbl: LBL_GAP });
+      packed.placed.forEach(({ line, fb, hangLeft }, i) => {
+        flags[i]?.classList.toggle("flag-left", hangLeft);
+        for (const el of [segs[i], flags[i]]) {
+          el?.style.setProperty("--line", String(line));
           el?.style.setProperty("--fb", String(fb));
         }
-      }
-      t.style.setProperty("--lines", String(lines.length));
-      t.style.setProperty("--flag-lines", String(flagLine.filter(Boolean).length));
+      });
+      t.style.setProperty("--lines", String(packed.nLines));
+      t.style.setProperty("--flag-lines", String(packed.nFlag));
     }
   };
 
@@ -700,15 +654,13 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     }
   };
 
-  let raf = 0;
   function schedule() {
-    cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(update);
+    requestFrame(update);
   }
+  onScrollFrame(update);
   addEventListener(
     "scroll",
     () => {
-      schedule();
       if (pinned < 0) return;
       // (the timer is not restarted by every scroll: continuous scrolling without a pause
       // would otherwise never release the pin)
@@ -720,9 +672,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   );
   addEventListener("resize", layout);
   new ResizeObserver(layout).observe(planWrap);
-  const loaded =
-    document.readyState === "complete" ? Promise.resolve() : new Promise((r) => addEventListener("load", r, { once: true }));
-  Promise.all([document.fonts?.ready, loaded]).then(() => {
+  settled().then(() => {
     ready = true;
     layout();
   });
@@ -763,14 +713,14 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     "scroll",
     () => {
       clearTimeout(saveT);
-      saveT = window.setTimeout(() => history.replaceState({ ...(history.state ?? {}), wdY: scrollY }, ""), 200);
+      saveT = window.setTimeout(() => saveY(scrollY), 200);
     },
     { passive: true },
   );
   const toStation = (e?: PopStateEvent) => {
     const el = document.getElementById(decodeURIComponent(location.hash.slice(1)));
     if (el && sts.includes(el)) el.scrollIntoView({ block: "start" });
-    else if (typeof e?.state?.wdY === "number") scrollTo(0, e.state.wdY);
+    else if (e && savedY(e.state) !== null) scrollTo(0, savedY(e.state)!);
     fromHash();
   };
   // typed hashes, in-page links, Back/Forward: the same as a fresh load with that hash
@@ -781,10 +731,8 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   // to the position this entry last saved (with or without a hash; with manual restoration
   // the browser doesn't even scroll to the hash then). A fresh visit has no saved state and
   // the browser scrolls to the hash itself.
-  if (typeof history.state?.wdY === "number") {
-    const y = history.state.wdY as number;
-    Promise.all([document.fonts?.ready, loaded]).then(() => scrollTo(0, y));
-  }
+  const restoreY = savedY();
+  if (restoreY !== null) settled().then(() => scrollTo(0, restoreY));
 
   // pointing at a row picks out its station (marked in the gutter only if it is actually in
   // view below the chart)
@@ -904,14 +852,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     --drop: 0.6rem;
     --fx: 0.5rem;
     --pitch: calc(var(--lz) + var(--bar) + var(--gap));
-    /* the day and its light spots show through, blurred (opaque, it read as a pasted box over
-       a spot); 92 % keeps the stations scrolling under it out of the way */
-    background: var(--grain), color-mix(in srgb, var(--bg) 92%, transparent);
-    background-blend-mode: soft-light, normal;
-    /* (the grain fixed to the window, so it lines up with the page grain behind) */
-    background-attachment: fixed, scroll;
-    -webkit-backdrop-filter: blur(14px) saturate(1.2);
-    backdrop-filter: blur(14px) saturate(1.2);
+    /* (frosted like the top bar: global.css .frost) */
     border-bottom: 1px solid color-mix(in srgb, var(--ink) 25%, transparent);
     padding: 0.375rem 0 0.5rem;
   }

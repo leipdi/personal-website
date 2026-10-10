@@ -124,7 +124,7 @@ const { tower: T, receiver: R, ground } = FIELD;
       style={`opacity:${glow.opacity.toFixed(2)}`}
       data-rec
     ></circle>
-    <rect class="receiver" x={R.x - 20} y={R.y - 16} width="40" height="32"></rect>
+    <rect class="receiver" x={R.x - R.hw} y={R.y - R.hh} width={2 * R.hw} height={2 * R.hh}></rect>
   </svg>
 
   <div class="field-text" data-field-text>
@@ -147,6 +147,7 @@ const { tower: T, receiver: R, ground } = FIELD;
     rayOpacity,
     receiverGlow,
   } from "../../lib/heliostat";
+  import { reduceMotion as reduce } from "../../scripts/page";
 
   const FRONT = ROWS.length - 1;
   const CS = COST_SHEET;
@@ -175,7 +176,7 @@ const { tower: T, receiver: R, ground } = FIELD;
     const wide = matchMedia("(min-width: 48rem)");
     const NARROW_X0 = 380;
     const SCENE_H = 430; // ground (500) to the top of the sun's arc (70)
-    const SCENE_R = FIELD.receiver.x + 20; // the receiver's right edge
+    const SCENE_R = FIELD.receiver.x + FIELD.receiver.hw; // the receiver's right edge
     const costG = svg.querySelector<SVGGElement>("[data-cost]")!;
     const leader = svg.querySelector<SVGPathElement>(".leader")!;
     const column = text.firstElementChild as HTMLElement | null;
@@ -413,7 +414,6 @@ const { tower: T, receiver: R, ground } = FIELD;
 
     // idle: the sun drifts along a flat day arc between lo and hi, starting from wherever it
     // was left (if that is outside the range, it travels back in rather than jumping)
-    const reduce = matchMedia("(prefers-reduced-motion: reduce)");
     let lastT = 0;
     let visible = true;
     new IntersectionObserver(([en]) => (visible = en.isIntersecting)).observe(wrap);

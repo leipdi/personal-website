@@ -1,6 +1,7 @@
 ---
 import { profile } from "../../data/cv";
 import { cvPdf } from "../../data/nav";
+import { MONTHS } from "../../lib/dates";
 
 const [user, domain] = profile.email.split("@");
 // break only after "linkedin.com/in/", never inside the handle (it has hyphens)
@@ -9,9 +10,8 @@ const liHost = profile.linkedin.slice(0, liCut);
 const liPath = profile.linkedin.slice(liCut);
 
 // "Stand" = the build date (a static site: rebuild to move it)
-const months = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
 const now = new Date();
-const stand = `${months[now.getMonth()]} ${now.getFullYear()}`;
+const stand = `${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
 ---
 
 <section id="kontakt" class="sec" aria-labelledby="h-kontakt">
