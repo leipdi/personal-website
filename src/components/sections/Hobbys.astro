@@ -21,14 +21,16 @@ const hobbies = [
   <div class="wrap page">
     <div class="head">
       <h2 id="h-hobbys" class="display page-title">Hobbys</h2>
+    </div>
+
+    <div class="room">
+      <!-- the switch stands with the list it filters (on wide screens right above it; a critic
+           found it floating far above the list in the section head at 2560) -->
       <div class="switch" role="radiogroup" aria-label="Welche Seite zeigen" data-switch>
         <button type="button" role="radio" aria-checked="false" data-mode="out">Draußen</button>
         <button type="button" role="radio" aria-checked="true" data-mode="all">Beides</button>
         <button type="button" role="radio" aria-checked="false" data-mode="in">Drinnen</button>
       </div>
-    </div>
-
-    <div class="room">
       <div class="stage" data-stage>
         <p class="loading">Regal wird aufgebaut …</p>
         <button type="button" class="back" data-back>Zurück zum Regal</button>
@@ -177,10 +179,30 @@ const hobbies = [
   /* the list stands at the shelf's middle, not hugging its top (a critic found the shelf
      floating beside a short list on wide screens, 2026-10-10); from 100rem the shelf takes
      three quarters of the column */
+  .switch {
+    justify-self: start;
+  }
+
   @media (min-width: 64rem) {
     .room {
       grid-template-columns: 8fr 4fr;
-      align-items: center;
+      /* switch and list as one group at the shelf's middle */
+      grid-template-rows: 1fr auto auto 1fr;
+      row-gap: 0;
+    }
+    .stage {
+      grid-column: 1;
+      grid-row: 1 / -1;
+      align-self: center;
+    }
+    .switch {
+      grid-column: 2;
+      grid-row: 2;
+      margin-bottom: 1.25rem;
+    }
+    .list {
+      grid-column: 2;
+      grid-row: 3;
     }
   }
 
@@ -209,6 +231,13 @@ const hobbies = [
   .no-3d .room,
   :global(html:not(.js)) .room {
     grid-template-columns: none;
+    grid-template-rows: none;
+    row-gap: var(--sp-gap);
+  }
+  .no-3d .room > *,
+  :global(html:not(.js)) .room > * {
+    grid-column: auto;
+    grid-row: auto;
   }
 
   /* soft edges, so a zoomed-in view fades out instead of ending on a hard line */
