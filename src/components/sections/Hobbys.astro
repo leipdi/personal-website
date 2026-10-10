@@ -2,7 +2,7 @@
 // Hobbys (owner 2026-10-10): a shelf of six compartments as a real-time three.js scene, after
 // devanshuchauhan.in (a shelf of favourite things that come alive when pointed at). Picked by
 // the owner over a photo collage and a drawn shelf; mockups and history in drafts/ and
-// AGENTS.md. The scene (src/scripts/hobby-shelf.js) loads only when the section comes near the
+// AGENTS.md. The scene (src/scripts/hobby-shelf) loads only when the section comes near the
 // screen; without JS or WebGL the list carries the content alone. Facts from the owner: plays
 // football and coaches, follows football and basketball, goes out, games and is a bit of a
 // nerd; from LinkedIn: 3D printing, own projects automated with Claude. The copy started as an
@@ -93,12 +93,12 @@ const hobbies = [
     // (about a second of main-thread work) is only built once the stage is on screen, so it
     // never stalls the scroll through the sections above
     const stage = root.querySelector<HTMLElement>("[data-stage]");
-    let mod: Promise<typeof import("../../scripts/hobby-shelf.js")> | null = null;
+    let mod: Promise<typeof import("../../scripts/hobby-shelf")> | null = null;
     const near = new IntersectionObserver(
       (entries) => {
         if (!entries.some((e) => e.isIntersecting)) return;
         near.disconnect();
-        mod = import("../../scripts/hobby-shelf.js");
+        mod = import("../../scripts/hobby-shelf");
         mod.catch(() => root.classList.add("no-3d"));
       },
       { rootMargin: "800px 0px" },
@@ -106,7 +106,7 @@ const hobbies = [
     const seen = new IntersectionObserver((entries) => {
       if (!entries.some((e) => e.isIntersecting)) return;
       seen.disconnect();
-      (mod ??= import("../../scripts/hobby-shelf.js"))
+      (mod ??= import("../../scripts/hobby-shelf"))
         .then((m) => {
           m.initShelf(root);
           const mode = list.dataset.mode;
