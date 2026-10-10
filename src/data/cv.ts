@@ -28,16 +28,14 @@ export type CareerEntry = {
   id: string; // Anker der Station (#id) auf der Seite, stabil halten: die Kernkompetenzen verlinken darauf
   from: string;
   to: string;
-  fromYear: number;
-  toYear: number;
   title: string;
   org: string;
   place: string;
   kind: "ausbildung" | "beruf";
   story: string; // KI-PLATZHALTER: kurzer Einstieg
-  // Slug eines Projekts auf /projekte/, falls es dazu eine ausführliche Fallstudie gibt.
+  // Slug eines Eintrags in `projects` (die Projektseite ist entfernt, die Daten bleiben).
   project?: string;
-  // Meilenstein im Projektplan auf /werdegang/ (Raute): Abschluss oder Abgabe. at: "2024",
+  // Meilenstein im Projektplan (Werdegang, Fahne am Balken): Abschluss oder Abgabe. at: "2024",
   // "Jun 2024" oder ein Tagesdatum "18.06.2024". Nur Fakten aus CV oder Abschlussarbeit.
   // tag = kurze Fahnenbeschriftung im Projektplan ("Abgabe BA")
   milestone?: { at: string; label: string; tag: string };
@@ -55,8 +53,6 @@ export const career: CareerEntry[] = [
   {
     from: "2013",
     to: "2020",
-    fromYear: 2013,
-    toYear: 2020,
     id: "abitur",
     milestone: { at: "2020", label: "Abitur, Note 2,0", tag: "Note 2,0" },
     tasks: ["Allgemeine Hochschulreife mit Note 2,0"],
@@ -72,8 +68,6 @@ export const career: CareerEntry[] = [
   {
     from: "2020",
     to: "2024",
-    fromYear: 2020,
-    toYear: 2024,
     id: "bachelor",
     tasks: [
       "Grundstudium zwischen Technik und Betriebswirtschaft",
@@ -95,8 +89,6 @@ export const career: CareerEntry[] = [
   {
     from: "Okt 2021",
     to: "Jul 2022",
-    fromYear: 2021,
-    toYear: 2022,
     id: "tutor",
     tasks: ["Mathematik-Tutorien für Erstsemester gehalten", "Der erste Job neben dem Studium"],
     title: "Mathematik-Tutor",
@@ -109,8 +101,6 @@ export const career: CareerEntry[] = [
   {
     from: "Okt 2022",
     to: "Feb 2023",
-    fromYear: 2022,
-    toYear: 2023,
     id: "praktikum-pm",
     tasks: [
       "Kundentermine vor- und nachbereitet",
@@ -130,8 +120,6 @@ export const career: CareerEntry[] = [
   {
     from: "Feb 2023",
     to: "Feb 2024",
-    fromYear: 2023,
-    toYear: 2024,
     id: "werkstudent-controlling",
     tasks: [
       "Mitarbeitercontrolling und Monatsabschlüsse in Excel und Pivot-Tabellen",
@@ -152,8 +140,6 @@ export const career: CareerEntry[] = [
   {
     from: "Mär 2024",
     to: "Jun 2024",
-    fromYear: 2024,
-    toYear: 2024,
     id: "bachelorarbeit",
     tasks: [
       "Kalkulationssoftware verglichen; Costing24 ließ sich nur teilweise nutzen",
@@ -182,8 +168,6 @@ export const career: CareerEntry[] = [
     from: "2024",
     // abgeschlossen laut Daniel (2026-10-03), Monat unbekannt
     to: "2026",
-    fromYear: 2024,
-    toYear: 2026,
     id: "master",
     tasks: [
       "Schwerpunkt Produktion und Innovation",
@@ -206,8 +190,6 @@ export const career: CareerEntry[] = [
   {
     from: "Sep 2024",
     to: "Mai 2026",
-    fromYear: 2024,
-    toYear: 2026,
     id: "hilfskraft",
     tasks: [
       "Mitteilungen für den Fachbereich verfasst",
@@ -225,8 +207,6 @@ export const career: CareerEntry[] = [
     from: "Jan 2026",
     // Abgabe laut Titelblatt der Arbeit: 01.06.2026 (der CV sagte noch "heute")
     to: "Jun 2026",
-    fromYear: 2026,
-    toYear: 2026,
     id: "masterarbeit",
     tasks: [
       "Anforderungskatalog aus ISO 14044, REACH und den ICAO-Vorgaben",
@@ -252,8 +232,6 @@ export const career: CareerEntry[] = [
   {
     from: "Mai 2026",
     to: "heute",
-    fromYear: 2026,
-    toYear: 2026,
     id: "praktikum-bi",
     tasks: [
       "ETL-Strecken für Kunden und intern aufgebaut",
@@ -368,8 +346,7 @@ export const ratedSkills: RatedSkill[] = [
 ];
 
 // Methoden/Fachgebiete aus dem CV ohne eigene Skalen-Bewertung. `skill` ordnet sie einer
-// Kernkompetenz aus `topSkills` zu; /kenntnisse/ zeigt sie dort als "Im CV: …" unter dem
-// Kompetenztitel, damit Startseite und Kenntnisse dieselben Namen verwenden.
+// Kernkompetenz aus `topSkills` zu. Derzeit auf der Seite nicht verwendet.
 // KI-PLATZHALTER: die Zuordnung Methode -> Kernkompetenz (skill) ist abgeleitet, nicht aus dem CV.
 export const competencies: { name: string; skill: TopSkillId }[] = [
   { name: "Herstellkostenrechnung", skill: "kosten" },
@@ -389,13 +366,14 @@ export const certifications = [
   { id: "z-python", name: "Python Course", authority: "Kaggle", date: "2026" },
 ];
 
-// KI-PLATZHALTER: Formulierung von KI, Fakten aus LinkedIn.
+// KI-PLATZHALTER: Formulierung von KI, Fakten aus LinkedIn. Derzeit auf der Seite nicht verwendet
+// ("Neben dem Job" ist in Hobbys aufgegangen).
 export const notes = [
   "Spielt beim VfB 06 Langenfeld und pfeift als Schiedsrichter im Kreis Remscheid/Solingen, auf beiden Seiten der Linie zu Hause.",
   "Baut in der Freizeit mit 3D-Druck und automatisiert eigene Projekte mit Claude (Cowork, Code).",
 ];
 
-// KI-PLATZHALTER (komplett): Skill-Hub der Startseite und Gruppierung auf /kenntnisse/.
+// KI-PLATZHALTER (komplett): die Kernkompetenzen-Blätter (index.astro).
 // Ein erster KI-Vorschlag, den Daniel selbst überarbeitet: welche Kompetenzen, ihre Titel,
 // die Belegzeilen (proof) und die Zuordnung von Stationen (learned) und Software (tools)
 // sind abgeleitet. Die Fakten in den Belegzeilen stammen nur aus den Stationen oben.
@@ -412,8 +390,7 @@ export type TopSkill = {
   tools: string[]; // Schlüssel aus src/data/tools.ts (Logo oder Logo-Platzhalter)
   toolsQuestion?: string;
   learned: { label: string; href: string }[];
-  // Das Bild der Karte ist eine eigens gezeichnete Illustration (KI-generiert, im Bild
-  // markiert): src/components/figures/kk/<Id>.astro, nach id ausgewählt.
+  // Das Bild der Karte steht in `arts` in src/pages/index.astro, nach id ausgewählt.
 };
 
 // Reihenfolge und Auswahl der Boxen: Vorgabe von Daniel (2026-09-25). Belegzeilen und

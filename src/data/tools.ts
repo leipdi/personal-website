@@ -17,7 +17,7 @@ export const tools: Record<string, Tool> = {
   "Autodesk Inventor": { name: "Autodesk Inventor", svg: autodesk },
   SAP: { name: "SAP", svg: sap },
   Claude: { name: "Claude", svg: claude },
-  // same name as the CV self-rating on /kenntnisse/
+  // same name as the CV self-rating in Kenntnisse
   MSSQL: { name: "MSSQL", svg: mssql },
   Timebutler: { name: "Timebutler", mono: "T" },
   Jedox: { name: "Jedox", mono: "J" },
