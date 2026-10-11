@@ -23,6 +23,15 @@ export const profile = {
   linkedinUrl: "https://linkedin.com/in/daniel-lenski-de",
 };
 
+// Kontakt (seit 2026-10-11): "Worum geht's?" Die Wahl schreibt Betreff und Anfang der E-Mail
+// auf den Laptop-Bildschirm; "E-Mail schreiben" öffnet sie im Mailprogramm (mailto).
+export const contactTopics: { id: string; label: string; subject: string; body: string }[] = [
+  { id: "stelle", label: "Eine Stelle", subject: "Eine Stelle", body: "Hallo Daniel,\n\nwir suchen gerade jemanden für " },
+  { id: "projekt", label: "Ein Projekt", subject: "Ein Projekt", body: "Hallo Daniel,\n\nich arbeite an einem Projekt und " },
+  { id: "frage", label: "Eine Frage zu meinen Arbeiten", subject: "Eine Frage zu deinen Arbeiten", body: "Hallo Daniel,\n\nich habe eine Frage zu " },
+  { id: "hallo", label: "Einfach Hallo", subject: "Hallo", body: "Hallo Daniel,\n\n" },
+];
+
 export type CareerEntry = {
   id: string; // Anker der Station (#id) auf der Seite, stabil halten: die Kernkompetenzen verlinken darauf
   from: string;

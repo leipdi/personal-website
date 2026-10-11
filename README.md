@@ -23,7 +23,7 @@ src/
   layouts/     page shell, top bar
   lib/         geometry, dates, url() for base-aware paths
   styles/      global.css (tokens, palette)
-public/        files served as-is (images, CV PDF, favicon)
+public/        files served as-is (images, favicon)
 scripts/       image helpers
 qa/            QA script
 ```

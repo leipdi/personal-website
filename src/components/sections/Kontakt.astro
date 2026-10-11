@@ -1,6 +1,5 @@
 ---
-import { profile } from "../../data/cv";
-import { cvPdf } from "../../data/nav";
+import { profile, contactTopics } from "../../data/cv";
 import { MONTHS } from "../../lib/dates";
 
 const [user, domain] = profile.email.split("@");
@@ -9,32 +8,292 @@ const liCut = profile.linkedin.lastIndexOf("/") + 1;
 const liHost = profile.linkedin.slice(0, liCut);
 const liPath = profile.linkedin.slice(liCut);
 
+// the letter before a topic is picked (and without JS, where the picker is hidden)
+const startSubject = "Kontakt über deine Website";
+const startBody = "Hallo Daniel,\n\n";
+const mailto = (subject: string, body: string) =>
+  `mailto:${profile.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
 // "Stand" = the build date (a static site: rebuild to move it)
 const now = new Date();
 const stand = `${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+
+// the desk lamp: an upright stem (its length follows the laptop's height, so the head always
+// clears the lid), an elbow and an arm reaching over to the shade. Head part viewBox 0 0 150 110,
+// base part 0 0 150 30; the stem stands at x 34 in both.
+const P = { elbow: [34, 104], head: [112, 32] } as const;
+const f = (n: number) => +n.toFixed(1);
+// an arm is two parallel rods, `gap` apart
+const rods = ([ax, ay]: readonly number[], [bx, by]: readonly number[], gap: number) => {
+  const l = Math.hypot(bx - ax, by - ay);
+  const [px, py] = [((by - ay) / l) * gap, (-(bx - ax) / l) * gap];
+  return [-1, 1]
+    .map((s) => `M${f(ax + s * px)} ${f(ay + s * py)} L${f(bx + s * px)} ${f(by + s * py)}`)
+    .join(" ");
+};
+// the spring beside the arm: a tight zigzag from t0 to t1 along it, `off` to one side
+const spring = ([ax, ay]: readonly number[], [bx, by]: readonly number[], t0: number, t1: number, off: number) => {
+  const l = Math.hypot(bx - ax, by - ay);
+  const [ux, uy] = [(bx - ax) / l, (by - ay) / l];
+  const [px, py] = [uy, -ux];
+  const n = 24;
+  let d = "";
+  for (let i = 0; i <= n; i++) {
+    const t = (t0 + ((t1 - t0) * i) / n) * l;
+    const o = off + (i === 0 || i === n ? 0 : i % 2 ? 1.7 : -1.7);
+    d += `${i ? "L" : "M"}${f(ax + ux * t + px * o)} ${f(ay + uy * t + py * o)} `;
+  }
+  return d.trim();
+};
+const arm = rods(P.elbow, P.head, 2.6);
+const armSpring = spring(P.elbow, P.head, 0.14, 0.62, 9);
+const head = `translate(${P.head[0]} ${P.head[1]}) rotate(-36)`;
+
+// the wall clock: just after six (Feierabend); ticks every hour, longer at the quarters
+const ticks = Array.from({ length: 12 }, (_, i) => {
+  const a = (i * Math.PI) / 6;
+  const [r0, r1] = i % 3 ? [15.5, 17] : [14, 17];
+  return `M${f(20 + Math.sin(a) * r0)} ${f(20 - Math.cos(a) * r0)} L${f(20 + Math.sin(a) * r1)} ${f(20 - Math.cos(a) * r1)}`;
+}).join(" ");
+const hand = (turn: number, len: number) =>
+  `M20 20 L${f(20 + Math.sin(turn * 2 * Math.PI) * len)} ${f(20 - Math.cos(turn * 2 * Math.PI) * len)}`;
+const hourHand = hand((6 + 5 / 60) / 12, 8.5);
+const minuteHand = hand(5 / 60, 13);
 ---
 
+<!-- Kontakt (owner 2026-10-11, mockup D in drafts/: "a mix of B and C", the letter on a laptop
+     screen): the evening desk ends the page's day. Ink line drawing; the only colour is light,
+     the desk lamp and through the window the sun setting behind the heliostat field of the hero.
+     The visitor picks what it is about, the start of the e-mail writes itself on the laptop and
+     one button opens it in their mail program (mailto, no server). -->
 <section id="kontakt" class="sec" aria-labelledby="h-kontakt">
   <div class="wrap page">
-    <h2 id="h-kontakt" class="display page-title">Kontakt</h2>
+    <div class="grid">
+      <div class="intro">
+        <h2 id="h-kontakt" class="display page-title">Kontakt</h2>
+        <p class="lede">Feierabend für die Seite, nicht für Nachrichten. Schreib mir.</p>
 
-    <!-- the page's one heavy grotesk moment: the e-mail, set apart from the serif titles -->
-    <a class="mail" href={`mailto:${profile.email}`}>
-      <span class="mail-u">{user}<wbr />@{domain}</span>
-    </a>
+        <!-- the page's one heavy grotesk moment: the e-mail, set apart from the serif titles -->
+        <a class="mail" href={`mailto:${profile.email}`}>
+          <span class="mail-u">{user}<wbr />@{domain}</span>
+        </a>
 
-    <div class="card-row">
-      <!-- a letterhead, not a form: the details speak for themselves without labels -->
-      <address class="letterhead">
-        <strong>{profile.name}</strong>
-        <span>{profile.role}</span>
-        <span>{profile.location}</span>
-        <a class="prose-link" href={profile.linkedinUrl} target="_blank" rel="noreferrer"
-          >{liHost}<wbr /><span class="nobr">{liPath}</span></a
-        >
-        <a class="cv" href={cvPdf} target="_blank" rel="noreferrer">Lebenslauf als PDF</a>
-      </address>
+        <!-- with JS only: without it the radios could not write the letter -->
+        <fieldset class="topics" data-topics>
+          <legend class="ask">Worum geht's?</legend>
+          <div class="chips">
+            {
+              contactTopics.map((t) => (
+                <label class="chip">
+                  <input type="radio" name="kontakt-topic" value={t.id} data-subject={t.subject} data-body={t.body} />
+                  <span>{t.label}</span>
+                </label>
+              ))
+            }
+          </div>
+        </fieldset>
 
+        <!-- a letterhead, not a form: the details speak for themselves without labels -->
+        <address class="letterhead">
+          <strong>{profile.name}</strong>
+          <span>{profile.role}</span>
+          <span>{profile.location}</span>
+          <a class="prose-link" href={profile.linkedinUrl} target="_blank" rel="noreferrer"
+            >{liHost}<wbr /><span class="nobr">{liPath}</span></a
+          >
+        </address>
+      </div>
+
+      <!-- the desk: window, lamp, mug and desk drawn, the laptop's screen is real text. Drawn to
+           one scale (the laptop sets it): the lamp reaches over the lid, the mug stands about
+           half as high as the screen, the legs fade out below the desk top -->
+      <div class="desk-box">
+      <div class="desk" data-desk>
+        <!-- the wall clock (not on phones: no room) -->
+        <svg class="clock" viewBox="0 0 40 40" aria-hidden="true">
+          <circle class="ln pp" cx="20" cy="20" r="19" />
+          <circle class="ln thin" cx="20" cy="20" r="17" />
+          <path class="ln thin" d={ticks} />
+          <path class="ln" d={hourHand} />
+          <path class="ln thin" d={minuteHand} />
+          <circle class="ink" cx="20" cy="20" r="1.4" />
+        </svg>
+
+        <svg class="window" viewBox="0 0 240 200" aria-hidden="true">
+          <defs>
+            <radialGradient id="kt-wallglow">
+              <stop offset="0" stop-color="#ffc6a2" stop-opacity="0.55" />
+              <stop offset="1" stop-color="#ffc6a2" stop-opacity="0" />
+            </radialGradient>
+            <linearGradient id="kt-sky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#b9a6ec" />
+              <stop offset="0.45" stop-color="#e9b4c8" />
+              <stop offset="0.8" stop-color="#ffc6a2" />
+              <stop offset="1" stop-color="#ffe0b0" />
+            </linearGradient>
+            <radialGradient id="kt-halo">
+              <stop offset="0.3" stop-color="#f2a900" stop-opacity="0.45" />
+              <stop offset="1" stop-color="#f2a900" stop-opacity="0" />
+            </radialGradient>
+            <clipPath id="kt-glass"><rect x="22" y="16" width="196" height="160" /></clipPath>
+          </defs>
+          <!-- the view: sky, the sun on the horizon, the field and the tower of the hero -->
+          <ellipse cx="140" cy="120" rx="190" ry="150" fill="url(#kt-wallglow)" />
+          <g clip-path="url(#kt-glass)">
+            <rect x="22" y="16" width="196" height="160" fill="url(#kt-sky)" />
+            <circle cx="170" cy="146" r="44" fill="url(#kt-halo)" />
+            <circle cx="170" cy="146" r="17" fill="#f2a900" />
+            <rect x="22" y="146" width="196" height="30" fill="#e2d9f3" />
+            <g class="ln thin">
+              <line x1="22" y1="146" x2="218" y2="146" />
+              <path d="M60 146 L66 102 L72 146" />
+            </g>
+            <circle cx="66" cy="97" r="8" fill="#f2a900" opacity="0.35" />
+            <rect x="62" y="93" width="8" height="8" class="ln thin pp" />
+            <!-- far row small, near row larger: the field has depth -->
+            <g class="ln thin">
+              <path d="M96 146 V142 M92 141.5 L100 139.5" />
+              <path d="M122 146 V142 M118 139.5 L126 141.5" />
+              <path d="M40 146 V142 M36 139.5 L44 141.5" />
+              <path d="M204 146 V142 M200 141.5 L208 139.5" />
+              <path d="M36 166 V157 M27 156 L45 152" />
+              <path d="M86 166 V157 M77 152 L95 156" />
+              <path d="M136 166 V157 M127 152 L145 156" />
+              <path d="M190 166 V157 M181 156 L199 152" />
+            </g>
+          </g>
+          <!-- glass sheen -->
+          <path d="M32 58 L62 26 M32 76 L76 28" stroke="#fff" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" fill="none" />
+          <!-- frame, sash bars, the sill with its front edge -->
+          <path class="ln pp" fill-rule="evenodd" d="M12 6 H228 V186 H12 Z M22 16 V176 H218 V16 Z" />
+          <rect class="ln pp" x="117" y="16" width="6" height="160" />
+          <rect class="ln pp" x="22" y="93" width="196" height="6" />
+          <path class="ln pp" d="M4 186 H236 V193 H4 Z" />
+          <path class="ln edge" d="M8 193 H232 V198 H8 Z" />
+          <!-- a plant on the sill -->
+          <g class="ln">
+            <path class="leaf" d="M211 168 C202 156 190 154 184 146 C196 144 208 152 211 168 Z" />
+            <path class="leaf" d="M211 168 C213 150 221 140 229 134 C231 148 222 160 211 168 Z" />
+            <path class="leaf lit" d="M211 168 C206 152 208 138 213 128 C219 142 217 156 211 168 Z" />
+            <path class="thin" d="M193 149 L211 168 M227 137 L211 168" />
+            <path class="pot" d="M199 170 H223 L220 186 H202 Z" />
+            <rect class="pot" x="197" y="166" width="28" height="5" rx="1" />
+          </g>
+        </svg>
+
+        <!-- the lamp switches (with JS); its light falls on the laptop and the desk -->
+        <button class="lamp" type="button" aria-pressed="true" title="Licht an/aus" data-lamp disabled>
+          <span class="sr-only">Schreibtischlampe</span>
+          <svg class="lamp-head" viewBox="0 0 150 110" aria-hidden="true">
+            <defs>
+              <linearGradient id="kt-cone" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#f2a900" stop-opacity="0.38" />
+                <stop offset="1" stop-color="#f2a900" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <path class="glow" transform={head} d="M-20 31 L20 31 L130 220 L-90 220 Z" fill="url(#kt-cone)" />
+            <g class="hit">
+              <path class="ln" d="M31.4 104 V110 M36.6 104 V110" />
+              <path class="ln" d={arm} />
+              <path class="ln thin" d={armSpring} />
+              <circle class="ln pp" cx={P.elbow[0]} cy={P.elbow[1]} r="5" />
+              <!-- the shade: ink outside, lit inside -->
+              <g transform={head}>
+                <path class="ln ink" d="M-9 2 Q-9 -10 0 -10 Q9 -10 9 2 L22 30 Q0 37 -22 30 Z" />
+                <ellipse class="ln inner" cx="0" cy="30" rx="22" ry="5.5" />
+                <path class="bulb" d="M-8 31 A8 7.5 0 0 0 8 31 Z" />
+                <circle class="ln pp" cx="0" cy="-3" r="3.4" />
+              </g>
+            </g>
+          </svg>
+          <span class="stem hit" aria-hidden="true"></span>
+          <svg class="lamp-base" viewBox="0 0 150 30" aria-hidden="true">
+            <defs>
+              <radialGradient id="kt-pool">
+                <stop offset="0" stop-color="#f2a900" stop-opacity="0.42" />
+                <stop offset="1" stop-color="#f2a900" stop-opacity="0" />
+              </radialGradient>
+            </defs>
+            <ellipse class="glow" cx="140" cy="27" rx="150" ry="16" fill="url(#kt-pool)" />
+            <ellipse cx="34" cy="28" rx="30" ry="4.5" class="soft-shadow" />
+            <g class="hit">
+              <path class="ln" d="M31.4 0 V14 M36.6 0 V14" />
+              <!-- the weighted base -->
+              <path class="ln ink" d="M8 19 V24 A26 5.5 0 0 0 60 24 V19" />
+              <ellipse class="ln steel" cx="34" cy="19" rx="26" ry="5.5" />
+              <path class="ln ink" d="M29 20 V11 H39 V20" />
+            </g>
+          </svg>
+        </button>
+
+        <div class="laptop">
+          <div class="lid">
+            <div class="screen" data-screen>
+              <p class="app-bar"><span class="dots" aria-hidden="true"></span>Neue Nachricht</p>
+              <dl class="fields">
+                <dt>An</dt>
+                <dd>{profile.email}</dd>
+                <dt>Betreff</dt>
+                <dd data-subject>{startSubject}</dd>
+              </dl>
+              <p class="letter"><span data-body>{startBody}</span><span class="caret" aria-hidden="true"></span></p>
+              <div class="actions">
+                <a class="send" href={mailto(startSubject, startBody)} data-send>E-Mail schreiben</a>
+                <button class="copy" type="button" data-copy hidden>Adresse kopieren</button>
+              </div>
+            </div>
+          </div>
+          <!-- the base seen from a little above: keyboard, trackpad, the front edge -->
+          <svg class="deck" viewBox="0 0 1000 60" preserveAspectRatio="none" aria-hidden="true">
+            <path class="ln alu" d="M40 0 H960 L1000 40 H0 Z" />
+            <path d="M120 5 H880 L908 24 H92 Z" fill="#d6d1e3" />
+            <path class="ln thin faint" d="M106 14.5 H894" />
+            <path class="ln thin faint" d="M414 28 H586 L594 36 H406 Z" />
+            <path class="ln edge" d="M0 40 H1000 V47 Q1000 56 988 56 H12 Q0 56 0 47 Z" />
+            <path class="ln thin" d="M440 40 Q440 47 448 47 H552 Q560 47 560 40" />
+          </svg>
+        </div>
+
+        <svg class="mug" viewBox="0 0 66 80" aria-hidden="true">
+          <ellipse cx="32" cy="76" rx="30" ry="4" class="soft-shadow" />
+          <g class="ln thin steam">
+            <path d="M22 18 Q16 11 22 4 Q28 -3 22 -10" />
+            <path d="M34 18 Q29 12 34 6" />
+          </g>
+          <path class="ln pp" d="M50 34 C64 34 64 60 50 60 V54 C57 54 57 40 50 40 Z" />
+          <path class="ln pp" d="M10 26 V70 A20 5 0 0 0 50 70 V26" />
+          <path class="band" d="M10 44 A20 5 0 0 0 50 44 V54 A20 5 0 0 1 10 54 Z" />
+          <ellipse class="ln pp" cx="30" cy="26" rx="20" ry="5" />
+          <ellipse cx="30" cy="26.6" rx="16.5" ry="3.4" class="coffee" />
+        </svg>
+
+        <!-- the desk top seen from a little above, its front edge, the legs fading out -->
+        <svg class="tabletop" viewBox="0 0 1000 200" aria-hidden="true">
+          <defs>
+            <linearGradient id="kt-fade" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#fff" />
+              <stop offset="1" stop-color="#fff" stop-opacity="0" />
+            </linearGradient>
+            <linearGradient id="kt-sunpatch" x1="1" y1="0" x2="0" y2="0">
+              <stop offset="0" stop-color="#ffc6a2" stop-opacity="0.65" />
+              <stop offset="1" stop-color="#ffc6a2" stop-opacity="0" />
+            </linearGradient>
+            <mask id="kt-legs" maskUnits="userSpaceOnUse" x="0" y="80" width="1000" height="120">
+              <rect x="0" y="80" width="1000" height="120" fill="url(#kt-fade)" />
+            </mask>
+          </defs>
+          <g mask="url(#kt-legs)">
+            <rect class="ln leg" x="44" y="84" width="22" height="130" />
+            <rect class="ln leg" x="934" y="84" width="22" height="130" />
+            <path class="ln thin" d="M66 96 H934" />
+          </g>
+          <path class="ln top" d="M22 0 H978 L1000 60 H0 Z" />
+          <path d="M600 1 H880 L960 59 H700 Z" fill="url(#kt-sunpatch)" />
+          <path class="ln thin faint" d="M180 16 H560 M640 38 H900 M60 46 H280" />
+          <path class="ln edge" d="M0 60 H1000 V82 Q1000 86 996 86 H4 Q0 86 0 82 Z" />
+        </svg>
+      </div>
+      </div>
     </div>
   </div>
   <!-- the page ends on one sign-off line (the field drawing that stood under it went, owner
@@ -45,9 +304,707 @@ const stand = `${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
   </p>
 </section>
 
+<script>
+  import { reduceMotion } from "../../scripts/page";
+
+  const desk = document.querySelector<HTMLElement>("[data-desk]");
+  const subject = document.querySelector<HTMLElement>("[data-screen] [data-subject]");
+  const body = document.querySelector<HTMLElement>("[data-screen] [data-body]");
+  const send = document.querySelector<HTMLAnchorElement>("[data-send]");
+  const copy = document.querySelector<HTMLButtonElement>("[data-copy]");
+  const lamp = document.querySelector<HTMLButtonElement>("[data-lamp]");
+  const address = send?.href.slice(7).split("?")[0] ?? "";
+
+  if (desk && subject && body && send && copy && lamp) {
+    // a picked topic writes subject and opening; the opening types itself, quickly
+    let timer = 0;
+    const write = (s: string, b: string) => {
+      subject.textContent = s;
+      send.href = `mailto:${address}?subject=${encodeURIComponent(s)}&body=${encodeURIComponent(b)}`;
+      clearInterval(timer);
+      if (reduceMotion.matches) {
+        body.textContent = b;
+        return;
+      }
+      let i = 0;
+      body.textContent = "";
+      timer = window.setInterval(() => {
+        body.textContent = b.slice(0, ++i);
+        if (i >= b.length) clearInterval(timer);
+      }, 24);
+    };
+    for (const r of document.querySelectorAll<HTMLInputElement>('input[name="kontakt-topic"]'))
+      r.addEventListener("change", () => write(r.dataset.subject ?? "", r.dataset.body ?? ""));
+
+    copy.hidden = false;
+    copy.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(address);
+        copy.textContent = "Kopiert";
+      } catch {
+        copy.textContent = address;
+      }
+      setTimeout(() => (copy.textContent = "Adresse kopieren"), 1800);
+    });
+
+    lamp.disabled = false;
+    lamp.addEventListener("click", () => {
+      const off = desk.classList.toggle("is-dark");
+      lamp.setAttribute("aria-pressed", String(!off));
+    });
+  }
+</script>
+
 <style>
   .page {
     padding-top: var(--sp-section);
+  }
+
+  .grid {
+    display: grid;
+    gap: var(--sp-block);
+    align-items: end;
+  }
+
+  @media (min-width: 62rem) {
+    .grid {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 6fr);
+      gap: var(--sp-gap);
+    }
+  }
+
+  .lede {
+    font-family: var(--serif);
+    font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
+    line-height: 1.3;
+    margin-top: 1.25rem;
+    max-width: 24rem;
+  }
+
+  .mail {
+    display: inline-block;
+    margin-top: clamp(1.5rem, 1rem + 1.5vw, 2.25rem);
+    font-family: var(--sans);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    font-size: clamp(1.75rem, 1.1rem + 1.7vw, 2.75rem);
+    line-height: 1.05;
+    color: var(--ink);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  /* the underline in the spectrum's dusk end (one of its two sprinkles, global.css), drawn as
+     a background so it can be a gradient; on the inline text, cloned per line, so where the
+     address wraps each line is underlined to its own end; thicker on hover */
+  .mail-u {
+    background: var(--spectrum-dusk) no-repeat 0 100% / 100% 0.08em;
+    padding-bottom: 0.1em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    transition: background-size 0.15s;
+  }
+
+  .mail:hover .mail-u {
+    background-size: 100% 0.16em;
+  }
+
+  /* ---------- the topics ---------- */
+
+  .topics {
+    display: none;
+    margin-top: clamp(2rem, 1.5rem + 1.5vw, 2.75rem);
+    border: 0;
+    padding: 0;
+    min-width: 0;
+  }
+
+  :global(html.js) .topics {
+    display: block;
+  }
+
+  .ask {
+    padding: 0;
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem);
+    line-height: 1.15;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1rem;
+  }
+
+  .chip input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* ink chips (sun yellow means light, never UI) */
+  .chip span {
+    display: inline-block;
+    padding: 0.55rem 1.05rem;
+    border: 1.5px solid var(--ink);
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.3;
+    background: rgb(255 255 255 / 0.45);
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+  }
+
+  .chip span:hover {
+    background: rgb(255 255 255 / 0.9);
+  }
+
+  .chip input:checked + span {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .chip input:focus-visible + span {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+  }
+
+  /* one type style for the whole block: grotesk, the name in 700, the rest 400 */
+  .letterhead {
+    margin-top: clamp(2rem, 1.5rem + 1.5vw, 2.75rem);
+    font-family: var(--sans);
+    font-size: 1.0625rem;
+    line-height: 1.5;
+    font-style: normal;
+    display: grid;
+    justify-items: start;
+    gap: 0.15rem;
+    color: var(--ink-2);
+  }
+
+  .letterhead strong {
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .nobr {
+    white-space: nowrap;
+  }
+
+  /* ---------- the desk ---------- */
+
+  /* every size in the scene is a share of the desk's width (cqi), so it scales as one
+     drawing; the laptop sets the scale, the rest is drawn to it (a 14-inch laptop, an
+     architect's lamp reaching over its lid, a mug about half the screen's height) */
+  /* the container the scene measures (a container can't size its own padding in cqi) */
+  .desk-box {
+    container-type: inline-size;
+  }
+
+  .desk {
+    position: relative;
+    padding-top: 30cqi;
+  }
+
+  .ln {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .thin {
+    stroke-width: 1;
+  }
+
+  .faint {
+    stroke: var(--line);
+  }
+
+  /* the fills: paper, ink, and the dusk's own lilacs for the wood and metal in shadow */
+  .pp {
+    fill: var(--paper);
+  }
+
+  .ink {
+    fill: var(--ink);
+  }
+
+  .steel {
+    fill: #2c3b54;
+  }
+
+  .alu {
+    fill: #eeebf4;
+  }
+
+  .edge {
+    fill: #cbbfe3;
+  }
+
+  .top {
+    fill: #f5f1fb;
+  }
+
+  .leg {
+    fill: #ddd3f0;
+  }
+
+  .band {
+    fill: #b9a6ec;
+  }
+
+  .coffee {
+    fill: #5b3f31;
+  }
+
+  .soft-shadow {
+    fill: rgb(60 36 110 / 0.16);
+  }
+
+  .leaf {
+    fill: #2c3b54;
+  }
+
+  .leaf.lit {
+    fill: #46587a;
+  }
+
+  .pot {
+    fill: #b9a6ec;
+  }
+
+  /* the steam rises and fades, two wisps out of step (static with reduced motion) */
+  .steam {
+    stroke-opacity: 0.45;
+  }
+
+  .steam path {
+    animation: steam 3.6s ease-in-out infinite;
+  }
+
+  .steam path + path {
+    animation-delay: -1.8s;
+  }
+
+  @keyframes steam {
+    0% {
+      translate: 0 3px;
+      opacity: 0;
+    }
+    40% {
+      opacity: 1;
+    }
+    100% {
+      translate: 0 -5px;
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .steam path {
+      animation: none;
+    }
+  }
+
+  .window {
+    position: absolute;
+    top: 0;
+    right: 2cqi;
+    width: 44cqi;
+    height: auto;
+    overflow: visible;
+  }
+
+  /* on the wall between the lamp and the window */
+  .clock {
+    position: absolute;
+    top: 3cqi;
+    left: 37cqi;
+    width: 8cqi;
+    height: auto;
+  }
+
+  /* the lamp off: the room (not the sunset outside) sinks into the dusk, a little bluer, and
+     the screen is the light left */
+  .clock,
+  .mug,
+  .tabletop,
+  .lamp svg,
+  .stem {
+    transition: filter 0.4s;
+  }
+
+  .is-dark :is(.clock, .mug, .tabletop, .lamp svg, .stem) {
+    filter: brightness(0.88) hue-rotate(-8deg);
+  }
+
+  /* behind the laptop, standing further back on the desk; the head is placed from the top (just
+     over the lid's corner), the base from the bottom (on the desk), the stem fills between, so a
+     screen that grows taller never hides the head */
+  .lamp {
+    position: absolute;
+    z-index: 1;
+    top: 15cqi;
+    left: 1cqi;
+    bottom: 17.6cqi;
+    width: 30cqi;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    /* the light reaches over the laptop; only the lamp itself takes clicks */
+    pointer-events: none;
+  }
+
+  .lamp svg {
+    display: block;
+    flex: none;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  /* the stem: two rods at x 31.4 and 36.6 of the drawing's 150 */
+  .stem {
+    flex: 1;
+    align-self: flex-start;
+    width: calc(5.2% / 1.5 + 1.5px);
+    margin-left: calc(31.4% / 1.5);
+    border-inline: 1.5px solid var(--ink);
+    translate: -0.75px 0;
+  }
+
+  .lamp .hit {
+    pointer-events: visiblePainted;
+  }
+
+  .lamp .stem {
+    pointer-events: auto;
+  }
+
+  .lamp:disabled {
+    cursor: default;
+  }
+
+  .lamp:focus-visible {
+    outline: 2px dashed var(--ink);
+    outline-offset: 4px;
+  }
+
+  .glow {
+    transition: opacity 0.4s;
+  }
+
+  .inner {
+    fill: #fff3d4;
+    transition: fill 0.4s;
+  }
+
+  .bulb {
+    fill: var(--sun);
+    transition: fill 0.4s;
+  }
+
+  .is-dark .glow {
+    opacity: 0;
+  }
+
+  .is-dark .bulb,
+  .is-dark .inner {
+    fill: #dcd6e6;
+  }
+
+  .mug {
+    position: absolute;
+    z-index: 1;
+    right: 2cqi;
+    bottom: 15.4cqi;
+    width: 12cqi;
+    height: auto;
+    overflow: visible;
+  }
+
+  /* the desk top: the laptop's front edge stands on its front part, the lamp further back */
+  .tabletop {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-top: -5.4cqi;
+    overflow: visible;
+  }
+
+  /* ---------- the laptop ---------- */
+
+  .laptop {
+    position: relative;
+    z-index: 2;
+    width: 58cqi;
+    margin-left: 23cqi;
+  }
+
+  /* an ink lid with a thin bezel, a wider chin and the camera: the brightest thing on the
+     desk is its screen */
+  .lid {
+    position: relative;
+    padding: 1.2cqi 1.2cqi 2.2cqi;
+    border-radius: 1.5cqi 1.5cqi 0.3cqi 0.3cqi;
+    background: var(--ink);
+    box-shadow: 0 2cqi 5cqi -2cqi rgb(60 36 110 / 0.45);
+  }
+
+  .lid::before {
+    content: "";
+    position: absolute;
+    top: 0.42cqi;
+    left: 50%;
+    width: 0.42cqi;
+    aspect-ratio: 1;
+    translate: -50% 0;
+    border-radius: 50%;
+    background: #3a4a66;
+  }
+
+  /* the base, a little wider than the lid at its hinge (the back edge is 92% of the front) */
+  .deck {
+    display: block;
+    width: calc(100% / 0.92);
+    height: 4.6cqi;
+    margin-left: calc(-4% / 0.92);
+    overflow: visible;
+    filter: drop-shadow(0 0.5cqi 0.6cqi rgb(60 36 110 / 0.28));
+  }
+
+  /* the screen: a mail window; its type is sized by the screen's own width, with a floor
+     that keeps it readable, so on phones the screen grows taller instead of the text shrinking
+     (aspect-ratio only grows with its content while min-height is auto and nothing clips:
+     with min-height 0 or overflow hidden the send button was cut off on phones) */
+  .screen {
+    position: relative;
+    container-type: inline-size;
+    aspect-ratio: 16 / 10;
+    display: flex;
+    flex-direction: column;
+    border-radius: 0.3cqi;
+    background: var(--paper);
+  }
+
+  /* the lamp's light on the screen, from the top left where it stands */
+  .screen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(110% 90% at 0% 0%, rgb(242 169 0 / 0.16), transparent 60%);
+    border-radius: inherit;
+    pointer-events: none;
+    transition: opacity 0.4s;
+  }
+
+  .is-dark .screen::before {
+    opacity: 0;
+  }
+
+  .lid {
+    transition: box-shadow 0.4s;
+  }
+
+  .is-dark .lid {
+    box-shadow:
+      0 2cqi 5cqi -2cqi rgb(60 36 110 / 0.45),
+      0 0 7cqi 1.5cqi rgb(214 226 255 / 0.95);
+  }
+
+  .app-bar {
+    position: relative;
+    padding: 0.55em 1em;
+    border-bottom: 1px solid var(--line);
+    background: #f6f4fa;
+    border-radius: inherit;
+    font-size: clamp(0.75rem, 2.5cqi, 0.875rem);
+    font-weight: 600;
+    text-align: center;
+    color: var(--ink-2);
+  }
+
+  /* the window's three buttons, grey: colour here is only light */
+  .dots {
+    position: absolute;
+    top: 50%;
+    left: 1em;
+    width: 0.6em;
+    height: 0.6em;
+    translate: 0 -50%;
+    border-radius: 50%;
+    background: #cdd3db;
+    box-shadow:
+      1em 0 #cdd3db,
+      2em 0 #cdd3db;
+  }
+
+  .fields {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25em 1em;
+    margin: 0 clamp(0.9rem, 5cqi, 2rem);
+    padding: 0.8em 0;
+    border-bottom: 1px solid var(--line);
+    font-size: clamp(0.8125rem, 3.2cqi, 1rem);
+  }
+
+  .fields dt {
+    color: var(--ink-2);
+  }
+
+  .fields dd {
+    font-weight: 600;
+    overflow-wrap: break-word;
+  }
+
+  /* the narrowest screens: labels above their values, so the address keeps its line */
+  @container (max-width: 17.5rem) {
+    .fields {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    .fields dd + dt {
+      margin-top: 0.35em;
+    }
+  }
+
+  .letter {
+    flex: 1;
+    margin: 0 clamp(0.9rem, 5cqi, 2rem);
+    padding: 0.7em 0;
+    font-family: var(--serif);
+    font-size: clamp(0.9375rem, 3.8cqi, 1.25rem);
+    line-height: 1.45;
+    white-space: pre-line;
+  }
+
+  .caret {
+    display: none;
+    width: 1px;
+    height: 1.1em;
+    background: var(--ink);
+    vertical-align: -0.15em;
+    animation: blink 1s steps(1) infinite;
+  }
+
+  :global(html.js) .caret {
+    display: inline-block;
+  }
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .caret {
+      animation: none;
+    }
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    margin: 0 clamp(0.9rem, 5cqi, 2rem) clamp(0.9rem, 5cqi, 1.75rem);
+    font-size: clamp(0.875rem, 3.2cqi, 1rem);
+  }
+
+  .send {
+    display: inline-block;
+    padding: 0.7em 1.15em;
+    border: 2px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .send:hover {
+    background: var(--ink-2);
+    border-color: var(--ink-2);
+  }
+
+  .copy {
+    padding: 0.4em 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--steel);
+    text-underline-offset: 0.2em;
+    cursor: pointer;
+  }
+
+  .copy:hover {
+    text-decoration-thickness: 3px;
+    text-decoration-color: var(--ink);
+  }
+
+  /* narrower desks (a tablet, a short laptop window): a wider laptop, so its screen keeps
+     close to 16:10 with the type at its floor; the mug a little smaller beside it */
+  @container (max-width: 46rem) {
+    .laptop {
+      width: 64cqi;
+      margin-left: 22cqi;
+    }
+
+    .mug {
+      right: 0.5cqi;
+      width: 10cqi;
+    }
+  }
+
+  /* phones: the laptop takes nearly the whole width (the screen needs it); the lamp stands
+     behind it, only its head over the lid, and the mug has no room */
+  @container (max-width: 32rem) {
+    .desk {
+      padding-top: 36cqi;
+    }
+
+    .clock {
+      display: none;
+    }
+
+    .window {
+      right: 0;
+      width: 50cqi;
+    }
+
+    .laptop {
+      width: 88cqi;
+      margin-left: 6cqi;
+    }
+
+    .lid {
+      padding: 1.8cqi 1.8cqi 3.2cqi;
+    }
+
+    .lamp {
+      top: 3cqi;
+      left: 5cqi;
+      width: 30cqi;
+    }
+
+    .mug {
+      display: none;
+    }
   }
 
   .sign-off {
@@ -62,95 +1019,5 @@ const stand = `${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
     background: linear-gradient(var(--line), var(--line)) no-repeat var(--gutter) 0 / calc(100% - 2 * var(--gutter)) 1px;
     font-size: 0.9375rem;
     color: var(--ink-2);
-  }
-
-  .mail {
-    display: inline-block;
-    margin-top: 2rem;
-    font-family: var(--sans);
-    font-weight: 800;
-    letter-spacing: -0.045em;
-    /* capped so it stays on one line in the 72rem column on the widest screens */
-    font-size: clamp(2rem, 0.8rem + 4.6vw, 5.25rem);
-    line-height: 1;
-    color: var(--ink);
-    text-decoration: none;
-    overflow-wrap: anywhere;
-  }
-
-  /* the underline in the spectrum's dusk end (one of its two sprinkles, global.css), drawn as
-     a background so it can be a gradient; on the inline text, cloned per line, so where the
-     address wraps on phones each line is underlined to its own end (on the block it ran on
-     into empty space); thicker on hover */
-  .mail-u {
-    background: var(--spectrum-dusk) no-repeat 0 100% / 100% 0.07em;
-    padding-bottom: 0.1em;
-    -webkit-box-decoration-break: clone;
-    box-decoration-break: clone;
-    transition: background-size 0.15s;
-  }
-
-  .mail:hover .mail-u {
-    background-size: 100% 0.14em;
-  }
-
-  .card-row {
-    margin-top: var(--sp-block);
-    display: grid;
-    gap: var(--sp-block);
-  }
-
-  @media (min-width: 56rem) {
-    .card-row {
-      margin-top: calc(var(--sp-block) * 1.15);
-      align-items: start;
-    }
-  }
-
-  /* one type style for the whole block: grotesk, the name in 700, the rest 400 */
-  .letterhead {
-    font-family: var(--sans);
-    font-size: 1.125rem;
-    font-weight: 400;
-    line-height: 1.5;
-    font-style: normal;
-    display: grid;
-    align-content: start;
-    justify-items: start;
-    gap: 0.15rem;
-  }
-
-  .letterhead strong {
-    font-weight: 700;
-  }
-
-  .nobr {
-    white-space: nowrap;
-  }
-
-  .cv {
-    margin-top: 1.5rem;
-    font-family: var(--sans);
-    font-size: 1rem;
-    background: var(--ink);
-    color: var(--paper);
-    border: 2px solid var(--ink);
-    padding: 0.8rem 1.25rem;
-    font-weight: 700;
-    text-decoration: none;
-  }
-
-  .cv:hover {
-    background: var(--ink-2);
-    border-color: var(--ink-2);
-    color: var(--paper);
-  }
-
-  /* section head: a quiet grotesk label, not display */
-  .h2 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    letter-spacing: 0;
-    line-height: 1.2;
   }
 </style>

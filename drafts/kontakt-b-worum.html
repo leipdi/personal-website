@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kontakt B: Worum geht's?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&display=swap" rel="stylesheet" />
+<style>
+  /* Mockup B (2026-10-11), after cuberto.com/contacts ("I'm interested in…" chips): the visitor
+     picks what it is about and the page writes the start of the e-mail on a sheet of paper
+     (the same paper as the Kernkompetenzen sheets); one button opens it in their mail
+     program. No server: it is a mailto link with subject and body. Without JS the sheet is
+     the plain address. */
+  :root {
+    --bg: #e2d9f3;
+    --paper: #ffffff;
+    --ink: #0f1b2d;
+    --ink-2: #434f5e;
+    --line: rgb(15 27 45 / 0.17);
+    --sun: #f2a900;
+    --spectrum-dusk: linear-gradient(90deg, #9a86e6, #e4572e 60%, #f2a900);
+    --sans: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+    --serif: "Newsreader", Georgia, serif;
+    --wrap: min(max(72rem, 84vw), 130rem);
+    --gutter: clamp(1.25rem, 0.6rem + 2.6vw, 2.5rem);
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 .4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { background: var(--bg); }
+  body {
+    font: 1.0625rem/1.5 var(--sans); color: var(--ink);
+    background:
+      radial-gradient(55rem 30rem at 80% 100%, rgb(255 192 168 / 0.5), transparent 70%),
+      radial-gradient(45rem 30rem at 10% 15%, rgb(201 184 242 / 0.5), transparent 70%),
+      var(--bg);
+    min-height: 100vh;
+  }
+  body::after { content: ""; position: fixed; inset: 0; background: var(--grain); mix-blend-mode: soft-light; pointer-events: none; }
+  .wrap { width: min(var(--wrap), 100% - 2 * var(--gutter)); margin-inline: auto; }
+  .note { font-size: 0.875rem; color: var(--ink-2); padding: 0.75rem var(--gutter); border-bottom: 1px solid var(--line); }
+  .prev { height: 30vh; display: grid; place-items: end start; padding-bottom: 2rem; color: var(--ink-2); font-family: var(--serif); font-size: 1.125rem; }
+
+  section { border-top: 1.5px solid var(--ink); padding: clamp(2.5rem, 1.6rem + 3.6vw, 4.5rem) 0 0; }
+  h2 { font-family: var(--serif); font-weight: 500; letter-spacing: -0.02em; font-size: clamp(2.75rem, 1.5rem + 4vw, 5rem); line-height: 1; }
+
+  .grid { margin-top: clamp(2rem, 1.2rem + 3.2vw, 4rem); display: grid; gap: clamp(2rem, 4vw, 4rem); align-items: start; }
+  @media (min-width: 62rem) { .grid { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); } }
+
+  .ask { font-family: var(--serif); font-weight: 600; font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem); line-height: 1.15; }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.25rem; border: 0; padding: 0; }
+  .chips legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .chip input { position: absolute; opacity: 0; pointer-events: none; }
+  .chip span {
+    display: inline-block; padding: 0.6rem 1.1rem; border: 1.5px solid var(--ink); border-radius: 999px;
+    font-weight: 600; font-size: 1rem; background: rgb(255 255 255 / 0.45); cursor: pointer;
+    transition: background-color .15s, color .15s;
+  }
+  .chip span:hover { background: rgb(255 255 255 / 0.85); }
+  .chip input:checked + span { background: var(--ink); color: var(--paper); }
+  .chip input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+  .details { margin-top: 2.5rem; display: grid; gap: 0.2rem; color: var(--ink-2); }
+  .details strong { color: var(--ink); }
+  .details a { color: var(--ink); text-underline-offset: 0.2em; }
+
+  /* the sheet: a letter being written */
+  .sheet {
+    position: relative; background: var(--paper); color: var(--ink);
+    padding: clamp(1.5rem, 1rem + 2vw, 2.75rem);
+    box-shadow: 0 1px 2px rgb(15 27 45 / 0.08), 0 24px 50px -20px rgb(60 36 110 / 0.35);
+    rotate: -0.6deg;
+  }
+  .meta { display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 1rem; font-size: 0.9375rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
+  .meta dt { color: var(--ink-2); }
+  .meta dd { font-weight: 600; overflow-wrap: anywhere; }
+  .body { font-family: var(--serif); font-size: clamp(1.125rem, 1rem + 0.4vw, 1.3rem); line-height: 1.5; margin-top: 1.25rem; min-height: 7.5em; white-space: pre-line; }
+  .body .caret { display: inline-block; width: 1px; height: 1.1em; background: var(--ink); vertical-align: -0.15em; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .body .caret { animation: none; } }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 0.75rem 1.25rem; align-items: center; margin-top: 1.75rem; }
+  .send {
+    display: inline-block; padding: 0.9rem 1.4rem; background: var(--ink); color: var(--paper);
+    font-weight: 700; text-decoration: none; border: 2px solid var(--ink);
+  }
+  .send:hover { background: var(--ink-2); border-color: var(--ink-2); }
+  .copy { font: inherit; font-weight: 600; background: none; border: 0; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 0.2em; cursor: pointer; padding: 0.5rem 0; }
+  .copy:hover { text-decoration-color: var(--ink); }
+
+  .sign-off { margin-top: clamp(3rem, 6vw, 5rem); padding: 1rem 0 2rem; border-top: 1px solid var(--line); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem 2rem; font-size: 0.9375rem; color: var(--ink-2); }
+  .sign-off a { color: var(--ink); }
+</style>
+</head>
+<body>
+  <p class="note">Mockup B: Worum geht's? (nach cuberto.com/contacts)</p>
+  <div class="wrap prev">… Ende der Hobbys</div>
+
+  <section aria-labelledby="h">
+    <div class="wrap">
+      <h2 id="h">Kontakt</h2>
+
+      <div class="grid">
+        <div>
+          <p class="ask">Worum geht's?</p>
+          <fieldset class="chips">
+            <legend>Worum geht's?</legend>
+            <label class="chip"><input type="radio" name="topic" value="job" checked /><span>Eine Stelle</span></label>
+            <label class="chip"><input type="radio" name="topic" value="projekt" /><span>Ein Projekt</span></label>
+            <label class="chip"><input type="radio" name="topic" value="frage" /><span>Eine Frage zu meinen Arbeiten</span></label>
+            <label class="chip"><input type="radio" name="topic" value="hallo" /><span>Einfach Hallo</span></label>
+          </fieldset>
+
+          <address class="details" style="font-style: normal">
+            <strong>Daniel Lenski</strong>
+            <span>Wirtschaftsingenieur, M.Sc.</span>
+            <span>Langenfeld (Rheinland) / Düsseldorf</span>
+            <a href="https://linkedin.com/in/daniel-lenski-de">linkedin.com/in/daniel-lenski-de</a>
+          </address>
+        </div>
+
+        <div class="sheet">
+          <dl class="meta">
+            <dt>An</dt><dd>daniel.lenski@hotmail.com</dd>
+            <dt>Betreff</dt><dd data-subject>Eine Stelle</dd>
+          </dl>
+          <p class="body"><span data-body></span><span class="caret"></span></p>
+          <div class="actions">
+            <a class="send" data-send href="mailto:daniel.lenski@hotmail.com">E-Mail schreiben</a>
+            <button class="copy" type="button" data-copy>Adresse kopieren</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="sign-off"><span>Stand: Oktober 2026</span><a href="#">Nach oben</a></p>
+    </div>
+  </section>
+
+<script>
+  const MAIL = "daniel.lenski@hotmail.com";
+  const TEXT = {
+    job: ["Eine Stelle", "Hallo Daniel,\n\nwir suchen gerade jemanden für "],
+    projekt: ["Ein Projekt", "Hallo Daniel,\n\nich arbeite an einem Projekt und "],
+    frage: ["Eine Frage zu deinen Arbeiten", "Hallo Daniel,\n\nich habe eine Frage zu "],
+    hallo: ["Hallo", "Hallo Daniel,\n\n"],
+  };
+  const subj = document.querySelector("[data-subject]");
+  const body = document.querySelector("[data-body]");
+  const send = document.querySelector("[data-send]");
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let timer = 0;
+  function pick(key) {
+    const [s, b] = TEXT[key];
+    subj.textContent = s;
+    send.href = `mailto:${MAIL}?subject=${encodeURIComponent(s)}&body=${encodeURIComponent(b)}`;
+    clearInterval(timer);
+    if (still) { body.textContent = b; return; }
+    // the start of the letter types itself, quickly
+    let i = 0;
+    body.textContent = "";
+    timer = setInterval(() => { body.textContent = b.slice(0, ++i); if (i >= b.length) clearInterval(timer); }, 22);
+  }
+  document.querySelectorAll('input[name="topic"]').forEach((r) => r.addEventListener("change", () => pick(r.value)));
+  pick("job");
+  document.querySelector("[data-copy]").addEventListener("click", async (e) => {
+    try { await navigator.clipboard.writeText(MAIL); e.target.textContent = "Kopiert"; } catch { e.target.textContent = MAIL; }
+    setTimeout(() => (e.target.textContent = "Adresse kopieren"), 1800);
+  });
+</script>
+</body>
+</html>

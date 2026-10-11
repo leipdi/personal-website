@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kontakt A: Großes Finale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&display=swap" rel="stylesheet" />
+<style>
+  /* Mockup A (2026-10-11), after dennissnellenberg.com and the DUNA / pen.dev footers on
+     Land-book: the page ends on the name, set across the whole width and cut by the page's
+     bottom edge, with the sun setting behind it (sun yellow = light: the day of the page
+     ends here). Above it one clean contact row and a colophon line (after brittanychiang.com). */
+  :root {
+    --bg: #e2d9f3;
+    --ink: #0f1b2d;
+    --ink-2: #434f5e;
+    --line: rgb(15 27 45 / 0.17);
+    --sun: #f2a900;
+    --spectrum-dusk: linear-gradient(90deg, #9a86e6, #e4572e 60%, #f2a900);
+    --sans: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+    --serif: "Newsreader", Georgia, serif;
+    --wrap: min(max(72rem, 84vw), 130rem);
+    --gutter: clamp(1.25rem, 0.6rem + 2.6vw, 2.5rem);
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 .4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { background: var(--bg); }
+  body {
+    font: 1.0625rem/1.5 var(--sans);
+    color: var(--ink);
+    background:
+      radial-gradient(55rem 30rem at 72% 104%, rgb(255 192 168 / 0.55), transparent 70%),
+      radial-gradient(45rem 30rem at 10% 15%, rgb(201 184 242 / 0.5), transparent 70%),
+      var(--bg);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::after { content: ""; position: fixed; inset: 0; background: var(--grain); mix-blend-mode: soft-light; pointer-events: none; }
+  .wrap { width: min(var(--wrap), 100% - 2 * var(--gutter)); margin-inline: auto; }
+  .note { font-size: 0.875rem; color: var(--ink-2); padding: 0.75rem var(--gutter); border-bottom: 1px solid var(--line); }
+  .prev { height: 30vh; display: grid; place-items: end start; padding-bottom: 2rem; color: var(--ink-2); font-family: var(--serif); font-size: 1.125rem; }
+
+  section { border-top: 1.5px solid var(--ink); padding-top: clamp(2.5rem, 1.6rem + 3.6vw, 4.5rem); }
+  h2 { font-family: var(--serif); font-weight: 500; letter-spacing: -0.02em; font-size: clamp(2.75rem, 1.5rem + 4vw, 5rem); line-height: 1; }
+  .lede { font-family: var(--serif); font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem); color: var(--ink-2); max-width: 34rem; margin-top: 1rem; }
+
+  /* the contact row: the address large on the left, the rest in a quiet column on the right */
+  .row {
+    margin-top: clamp(2rem, 1.2rem + 3.2vw, 4rem);
+    display: grid; gap: 1.5rem 3rem; align-items: end;
+  }
+  .mail {
+    font-family: var(--sans); font-weight: 800; letter-spacing: -0.045em; line-height: 1;
+    font-size: clamp(2rem, 0.6rem + 5vw, 6rem);
+    color: var(--ink); text-decoration: none; overflow-wrap: anywhere; justify-self: start;
+  }
+  .mail span { background: var(--spectrum-dusk) no-repeat 0 100% / 100% 0.07em; padding-bottom: 0.1em; box-decoration-break: clone; -webkit-box-decoration-break: clone; transition: background-size .15s; }
+  .mail:hover span { background-size: 100% 0.14em; }
+  .side { display: flex; flex-wrap: wrap; gap: 0.25rem 2rem; font-size: 1.0625rem; }
+  .side a { color: var(--ink); text-underline-offset: 0.2em; text-decoration-color: var(--line); }
+  .side a:hover { text-decoration-color: var(--ink); }
+  .side span { color: var(--ink-2); }
+
+  /* the colophon: one line of how the page is made, then the way back up */
+  .colophon {
+    margin-top: clamp(2.5rem, 1.5rem + 3vw, 4rem); padding-top: 1rem; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 2rem;
+    font-size: 0.9375rem; color: var(--ink-2);
+  }
+  .colophon a { color: var(--ink); text-underline-offset: 0.2em; }
+
+  /* ---------- the finale: the name as the horizon ---------- */
+  .finale { position: relative; margin-top: clamp(1rem, 2vw, 2rem); padding-top: 3vw; overflow: hidden; isolation: isolate; }
+  /* the name, sized to fill the width; its lower part runs past the page's end */
+  .name {
+    display: block; text-align: center; white-space: nowrap;
+    font-family: var(--serif); font-weight: 500; letter-spacing: -0.035em;
+    font-size: 15.2vw; line-height: 0.8;
+    margin-bottom: -0.16em;
+    color: var(--ink);
+  }
+  /* the sun, half set behind the letters */
+  /* the disc has a sharp edge, its dusk glow fades out inside the same box (a box-shadow
+     was cut off square by the clipped band) */
+  .sun {
+    position: absolute; z-index: -1; left: 57%; bottom: -24vw;
+    width: 46vw; aspect-ratio: 1; border-radius: 50%;
+    background: radial-gradient(circle closest-side,
+      #ffd77a 0, #f2a900 40%, #e4572e 64.5%,
+      rgb(228 87 46 / 0.28) 65%, rgb(180 50 90 / 0.1) 82%, transparent 100%);
+  }
+</style>
+</head>
+<body>
+  <p class="note">Mockup A: Großes Finale (nach dennissnellenberg.com, DUNA/pen.dev auf Land-book, Kolophon nach brittanychiang.com)</p>
+  <div class="wrap prev">… Ende der Hobbys</div>
+
+  <section aria-labelledby="h">
+    <div class="wrap">
+      <h2 id="h">Kontakt</h2>
+      <p class="lede">Fragen, Angebote oder einfach ein Hallo: am schnellsten erreichst du mich per E-Mail.</p>
+
+      <div class="row">
+        <a class="mail" href="mailto:daniel.lenski@hotmail.com"><span>daniel.lenski<wbr />@hotmail.com</span></a>
+        <div class="side">
+          <a href="https://linkedin.com/in/daniel-lenski-de">LinkedIn</a>
+          <span>Langenfeld (Rheinland) / Düsseldorf</span>
+        </div>
+      </div>
+
+      <p class="colophon">
+        <span>Gebaut mit Astro, gesetzt in Newsreader und Schibsted Grotesk. Stand: Oktober 2026</span>
+        <a href="#">Nach oben</a>
+      </p>
+    </div>
+
+    <div class="finale" aria-hidden="true">
+      <span class="sun"></span>
+      <span class="name">Daniel Lenski</span>
+    </div>
+  </section>
+</body>
+</html>

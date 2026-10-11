@@ -52,7 +52,7 @@ The design history (v1 to v4, rejected directions, mockup files) and the long pe
 ### Architecture
 
 - `src/data/cv.ts` — all CV/LinkedIn/thesis content as typed data: `profile` (incl. `claim`), `career` (`from`/`to` as `"2020"`, `"Okt 2021"` or `"heute"`), `projects`, `ratedSkills`, `otherCompetencies`, `certifications` (`id` anchors), `topSkills` (the Kernkompetenzen sheets: `id`, `title`, `proof[]` with `sub`, `tools[]`). `career[].id` and `certifications[].id` are link targets, keep them stable. Edit content here, not in components. Kept on purpose though unused: `projects`, `competencies`, `notes`, `career[].tools`, `topSkills[].learned`.
-- `src/data/nav.ts` (anchors, CV path), `src/data/tools.ts` (software logos), `src/data/day.ts` (the day colours per section).
+- `src/data/nav.ts` (anchors), `src/data/tools.ts` (software logos), `src/data/day.ts` (the day colours per section).
 - `src/lib/` — `url.ts` (`url()`), `dates.ts` (`toFrac()`, month names; "heute" = build date, rebuild to move it), `heliostat.ts` (hero geometry shared by server render and script), `ganttPack.ts` (Werdegang lane packing for the server fallback and the browser), `amModel.ts` (unused while Projekte is out).
 - `src/scripts/` — `page.ts` (shared: `reduceMotion`, `onScrollFrame`/`requestFrame` = one animation frame for all scroll work, `savedY`/`saveY` = the scroll position kept in history state, `hashTarget`, `settled`), `day.ts`, `topbar.ts`, `hobby-shelf.ts` (the shelf's loop, camera, input) with `shelf/kit.ts` (materials and modelling helpers, the `Compartment` type), `shelf/frame.ts` (the shelf body) and `shelf/compartments/*.ts` (one file per compartment).
 - `src/components/sections/` — `Kernkompetenzen` (the sheet pile), `Werdegang`, `Kenntnisse`, `Hobbys`, `Kontakt`. `figures/` — `HeliostatField` (hero), `Heliostat` (schematic in the Bachelorarbeit station), `LifeCycle`, `AmModel` (unused). `Placeholder`, `ImagePlaceholder` (unused), `Redirect` (old URLs).
@@ -85,4 +85,4 @@ When asked for a substantial redesign, the owner wants a build → test → fix 
 
 ### Sensitive source files
 
-`Lebenslauf_Daniel_Lenski.pdf` (repo root) and the extracted `Basic_LinkedInDataExport_*` folder/zips are the *raw* CV/LinkedIn exports (the latter contains messages, connections, phone numbers, etc.) — they're gitignored and must stay out of the repo. The only CV file meant to be published is `public/cv/Lebenslauf_Daniel_Lenski.pdf`, linked from the site's contact section.
+`Lebenslauf_Daniel_Lenski.pdf` (repo root) and the extracted `Basic_LinkedInDataExport_*` folder/zips are the *raw* CV/LinkedIn exports (the latter contains messages, connections, phone numbers, etc.) — they're gitignored and must stay out of the repo. Since 2026-10-11 the site publishes no CV PDF at all (owner: "remove Lebenslauf as pdf from the website"); don't add one back to `public/`.

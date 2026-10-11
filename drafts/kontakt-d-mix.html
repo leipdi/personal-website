@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kontakt D: Brief am Abend</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&display=swap" rel="stylesheet" />
+<style>
+  /* Mockup D (2026-10-11), the owner's mix of B and C: the evening desk of C (ink line drawing,
+     the only colour is light: the lamp, and through the window the sun setting behind the
+     heliostat field) and on the desk, under the lamp, B's letter: the visitor picks what it is
+     about, the start of the e-mail writes itself, one button opens it in their mail program
+     (mailto, no server). The lamp switches; off, its light leaves the letter too. */
+  :root {
+    --bg: #e2d9f3;
+    --paper: #ffffff;
+    --ink: #0f1b2d;
+    --ink-2: #434f5e;
+    --line: rgb(15 27 45 / 0.17);
+    --sun: #f2a900;
+    --spectrum-dusk: linear-gradient(90deg, #9a86e6, #e4572e 60%, #f2a900);
+    --sans: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+    --serif: "Newsreader", Georgia, serif;
+    --wrap: min(max(72rem, 84vw), 130rem);
+    --gutter: clamp(1.25rem, 0.6rem + 2.6vw, 2.5rem);
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 .4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { background: var(--bg); }
+  body {
+    font: 1.0625rem/1.5 var(--sans); color: var(--ink);
+    background:
+      radial-gradient(55rem 30rem at 80% 100%, rgb(255 192 168 / 0.5), transparent 70%),
+      radial-gradient(45rem 30rem at 10% 15%, rgb(201 184 242 / 0.5), transparent 70%),
+      var(--bg);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::after { content: ""; position: fixed; inset: 0; background: var(--grain); mix-blend-mode: soft-light; pointer-events: none; }
+  .wrap { width: min(var(--wrap), 100% - 2 * var(--gutter)); margin-inline: auto; }
+  .note { font-size: 0.875rem; color: var(--ink-2); padding: 0.75rem var(--gutter); border-bottom: 1px solid var(--line); }
+  .prev { height: 30vh; display: grid; place-items: end start; padding-bottom: 2rem; color: var(--ink-2); font-family: var(--serif); font-size: 1.125rem; }
+
+  section { border-top: 1.5px solid var(--ink); padding-top: clamp(2.5rem, 1.6rem + 3.6vw, 4.5rem); }
+  .grid { display: grid; gap: clamp(2.5rem, 4vw, 3.5rem); align-items: end; }
+  @media (min-width: 62rem) { .grid { grid-template-columns: minmax(0, 4fr) minmax(0, 6fr); } }
+
+  h2 { font-family: var(--serif); font-weight: 500; letter-spacing: -0.02em; font-size: clamp(2.75rem, 1.5rem + 4vw, 5rem); line-height: 1; }
+  .lede { font-family: var(--serif); font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem); line-height: 1.3; margin-top: 1.25rem; max-width: 24rem; }
+
+  .ask { font-family: var(--serif); font-weight: 600; font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem); line-height: 1.15; margin-top: clamp(2rem, 3vw, 2.75rem); }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1rem; border: 0; padding: 0; min-width: 0; }
+  .chips legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .chip input { position: absolute; opacity: 0; pointer-events: none; }
+  .chip span {
+    display: inline-block; padding: 0.55rem 1.05rem; border: 1.5px solid var(--ink); border-radius: 999px;
+    font-weight: 600; font-size: 1rem; background: rgb(255 255 255 / 0.45); cursor: pointer;
+    transition: background-color .15s, color .15s;
+  }
+  .chip span:hover { background: rgb(255 255 255 / 0.85); }
+  .chip input:checked + span { background: var(--ink); color: var(--paper); }
+  .chip input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+  .details { margin-top: 2rem; display: grid; gap: 0.2rem; color: var(--ink-2); font-style: normal; }
+  .details strong { color: var(--ink); }
+  .details a { color: var(--ink); text-underline-offset: 0.2em; justify-self: start; }
+
+  /* ---------- the desk ---------- */
+  .stage { position: relative; }
+  .scene { width: 100%; height: auto; display: block; overflow: visible; }
+  .scene .ln { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .scene .pp { fill: var(--paper); }
+  .glow { transition: opacity .4s; }
+  .off .glow { opacity: 0; }
+  .bulb { fill: var(--sun); transition: fill .4s; }
+  .off .bulb { fill: var(--paper); }
+  .lamp-hit { cursor: pointer; }
+  .lamp-hit:focus-visible { outline: none; }
+  .lamp-hit:focus-visible .ring { stroke: var(--ink); stroke-dasharray: 3 3; }
+
+  /* the letter, lying on the desk in front: its top edge over the desk top, under the lamp */
+  .sheet {
+    position: relative; z-index: 1;
+    width: 80%; margin: -2.5% 0 0 10%;
+    background: var(--paper); color: var(--ink);
+    padding: clamp(1.25rem, 0.8rem + 1.8vw, 2.25rem);
+    box-shadow: 0 1px 2px rgb(15 27 45 / 0.08), 0 24px 50px -20px rgb(60 36 110 / 0.35);
+    rotate: -1.2deg;
+  }
+  /* the lamp's light on the paper, from the top left where the lamp stands */
+  .sheet::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(120% 90% at 8% 0%, rgb(242 169 0 / 0.16), transparent 60%);
+    transition: opacity .4s;
+  }
+  .off .sheet::before { opacity: 0; }
+  .meta { position: relative; display: grid; grid-template-columns: auto 1fr; gap: 0.3rem 1rem; font-size: 0.9375rem; padding-bottom: 0.9rem; border-bottom: 1px solid var(--line); }
+  .meta dt { color: var(--ink-2); }
+  .meta dd { font-weight: 600; overflow-wrap: anywhere; }
+  .body { position: relative; font-family: var(--serif); font-size: clamp(1.125rem, 1rem + 0.4vw, 1.3rem); line-height: 1.5; margin-top: 1rem; min-height: 6em; white-space: pre-line; }
+  .caret { display: inline-block; width: 1px; height: 1.1em; background: var(--ink); vertical-align: -0.15em; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .caret { animation: none; } }
+
+  .actions { position: relative; display: flex; flex-wrap: wrap; gap: 0.75rem 1.25rem; align-items: center; margin-top: 1.25rem; }
+  .send { display: inline-block; padding: 0.85rem 1.35rem; background: var(--ink); color: var(--paper); font-weight: 700; text-decoration: none; border: 2px solid var(--ink); }
+  .send:hover { background: var(--ink-2); border-color: var(--ink-2); }
+  .copy { font: inherit; font-weight: 600; background: none; border: 0; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 0.2em; cursor: pointer; padding: 0.5rem 0; }
+  .copy:hover { text-decoration-color: var(--ink); }
+
+  @media (max-width: 40rem) {
+    .sheet { width: 94%; margin-left: 3%; margin-top: -3%; }
+  }
+
+  .sign-off { margin-top: clamp(2.5rem, 5vw, 4rem); padding: 1rem 0 2rem; border-top: 1px solid var(--line); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem 2rem; font-size: 0.9375rem; color: var(--ink-2); }
+  .sign-off a { color: var(--ink); }
+</style>
+</head>
+<body>
+  <p class="note">Mockup D: Mischung aus B und C. Themen links wählen, der Brief auf dem Schreibtisch schreibt sich; Klick auf die Lampe schaltet sie.</p>
+  <div class="wrap prev">… Ende der Hobbys</div>
+
+  <section aria-labelledby="h">
+    <div class="wrap">
+      <div class="grid">
+        <div>
+          <h2 id="h">Kontakt</h2>
+          <p class="lede">Feierabend für die Seite, nicht für Nachrichten. Schreib mir.</p>
+
+          <p class="ask" id="ask">Worum geht's?</p>
+          <fieldset class="chips" aria-labelledby="ask">
+            <legend>Worum geht's?</legend>
+            <label class="chip"><input type="radio" name="topic" value="job" checked /><span>Eine Stelle</span></label>
+            <label class="chip"><input type="radio" name="topic" value="projekt" /><span>Ein Projekt</span></label>
+            <label class="chip"><input type="radio" name="topic" value="frage" /><span>Eine Frage zu meinen Arbeiten</span></label>
+            <label class="chip"><input type="radio" name="topic" value="hallo" /><span>Einfach Hallo</span></label>
+          </fieldset>
+
+          <address class="details">
+            <strong>Daniel Lenski</strong>
+            <span>Wirtschaftsingenieur, M.Sc.</span>
+            <span>Langenfeld (Rheinland) / Düsseldorf</span>
+            <a href="https://linkedin.com/in/daniel-lenski-de">linkedin.com/in/daniel-lenski-de</a>
+          </address>
+        </div>
+
+        <div class="stage" data-stage>
+          <svg class="scene" viewBox="0 0 640 316" role="img" aria-labelledby="scene-t">
+            <title id="scene-t">Ein Schreibtisch am Abend mit Lampe und Tasse; durchs Fenster geht die Sonne hinter einem Heliostatenfeld unter. Vorn auf dem Tisch liegt der Brief.</title>
+            <defs>
+              <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#c9b8f2" />
+                <stop offset="0.7" stop-color="#ffc0a8" />
+                <stop offset="1" stop-color="#ffd9a8" />
+              </linearGradient>
+              <radialGradient id="cone" cx="0.5" cy="0" r="1">
+                <stop offset="0" stop-color="#f2a900" stop-opacity="0.5" />
+                <stop offset="0.55" stop-color="#f2a900" stop-opacity="0.16" />
+                <stop offset="1" stop-color="#f2a900" stop-opacity="0" />
+              </radialGradient>
+              <clipPath id="win"><rect x="372" y="22" width="216" height="184" /></clipPath>
+              <clipPath id="above"><rect x="0" y="0" width="640" height="300" /></clipPath>
+            </defs>
+
+            <!-- the window: dusk, the sun going down behind the field from the hero -->
+            <g clip-path="url(#win)">
+              <rect x="372" y="22" width="216" height="184" fill="url(#sky)" />
+              <circle cx="530" cy="186" r="24" fill="#f2a900" />
+              <rect x="372" y="186" width="216" height="20" fill="#e2d9f3" />
+              <g class="ln">
+                <line x1="372" y1="186" x2="588" y2="186" />
+                <line x1="430" y1="186" x2="430" y2="126" /><rect x="424" y="116" width="12" height="12" class="pp" />
+                <g><line x1="394" y1="186" x2="394" y2="175" /><line x1="386" y1="177" x2="403" y2="171" /></g>
+                <g><line x1="458" y1="186" x2="458" y2="175" /><line x1="450" y1="172" x2="467" y2="177" /></g>
+                <g><line x1="482" y1="186" x2="482" y2="176" /><line x1="474" y1="173" x2="491" y2="178" /></g>
+                <g><line x1="566" y1="186" x2="566" y2="176" /><line x1="558" y1="173" x2="575" y2="178" /></g>
+              </g>
+            </g>
+            <g class="ln">
+              <rect x="372" y="22" width="216" height="184" />
+              <line x1="480" y1="22" x2="480" y2="206" />
+              <line x1="372" y1="112" x2="588" y2="112" />
+              <line x1="360" y1="206" x2="600" y2="206" />
+            </g>
+
+            <!-- the lamp's light, only above the desk top -->
+            <g clip-path="url(#above)">
+              <path class="glow" d="M98 160 L162 160 L330 300 L40 300 Z" fill="#f2a900" opacity="0.13" />
+              <ellipse class="glow" cx="190" cy="300" rx="170" ry="50" fill="url(#cone)" />
+            </g>
+
+            <!-- desk top (the letter lies in front of it) -->
+            <g class="ln">
+              <rect x="16" y="300" width="608" height="14" class="pp" />
+            </g>
+
+            <!-- mug with steam -->
+            <g class="ln">
+              <path class="pp" d="M520 262 L520 298 Q520 300 522 300 L548 300 Q550 300 550 298 L550 262 Z" />
+              <path d="M550 270 Q564 270 564 280 Q564 290 550 290" />
+              <path d="M528 252 Q522 244 528 236 Q534 228 528 220" />
+              <path d="M542 252 Q536 244 542 236" />
+            </g>
+
+            <!-- the lamp: click to switch -->
+            <g class="lamp-hit" data-lamp role="button" tabindex="0" aria-pressed="true" aria-label="Lampe schalten">
+              <rect x="80" y="90" width="120" height="214" fill="transparent" />
+              <g class="ln">
+                <ellipse cx="96" cy="298" rx="30" ry="6" class="pp" />
+                <line x1="96" y1="293" x2="150" y2="210" />
+                <line x1="150" y1="210" x2="128" y2="122" />
+                <circle cx="150" cy="210" r="4" class="pp" />
+                <path class="pp" d="M114 120 L146 120 L162 160 L98 160 Z" />
+              </g>
+              <path class="bulb" d="M120 160 A10 10 0 0 0 140 160 Z" />
+              <circle class="ring" cx="130" cy="150" r="44" fill="none" stroke="none" />
+            </g>
+          </svg>
+
+          <div class="sheet">
+            <dl class="meta">
+              <dt>An</dt><dd>daniel.lenski@hotmail.com</dd>
+              <dt>Betreff</dt><dd data-subject>Eine Stelle</dd>
+            </dl>
+            <p class="body"><span data-body></span><span class="caret"></span></p>
+            <div class="actions">
+              <a class="send" data-send href="mailto:daniel.lenski@hotmail.com">E-Mail schreiben</a>
+              <button class="copy" type="button" data-copy>Adresse kopieren</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="sign-off"><span>Stand: Oktober 2026</span><a href="#">Nach oben</a></p>
+    </div>
+  </section>
+
+<script>
+  const MAIL = "daniel.lenski@hotmail.com";
+  const TEXT = {
+    job: ["Eine Stelle", "Hallo Daniel,\n\nwir suchen gerade jemanden für "],
+    projekt: ["Ein Projekt", "Hallo Daniel,\n\nich arbeite an einem Projekt und "],
+    frage: ["Eine Frage zu deinen Arbeiten", "Hallo Daniel,\n\nich habe eine Frage zu "],
+    hallo: ["Hallo", "Hallo Daniel,\n\n"],
+  };
+  const subj = document.querySelector("[data-subject]");
+  const body = document.querySelector("[data-body]");
+  const send = document.querySelector("[data-send]");
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let timer = 0;
+  function pick(key) {
+    const [s, b] = TEXT[key];
+    subj.textContent = s;
+    send.href = `mailto:${MAIL}?subject=${encodeURIComponent(s)}&body=${encodeURIComponent(b)}`;
+    clearInterval(timer);
+    if (still) { body.textContent = b; return; }
+    let i = 0;
+    body.textContent = "";
+    timer = setInterval(() => { body.textContent = b.slice(0, ++i); if (i >= b.length) clearInterval(timer); }, 22);
+  }
+  document.querySelectorAll('input[name="topic"]').forEach((r) => r.addEventListener("change", () => pick(r.value)));
+  pick("job");
+  document.querySelector("[data-copy]").addEventListener("click", async (e) => {
+    try { await navigator.clipboard.writeText(MAIL); e.target.textContent = "Kopiert"; } catch { e.target.textContent = MAIL; }
+    setTimeout(() => (e.target.textContent = "Adresse kopieren"), 1800);
+  });
+
+  const stage = document.querySelector("[data-stage]");
+  const lamp = document.querySelector("[data-lamp]");
+  const toggle = () => { const off = stage.classList.toggle("off"); lamp.setAttribute("aria-pressed", String(!off)); };
+  lamp.addEventListener("click", toggle);
+  lamp.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+</script>
+</body>
+</html>

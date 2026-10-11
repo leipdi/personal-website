@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kontakt C: Abendszene</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&display=swap" rel="stylesheet" />
+<style>
+  /* Mockup C (2026-10-11), after joshwcomeau.com (the page ends in a landscape) and the 21Oaks
+     footer on Land-book (one-line drawing of a room with a glowing lamp): the day of the page
+     ends at a desk in the evening. Ink line drawing like the Bachelorarbeit schematic; the only
+     colour is light (sun yellow): the desk lamp, and through the window the sun setting behind
+     the heliostat field from the hero. The letter on the desk is the e-mail link; the lamp
+     switches on and off. */
+  :root {
+    --bg: #e2d9f3;
+    --paper: #ffffff;
+    --ink: #0f1b2d;
+    --ink-2: #434f5e;
+    --line: rgb(15 27 45 / 0.17);
+    --sun: #f2a900;
+    --spectrum-dusk: linear-gradient(90deg, #9a86e6, #e4572e 60%, #f2a900);
+    --sans: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+    --serif: "Newsreader", Georgia, serif;
+    --wrap: min(max(72rem, 84vw), 130rem);
+    --gutter: clamp(1.25rem, 0.6rem + 2.6vw, 2.5rem);
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 .4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { background: var(--bg); }
+  body {
+    font: 1.0625rem/1.5 var(--sans); color: var(--ink);
+    background:
+      radial-gradient(55rem 30rem at 80% 100%, rgb(255 192 168 / 0.5), transparent 70%),
+      radial-gradient(45rem 30rem at 10% 15%, rgb(201 184 242 / 0.5), transparent 70%),
+      var(--bg);
+    min-height: 100vh;
+  }
+  body::after { content: ""; position: fixed; inset: 0; background: var(--grain); mix-blend-mode: soft-light; pointer-events: none; }
+  .wrap { width: min(var(--wrap), 100% - 2 * var(--gutter)); margin-inline: auto; }
+  .note { font-size: 0.875rem; color: var(--ink-2); padding: 0.75rem var(--gutter); border-bottom: 1px solid var(--line); }
+  .prev { height: 30vh; display: grid; place-items: end start; padding-bottom: 2rem; color: var(--ink-2); font-family: var(--serif); font-size: 1.125rem; }
+
+  section { border-top: 1.5px solid var(--ink); padding-top: clamp(2.5rem, 1.6rem + 3.6vw, 4.5rem); }
+  .grid { display: grid; gap: clamp(2rem, 4vw, 3rem); align-items: end; }
+  @media (min-width: 62rem) { .grid { grid-template-columns: minmax(0, 4fr) minmax(0, 6fr); } }
+
+  h2 { font-family: var(--serif); font-weight: 500; letter-spacing: -0.02em; font-size: clamp(2.75rem, 1.5rem + 4vw, 5rem); line-height: 1; }
+  .lede { font-family: var(--serif); font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem); line-height: 1.3; margin-top: 1.25rem; max-width: 24rem; }
+  .mail {
+    display: inline-block; margin-top: 1.75rem;
+    font-weight: 800; letter-spacing: -0.04em; line-height: 1.05;
+    font-size: clamp(1.75rem, 1.2rem + 1.6vw, 2.75rem); color: var(--ink); text-decoration: none;
+  }
+  .mail span { background: var(--spectrum-dusk) no-repeat 0 100% / 100% 0.08em; padding-bottom: 0.1em; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+  .details { margin-top: 1.5rem; display: grid; gap: 0.2rem; color: var(--ink-2); font-style: normal; }
+  .details a { color: var(--ink); text-underline-offset: 0.2em; }
+
+  /* ---------- the scene ---------- */
+  .scene { width: 100%; height: auto; display: block; overflow: visible; }
+  .scene .ln { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .scene .pp { fill: var(--paper); }
+  .glow { transition: opacity .4s; }
+  .off .glow { opacity: 0; }
+  .bulb { fill: var(--sun); transition: fill .4s; }
+  .off .bulb { fill: var(--paper); }
+  .lamp-hit { cursor: pointer; }
+  .lamp-hit:focus-visible { outline: none; }
+  .lamp-hit:focus-visible .ring { stroke: var(--ink); stroke-dasharray: 3 3; }
+  .letter { cursor: pointer; transition: translate .2s; }
+  .letter:hover, .letter:focus-visible { translate: 0 -6px; }
+  .letter:focus-visible { outline: none; }
+  .letter:focus-visible .env { stroke-width: 2.6; }
+  @media (prefers-reduced-motion: reduce) { .letter:hover, .letter:focus-visible { translate: none; } }
+
+  .sign-off { margin-top: clamp(2.5rem, 5vw, 4rem); padding: 1rem 0 2rem; border-top: 1px solid var(--line); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem 2rem; font-size: 0.9375rem; color: var(--ink-2); }
+  .sign-off a { color: var(--ink); }
+</style>
+</head>
+<body>
+  <p class="note">Mockup C: Abendszene (nach joshwcomeau.com und dem 21Oaks-Footer auf Land-book). Klick auf die Lampe schaltet sie, der Brief ist der E-Mail-Link.</p>
+  <div class="wrap prev">… Ende der Hobbys</div>
+
+  <section aria-labelledby="h">
+    <div class="wrap">
+      <div class="grid">
+        <div>
+          <h2 id="h">Kontakt</h2>
+          <p class="lede">Feierabend für die Seite, nicht für Nachrichten. Schreib mir.</p>
+          <a class="mail" href="mailto:daniel.lenski@hotmail.com"><span>daniel.lenski<wbr />@hotmail.com</span></a>
+          <address class="details">
+            <a href="https://linkedin.com/in/daniel-lenski-de">LinkedIn</a>
+            <span>Langenfeld (Rheinland) / Düsseldorf</span>
+          </address>
+        </div>
+
+        <svg class="scene" data-scene viewBox="0 0 640 420" role="img" aria-labelledby="scene-t">
+          <title id="scene-t">Ein Schreibtisch am Abend: Lampe, Laptop, Tasse und ein Brief; durchs Fenster geht die Sonne hinter einem Heliostatenfeld unter.</title>
+          <defs>
+            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#c9b8f2" />
+              <stop offset="0.7" stop-color="#ffc0a8" />
+              <stop offset="1" stop-color="#ffd9a8" />
+            </linearGradient>
+            <radialGradient id="cone" cx="0.5" cy="0" r="1">
+              <stop offset="0" stop-color="#f2a900" stop-opacity="0.55" />
+              <stop offset="0.55" stop-color="#f2a900" stop-opacity="0.18" />
+              <stop offset="1" stop-color="#f2a900" stop-opacity="0" />
+            </radialGradient>
+            <clipPath id="win"><rect x="352" y="22" width="236" height="196" /></clipPath>
+          </defs>
+
+          <!-- the window: dusk, the sun going down behind the field from the hero -->
+          <g clip-path="url(#win)">
+            <rect x="352" y="22" width="236" height="196" fill="url(#sky)" />
+            <circle cx="520" cy="196" r="26" fill="#f2a900" />
+            <rect x="352" y="196" width="236" height="22" fill="#e2d9f3" />
+            <g class="ln">
+              <line x1="352" y1="196" x2="588" y2="196" />
+              <!-- receiver tower -->
+              <line x1="420" y1="196" x2="420" y2="132" /><rect x="414" y="122" width="12" height="12" class="pp" />
+              <!-- heliostats -->
+              <g><line x1="380" y1="196" x2="380" y2="184" /><line x1="372" y1="186" x2="389" y2="180" /></g>
+              <g><line x1="448" y1="196" x2="448" y2="184" /><line x1="440" y1="181" x2="457" y2="186" /></g>
+              <g><line x1="470" y1="196" x2="470" y2="185" /><line x1="462" y1="182" x2="479" y2="187" /></g>
+              <g><line x1="556" y1="196" x2="556" y2="185" /><line x1="548" y1="182" x2="565" y2="187" /></g>
+            </g>
+          </g>
+          <g class="ln">
+            <rect x="352" y="22" width="236" height="196" />
+            <line x1="470" y1="22" x2="470" y2="218" />
+            <line x1="352" y1="120" x2="588" y2="120" />
+            <line x1="340" y1="218" x2="600" y2="218" />
+          </g>
+
+          <!-- the lamp's light, only above the desk top -->
+          <clipPath id="above"><rect x="0" y="0" width="640" height="300" /></clipPath>
+          <g clip-path="url(#above)">
+            <path class="glow" d="M58 160 L122 160 L250 300 L10 300 Z" fill="#f2a900" opacity="0.14" />
+            <ellipse class="glow" cx="132" cy="300" rx="140" ry="46" fill="url(#cone)" />
+          </g>
+
+          <!-- desk -->
+          <g class="ln">
+            <rect x="16" y="300" width="608" height="14" class="pp" />
+            <line x1="40" y1="314" x2="40" y2="418" />
+            <line x1="600" y1="314" x2="600" y2="418" />
+            <line x1="470" y1="314" x2="470" y2="380" /><line x1="470" y1="380" x2="600" y2="380" />
+          </g>
+
+          <!-- laptop -->
+          <g class="ln">
+            <path class="pp" d="M196 296 L212 214 L322 214 L306 296 Z" />
+            <path d="M206 286 L219 222 L314 222 L301 286" />
+            <path class="pp" d="M180 300 L196 294 L332 294 L346 300 Z" />
+          </g>
+
+          <!-- mug with steam -->
+          <g class="ln">
+            <path class="pp" d="M364 262 L364 298 Q364 300 366 300 L392 300 Q394 300 394 298 L394 262 Z" />
+            <path d="M394 270 Q408 270 408 280 Q408 290 394 290" />
+            <path d="M372 252 Q366 244 372 236 Q378 228 372 220" />
+            <path d="M386 252 Q380 244 386 236" />
+          </g>
+
+          <!-- the letter: the e-mail link -->
+          <a class="letter" href="mailto:daniel.lenski@hotmail.com" aria-label="E-Mail an daniel.lenski@hotmail.com">
+            <g class="ln env">
+              <rect x="438" y="238" width="128" height="62" class="pp" />
+              <path d="M438 238 L502 276 L566 238" />
+            </g>
+            <circle cx="502" cy="276" r="5" fill="#b4325a" />
+          </a>
+
+          <!-- the lamp: click to switch -->
+          <g class="lamp-hit" data-lamp role="button" tabindex="0" aria-pressed="true" aria-label="Lampe schalten">
+            <rect x="60" y="80" width="120" height="224" fill="transparent" />
+            <g class="ln">
+              <ellipse cx="96" cy="298" rx="30" ry="6" class="pp" />
+              <line x1="96" y1="293" x2="128" y2="206" />
+              <line x1="128" y1="206" x2="90" y2="122" />
+              <circle cx="128" cy="206" r="4" class="pp" />
+              <path class="pp" d="M74 120 L106 120 L122 160 L58 160 Z" />
+            </g>
+            <path class="bulb" d="M80 160 A10 10 0 0 0 100 160 Z" />
+            <circle class="ring" cx="112" cy="140" r="44" fill="none" stroke="none" />
+          </g>
+        </svg>
+      </div>
+
+      <p class="sign-off"><span>Stand: Oktober 2026</span><a href="#">Nach oben</a></p>
+    </div>
+  </section>
+
+<script>
+  const scene = document.querySelector("[data-scene]");
+  const lamp = document.querySelector("[data-lamp]");
+  const toggle = () => {
+    const off = scene.classList.toggle("off");
+    lamp.setAttribute("aria-pressed", String(!off));
+  };
+  lamp.addEventListener("click", toggle);
+  lamp.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+</script>
+</body>
+</html>
