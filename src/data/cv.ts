@@ -354,13 +354,14 @@ export type Project = {
   title: string;
   org: string;
   period: string;
-  team?: string;
+  team?: string; // in der Kopfzeile, wenn das Team nicht schon unter `brief` steht
+  intro: string; // ein, zwei Sätze: worum es ging
+  brief: { label: string; text: string }[]; // die Eckpunkte vor der eigenen Rolle (Aufgabe, Team)
   role: string;
   lead: string;
   tasks: { text: string; sub?: string }[];
   facts: { label: string; value: string }[];
   tools: string[]; // Klartext, keine Logos
-  story: string; // wie das Team gearbeitet hat
   figure?: "ringprojekt";
 };
 
@@ -370,7 +371,18 @@ export const projects: Project[] = [
     title: "Ringprojekt: eine Messhalterung für einen Turbolader konstruieren und fertigen",
     org: "Hochschule Düsseldorf",
     period: "5. Semester (Wintersemester 2022/23)",
-    team: "Team aus sieben Studierenden",
+    intro:
+      "Im 5. Semester haben wir zu siebt eine Messhalterung für einen Turbolader entwickelt und selbst gefertigt, vom Entwurf am Rechner bis zur Messung im Labor.",
+    brief: [
+      {
+        label: "Aufgabe",
+        text: "Eine Halterung, in der ein Turbolader vermessen wird. Sie wird aus Aluminium gegossen, gefräst und gebohrt; ein 3D-gedruckter Niederhalter wird angebohrt, angeschraubt und hält den Turbolader fest.",
+      },
+      {
+        label: "Team",
+        text: "Sieben Studierende, jede und jeder mit einer Rolle: Teamleitung, Produktionsplanung und -⁠steuerung (ich), Konstruktion, spanlose Fertigung (Guss), spanende Fertigung, Rapid Prototyping und Messtechnik. Entworfen haben wir gemeinsam in PROCAD, über das auch die Daten im Team liefen. Dazu kamen regelmäßige Gruppentermine.",
+      },
+    ],
     role: "Meine Rolle: Produktionsplanung und -⁠steuerung", // kein Umbruch vor oder nach dem Bindestrich
     lead: "Ich habe aus dem Entwurf die Fertigung geplant: welche Teile, welche Arbeitsgänge, in welcher Reihenfolge.",
     tasks: [
@@ -381,8 +393,6 @@ export const projects: Project[] = [
     ],
     facts: [{ label: "Note", value: "1,2" }],
     tools: ["Infor (ERP)"],
-    story:
-      "Jede und jeder im Team hatte eine Rolle: Teamleitung, PPS, Konstruktion, spanende und spanlose Fertigung, Rapid Prototyping, Messtechnik. Die Konstruktion entwarf mit der ganzen Gruppe in PROCAD, über das auch die Daten im Team liefen; Simulationen von Guss und Zerspanung brachten kleine Änderungen, dazwischen wurde ein Prototyp gedruckt. Dann wurde die Halterung in Aluminium gegossen, gefräst und gebohrt, der gedruckte Niederhalter wurde angebohrt und angeschraubt. In der fertigen Halterung hält der Niederhalter den Turbolader für die Messung fest. Dazu kamen regelmäßige Gruppentermine.",
     figure: "ringprojekt",
   },
 ];
