@@ -262,7 +262,7 @@ export const career: CareerEntry[] = [
     to: "heute",
     id: "praktikum-digital-transformation",
     tasks: [
-      "Einführen eines geeigneten KI Systems + Schulung",
+      "Einführen eines geeigneten KI-Systems + Schulung",
       "weitere Punkte offen",
     ],
     facts: [{ label: "Bereich", value: "Digital Transformation" }],
