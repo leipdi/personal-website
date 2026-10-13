@@ -1,0 +1,71 @@
+---
+import { url } from "../../lib/url";
+
+// The Ringprojekt's part in the owner's own photos (2026-10-13; they replace the line sketch,
+// which showed a turbocharger: the team made the holder a turbocharger is measured in). In
+// order: the printed prototype, the raw aluminium casting, the finished holder with the
+// printed clamp. Crops cut out people at the edges; originals in assets-src/projekte/.
+const shots = [
+  { id: "prototyp", alt: "3D-gedruckter Prototyp der Halterung in Blau", cap: "Prototyp aus dem 3D-Drucker" },
+  { id: "rohguss", alt: "Rohes Gussteil aus Aluminium mit rauer Oberfläche, noch unbearbeitet", cap: "Aluminium-Rohguss, noch unbearbeitet" },
+  {
+    id: "fertig",
+    alt: "Fertige Halterung: gefräste Aluminiumplatte mit Bohrungen und einer Aufnahme, daran der schwarze 3D-gedruckte Niederhalter angeschraubt",
+    cap: "Fertige Halterung: gefräst und gebohrt, der gedruckte Niederhalter angeschraubt",
+  },
+];
+const src = (id: string) => url(`/img/projekte/${id}.webp`);
+const srcset = (id: string) => `${url(`/img/projekte/${id}-640.webp`)} 640w, ${src(id)} 1200w`;
+---
+
+<div class="rp">
+  {
+    shots.map((s, k) => (
+      <figure class:list={["shot", k === shots.length - 1 && "big"]}>
+        <img
+          src={src(s.id)}
+          srcset={srcset(s.id)}
+          sizes={k === shots.length - 1 ? "(min-width: 56rem) min(700px, 40vw), 100vw" : "(min-width: 56rem) min(345px, 20vw), 50vw"}
+          alt={s.alt}
+          width="1200"
+          height={s.id === "fertig" ? 937 : 938}
+          loading="lazy"
+          decoding="async"
+        />
+        <figcaption>{s.cap}</figcaption>
+      </figure>
+    ))
+  }
+</div>
+
+<style>
+  /* prototype | casting side by side, the finished holder large below: read in order */
+  /* capped, so on large displays the photos don't outgrow the text beside them (about 684px
+     at 2560, where the root font is larger; `sizes` above assumes that cap) */
+  .rp {
+    max-width: 36rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 0.75rem;
+  }
+  .shot {
+    margin: 0;
+  }
+  .big {
+    grid-column: 1 / -1;
+  }
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1.28;
+    object-fit: cover;
+    border: 1px solid var(--line);
+  }
+  figcaption {
+    margin-top: 0.4rem;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--ink-3);
+  }
+</style>

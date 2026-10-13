@@ -1,6 +1,6 @@
 ---
 import { projects } from "../../data/cv";
-import RingSketch from "../figures/RingSketch.astro";
+import RingPhotos from "../figures/RingPhotos.astro";
 import RingFlow from "../figures/RingFlow.astro";
 
 // Projekte, rebuilt one project at a time in chronological order (owner 2026-10-13), each a
@@ -51,7 +51,7 @@ import RingFlow from "../figures/RingFlow.astro";
             </div>
             {p.figure === "ringprojekt" && (
               <div class="side">
-                <RingSketch />
+                <RingPhotos />
               </div>
             )}
           </div>
@@ -189,7 +189,7 @@ import RingFlow from "../figures/RingFlow.astro";
     color: var(--ink-2);
   }
 
-  /* wide: text | sketch side by side */
+  /* wide: text | photos side by side */
   @media (min-width: 56rem) {
     .top {
       grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);

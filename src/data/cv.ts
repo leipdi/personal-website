@@ -367,14 +367,14 @@ export type Project = {
 export const projects: Project[] = [
   {
     id: "ringprojekt",
-    title: "Ringprojekt: einen Turbolader konstruieren und fertigen",
+    title: "Ringprojekt: eine Messhalterung für einen Turbolader konstruieren und fertigen",
     org: "Hochschule Düsseldorf",
     period: "5. Semester (Wintersemester 2022/23)",
     team: "Team aus sieben Studierenden",
     role: "Meine Rolle: Produktionsplanung und -⁠steuerung", // kein Umbruch vor oder nach dem Bindestrich
     lead: "Ich habe aus dem Entwurf die Fertigung geplant: welche Teile, welche Arbeitsgänge, in welcher Reihenfolge.",
     tasks: [
-      { text: "Stückliste und Arbeitsgangfolge in Infor aufgebaut", sub: "Turbolader und Niederhalter als Baum, darunter die Arbeitsgänge je Teil" },
+      { text: "Stückliste und Arbeitsgangfolge in Infor aufgebaut", sub: "Halterung und Niederhalter als Baum, darunter die Arbeitsgänge je Teil" },
       { text: "Arbeitspläne erstellt und gedruckt", sub: "Je einer für Guss, Spanen, Rapid Prototyping und Messtechnik, dazu der Montageplan für den Niederhalter" },
       { text: "Zeiten in der Fertigung erfasst", sub: "Daraus die Maschinenkosten der Verfahren berechnet, nebenbei fiktive Personalkosten" },
       { text: "Abschlusspräsentation gehalten", sub: "Für den erkrankten Teamleiter" },
@@ -382,7 +382,7 @@ export const projects: Project[] = [
     facts: [{ label: "Note", value: "1,2" }],
     tools: ["Infor (ERP)"],
     story:
-      "Jede und jeder im Team hatte eine Rolle: Teamleitung, PPS, Konstruktion, spanende und spanlose Fertigung, Rapid Prototyping, Messtechnik. Die Konstruktion entwarf mit der ganzen Gruppe in PROCAD, über das auch die Daten im Team liefen; Simulationen von Guss und Zerspanung brachten kleine Änderungen, dazwischen wurde ein Prototyp gedruckt. Dann wurde das Gehäuse in Aluminium gegossen, gefräst und gebohrt, der gedruckte Niederhalter wurde angebohrt und hielt es für die Messung. Dazu kamen regelmäßige Gruppentermine.",
+      "Jede und jeder im Team hatte eine Rolle: Teamleitung, PPS, Konstruktion, spanende und spanlose Fertigung, Rapid Prototyping, Messtechnik. Die Konstruktion entwarf mit der ganzen Gruppe in PROCAD, über das auch die Daten im Team liefen; Simulationen von Guss und Zerspanung brachten kleine Änderungen, dazwischen wurde ein Prototyp gedruckt. Dann wurde die Halterung in Aluminium gegossen, gefräst und gebohrt, der gedruckte Niederhalter wurde angebohrt und angeschraubt. In der fertigen Halterung hält der Niederhalter den Turbolader für die Messung fest. Dazu kamen regelmäßige Gruppentermine.",
     figure: "ringprojekt",
   },
 ];
@@ -479,7 +479,7 @@ export const topSkills: TopSkill[] = [
         ],
       },
       {
-        text: "Ringprojekt im Studium: Turbolader als Gruppe konstruiert und hergestellt, meine Aufgabe PPS",
+        text: "Ringprojekt im Studium: eine Messhalterung für einen Turbolader als Gruppe konstruiert und hergestellt, meine Aufgabe PPS",
         sub: ["Planung und Steuerung der Laborbesuche",
           "Herstellkosten anhand von Materialdaten und Maschinendaten",
           "Vorstellen der Ergebnisse an ein Plenum"],

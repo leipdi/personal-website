@@ -13,8 +13,10 @@ secondary (owner: "specifics are not really relevant in this part, more on how w
 
 - Ringprojekt, Hochschule Düsseldorf, 5th Bachelor semester (Wintersemester 2022/23, one
   semester; derived from the 2020 start, owner did not object), grade **1,2**, no competition.
-- Task: design and manufacture a turbocharger (Turbolader). The real task is no longer
-  available; the page shows roughly what it was about.
+- Task: design and manufacture a holder (Messhalterung) that a turbocharger (Turbolader) is
+  measured in, with a 3D-printed clamp (Niederhalter). Corrected by the owner on 2026-10-13
+  (first version said the turbocharger itself); his three photos (prototype, raw casting,
+  finished holder) replace the sketch.
 - Team of seven: Teamleitung, PPS (the owner), Konstruktion, Spanende Fertigung, Spanlose
   Fertigung, Rapid Prototyping, Messtechnik. Regular group meetings.
 - Workflow: Konstruktion designs the part together with the group, plus a clamp
