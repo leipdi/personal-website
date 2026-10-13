@@ -21,6 +21,8 @@ export const DAY: Hour[] = [
   { sel: ".hero", bg: "#ebebf5", a: "#ffc8a2", b: "#f3d0e4", k: 1, pa: [45, 104], pb: [96, 6] },
   { sel: "#kompetenzen", bg: "#d9e8fb", a: "#a8cdfa", b: "#c4ecf0", k: 0.9, pa: [10, 30], pb: [90, 80] },
   { sel: "#werdegang", bg: "#e6f1fc", a: "#fff6d8", b: "#ffffff", k: 0.7, pa: [78, 22], pb: [15, 85] },
+  // early afternoon (2026-10-13, Projekte): noon's white turning warm, a pale straw light
+  { sel: "#projekte", bg: "#f2f1e6", a: "#fff1c4", b: "#ffffff", k: 0.7, pa: [18, 28], pb: [85, 80] },
   { sel: "#kenntnisse", bg: "#fbeac4", a: "#ffc46b", b: "#ffad90", k: 0.9, pa: [85, 30], pb: [15, 85] },
   { sel: "#hobbys", bg: "#ffcdb5", a: "#ffae94", b: "#ffb3c7", k: 0.9, pa: [20, 25], pb: [85, 75] },
   { sel: "#kontakt", bg: "#e2d9f3", a: "#ffc0a8", b: "#c9b8f2", k: 0.8, pa: [70, 104], pb: [10, 20] },

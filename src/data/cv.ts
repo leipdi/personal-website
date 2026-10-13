@@ -4,10 +4,10 @@
 // Zertifikate, Kontaktdaten) stammen aus CV/LinkedIn. Alle Fließtexte und Zuordnungen sind
 // dagegen aus KI-Entwürfen entstanden (seit 2026-10-09 von Daniel übernommen, auf der Seite
 // nicht mehr markiert):
-//   profile.claim, career[].story, projects[].title/context/approach/result,
+//   profile.claim, career[].story, projectDrafts[].title/context/approach/result,
 //   topSkills (komplett: Auswahl, Titel, Belegzeilen, Zuordnung von Stationen und Software),
 //   competencies[].skill (Zuordnung CV-Methode -> Kernkompetenz), notes.
-// Seit 2026-09-26 stützen sich die Texte zu Bachelor- und Masterarbeit (career-Stories, projects)
+// Seit 2026-09-26 stützen sich die Texte zu Bachelor- und Masterarbeit (career-Stories, projectDrafts)
 // zusätzlich auf die beiden Abschlussarbeiten ("Input Data/", nicht im Repo). Daniel hat die
 // Veröffentlichung trotz Sperrvermerk freigegeben. Zahlen daraus sind echt, die Formulierung KI.
 // profile.claim: *Wort* wird kursiv gesetzt (Betonung, index.astro).
@@ -41,7 +41,7 @@ export type CareerEntry = {
   place: string;
   kind: "ausbildung" | "beruf";
   story: string; // KI-PLATZHALTER: kurzer Einstieg
-  // Slug eines Eintrags in `projects` (die Projektseite ist entfernt, die Daten bleiben).
+  // Slug eines Eintrags in `projectDrafts` (alte Projekttexte, noch nicht wieder auf der Seite).
   project?: string;
   // Meilenstein im Projektplan (Werdegang, Fahne am Balken): Abschluss oder Abgabe. at: "2024",
   // "Jun 2024" oder ein Tagesdatum "18.06.2024". Nur Fakten aus CV oder Abschlussarbeit.
@@ -277,7 +277,7 @@ export const career: CareerEntry[] = [
   },
 ];
 
-export type Project = {
+export type ProjectDraft = {
   slug: string;
   title: string; // KI-PLATZHALTER
   org: string;
@@ -290,8 +290,9 @@ export type Project = {
   figure?: "am-model" | "heliostat";
 };
 
-// Reihenfolge = Gewichtung auf der Projektseite, nicht Chronologie.
-export const projects: Project[] = [
+// Die alten Projekttexte (vor 2026-10-13), auf der Seite nicht verwendet: sie werden einzeln
+// überarbeitet und wandern dann nach `projects`.
+export const projectDrafts: ProjectDraft[] = [
   {
     slug: "luftfahrt",
     figure: "am-model",
@@ -346,6 +347,46 @@ export const projects: Project[] = [
   },
 ];
 
+// Projekte auf der Seite (seit 2026-10-13), chronologisch. Schritt für Schritt aufgebaut,
+// zuerst das Ringprojekt. Nur Fakten vom Besitzer, keine erfundenen Zahlen.
+export type Project = {
+  id: string; // Anker auf der Seite (#id), stabil halten
+  title: string;
+  org: string;
+  period: string;
+  team?: string;
+  role: string;
+  lead: string;
+  tasks: { text: string; sub?: string }[];
+  facts: { label: string; value: string }[];
+  tools: string[]; // Klartext, keine Logos
+  story: string; // wie das Team gearbeitet hat
+  figure?: "ringprojekt";
+};
+
+export const projects: Project[] = [
+  {
+    id: "ringprojekt",
+    title: "Ringprojekt: einen Turbolader konstruieren und fertigen",
+    org: "Hochschule Düsseldorf",
+    period: "5. Semester (Wintersemester 2022/23)",
+    team: "Team aus sieben Studierenden",
+    role: "Meine Rolle: Produktionsplanung und -⁠steuerung", // kein Umbruch vor oder nach dem Bindestrich
+    lead: "Ich habe aus dem Entwurf die Fertigung geplant: welche Teile, welche Arbeitsgänge, in welcher Reihenfolge.",
+    tasks: [
+      { text: "Stückliste und Arbeitsgangfolge in Infor aufgebaut", sub: "Turbolader und Niederhalter als Baum, darunter die Arbeitsgänge je Teil" },
+      { text: "Arbeitspläne erstellt und gedruckt", sub: "Je einer für Guss, Spanen, Rapid Prototyping und Messtechnik, dazu der Montageplan für den Niederhalter" },
+      { text: "Zeiten in der Fertigung erfasst", sub: "Daraus die Maschinenkosten der Verfahren berechnet, nebenbei fiktive Personalkosten" },
+      { text: "Abschlusspräsentation gehalten", sub: "Für den erkrankten Teamleiter" },
+    ],
+    facts: [{ label: "Note", value: "1,2" }],
+    tools: ["Infor (ERP)"],
+    story:
+      "Jede und jeder im Team hatte eine Rolle: Teamleitung, PPS, Konstruktion, spanende und spanlose Fertigung, Rapid Prototyping, Messtechnik. Die Konstruktion entwarf mit der ganzen Gruppe in PROCAD, über das auch die Daten im Team liefen; Simulationen von Guss und Zerspanung brachten kleine Änderungen, dazwischen wurde ein Prototyp gedruckt. Dann wurde das Gehäuse in Aluminium gegossen, gefräst und gebohrt, der gedruckte Niederhalter wurde angebohrt und hielt es für die Messung. Dazu kamen regelmäßige Gruppentermine.",
+    figure: "ringprojekt",
+  },
+];
+
 export type RatedSkill = {
   name: string;
   level: 1 | 2 | 3 | 4 | 5;
@@ -361,6 +402,8 @@ export const ratedSkills: RatedSkill[] = [
   { name: "Jedox", level: 2, levelLabel: "Grundkenntnisse", group: "Software & BI" },
   { name: "Autodesk Fusion", level: 2, levelLabel: "Grundkenntnisse", group: "Software & BI" },
   { name: "Autodesk Inventor", level: 2, levelLabel: "Grundkenntnisse", group: "Software & BI" },
+  // Infor: Stufe vom Besitzer selbst (2026-10-13, Ringprojekt), nicht aus dem CV
+  { name: "Infor", level: 2, levelLabel: "Grundkenntnisse", group: "Software & BI" },
   // KI-Kenntnisse: Auswahl und Stufen von Daniel abgestimmt (2026-10-09), nicht aus dem CV.
   { name: "Agentic Coding", level: 4, levelLabel: "gut", group: "KI" },
   { name: "Prompt & Context Engineering", level: 4, levelLabel: "gut", group: "KI" },
@@ -446,7 +489,7 @@ export const topSkills: TopSkill[] = [
     tools: ["Autodesk Inventor", "Excel"],
     learned: [
       { label: "Bachelorarbeit am DLR", href: "#bachelorarbeit" },
-      { label: "Ringprojekt (B.Eng.)", href: "#bachelor" },
+      { label: "Ringprojekt (B.Eng.)", href: "#ringprojekt" },
     ],
   },
   {
@@ -501,7 +544,7 @@ export const topSkills: TopSkill[] = [
     learned: [
       { label: "Timebutler-Einführung (IGH Infotec)", href: "#werkstudent-controlling" },
       { label: "Praktikum Projektmanagement (IGH Infotec)", href: "#praktikum-pm" },
-      { label: "Ringprojekt (B.Eng.)", href: "#bachelor" },
+      { label: "Ringprojekt (B.Eng.)", href: "#ringprojekt" },
       { label: "Lean Six Sigma Yellow Belt", href: "#z-lean-six-sigma" },
     ],
   },

@@ -1,0 +1,438 @@
+---
+// The Ringprojekt's semester in lanes (spec: docs/superpowers/specs/2026-10-13-projekte-ringprojekt-design.md).
+// How the team of seven worked, with the owner's PPS work on top: one work plan per lab step,
+// sent down at its start, the time taken recorded at its end, machine costs from those times.
+// Drawn from the lists below, so corrections from the owner change data, not drawing code.
+// Two SVGs at one scale, side by side: the lane names and the chart. In a narrow column the
+// pair keeps its natural size (13px text) and scrolls sideways with the names pinned (CSS
+// container query below). Ink and steel only: sun means light, the category colours mean
+// Werdegang. No JS.
+
+type RowId = "plan" | "time" | "cost" | "lead" | "kon" | "rp" | "guss" | "span" | "mess";
+type Kind = "pc" | "sim" | "lab" | "ink" | "minor";
+type Item = { id: string; row: RowId; t0: number; t1: number; kind: Kind; label: string };
+
+const LW = 180; // names column (SVG units = px at natural size)
+const CW = 860; // chart
+const H = 548;
+const X0 = 16;
+const X1 = CW - 16;
+/** time 0 (Semesterbeginn) to 100 (Abgabe) to chart x */
+const x = (t: number) => X0 + (t / 100) * (X1 - X0);
+
+const PPS = { y: 24, h: 134 };
+// short: the names in a narrow column, where they stay pinned beside the scrolling chart
+const rows: { id: RowId; label: string; short: string; y: number; h: number; sub?: boolean }[] = [
+  { id: "plan", label: "Arbeitspläne (Infor)", short: "Arbeitspläne", y: 58, h: 33, sub: true },
+  { id: "time", label: "Zeiten erfassen", short: "Zeiten", y: 91, h: 34, sub: true },
+  { id: "cost", label: "Maschinenkosten", short: "Kosten", y: 125, h: 33, sub: true },
+  { id: "lead", label: "Teamleitung", short: "Leitung", y: 158, h: 52 },
+  { id: "kon", label: "Konstruktion", short: "Konstruktion", y: 210, h: 52 },
+  { id: "rp", label: "Rapid Prototyping", short: "Prototyping", y: 262, h: 52 },
+  { id: "guss", label: "Spanlose Fertigung", short: "Guss", y: 314, h: 52 },
+  { id: "span", label: "Spanende Fertigung", short: "Spanen", y: 366, h: 52 },
+  { id: "mess", label: "Messtechnik", short: "Messtechnik", y: 418, h: 52 },
+];
+const LANES_END = 470;
+const row = (id: RowId) => rows.find((r) => r.id === id)!;
+const mid = (id: RowId) => row(id).y + row(id).h / 2;
+
+const BOX = 26;
+const items: Item[] = [
+  { id: "entwurf", row: "kon", t0: 0, t1: 21, kind: "pc", label: "Entwurf mit der Gruppe" },
+  { id: "aend1", row: "kon", t0: 24, t1: 29.5, kind: "pc", label: "Änd." },
+  { id: "aend2", row: "kon", t0: 32, t1: 37.5, kind: "pc", label: "Änd." },
+  { id: "aend3", row: "kon", t0: 43, t1: 48.5, kind: "pc", label: "Änd." },
+  { id: "gsim", row: "guss", t0: 17, t1: 37, kind: "sim", label: "Gusssimulation" },
+  { id: "fsim", row: "span", t0: 15, t1: 41, kind: "sim", label: "Fräs- und Bohrsimulation" },
+  { id: "proto", row: "rp", t0: 40, t1: 52, kind: "pc", label: "Prototyp" },
+  { id: "guss", row: "guss", t0: 55, t1: 68, kind: "lab", label: "Alu-Guss" },
+  { id: "nh", row: "rp", t0: 60, t1: 71, kind: "pc", label: "Niederhalter" },
+  { id: "spanen", row: "span", t0: 72, t1: 79, kind: "lab", label: "Spanen" },
+  { id: "mont", row: "span", t0: 80, t1: 88, kind: "pc", label: "Montage" },
+  { id: "mess", row: "mess", t0: 89, t1: 99, kind: "lab", label: "Messung" },
+  { id: "tree", row: "plan", t0: 21, t1: 38, kind: "ink", label: "Stückliste, Folge" },
+  { id: "kosten", row: "cost", t0: 76, t1: 100, kind: "minor", label: "aus den Zeiten berechnet" },
+  { id: "praes", row: "lead", t0: 84, t1: 100, kind: "ink", label: "Präsentation (ich)" },
+];
+const byId = (id: string) => items.find((i) => i.id === id)!;
+const top = (i: Item) => mid(i.row) - BOX / 2;
+const bottom = (i: Item) => mid(i.row) + BOX / 2;
+
+// one printed work plan per lab step, at its start; the time recorded at its end
+const plans: { item: string; label: string }[] = [
+  { item: "proto", label: "RP" },
+  { item: "guss", label: "Guss" },
+  { item: "nh", label: "RP" },
+  { item: "spanen", label: "Spanen" },
+  { item: "mont", label: "Montage" },
+  { item: "mess", label: "Messen" },
+];
+const SHEET = 18;
+const sheets = plans.map((p, k) => {
+  const it = byId(p.item);
+  const sx = x(it.t0) + 6;
+  // labels of sheets closer than 4 time units step up, so they don't collide
+  const close = k > 0 && it.t0 - byId(plans[k - 1].item).t0 < 4;
+  return { ...p, it, sx, ly: close ? 47 : 56 };
+});
+
+// arrows between steps (changes fed back, the clamp into the assembly, the draft into the tree)
+const links: { from: string; fromT: number; to: string }[] = [
+  { from: "gsim", fromT: 26.5, to: "aend1" },
+  { from: "fsim", fromT: 39, to: "aend2" },
+  { from: "proto", fromT: 46, to: "aend3" },
+  { from: "nh", fromT: 70, to: "mont" },
+  { from: "entwurf", fromT: 18, to: "tree" },
+];
+const linkPath = (l: (typeof links)[number]) => {
+  const a = byId(l.from);
+  const b = byId(l.to);
+  const up = mid(b.row) < mid(a.row);
+  const sx = x(l.fromT);
+  const sy = up ? top(a) : bottom(a);
+  const ex = (x(b.t0) + x(b.t1)) / 2;
+  const ey = up ? bottom(b) + 2 : top(b) - 2;
+  const my = (sy + ey) / 2;
+  return `M${sx} ${sy} C ${sx} ${my}, ${ex} ${my}, ${ex} ${ey}`;
+};
+
+const meetings = [8, 22, 36, 50, 64, 78, 92];
+const interim = [30, 66]; // Zwischenstände of the team lead
+const DOC_END = 83;
+---
+
+<figure class="rf" aria-labelledby="rf-note">
+  <p class="rf-hint">Die Grafik lässt sich seitlich verschieben.</p>
+  <div class="rf-scroll" tabindex="0" role="region" aria-label="Ablauf des Ringprojekts, seitlich verschiebbar">
+    <div class="rf-inner">
+      <svg class="rf-names" viewBox={`0 0 ${LW} ${H}`} preserveAspectRatio="xMinYMin slice" aria-hidden="true">
+        <rect class="band" x="0" y={PPS.y} width={LW} height={PPS.h} />
+        <rect class="edge" x="0" y={PPS.y} width="4" height={PPS.h} />
+        <text class="t b" x="14" y={PPS.y + 22}>PPS (ich)</text>
+        {rows.map((r) => (
+          <text class:list={["t", r.sub && "m"]} x={r.sub ? 14 : 0} y={r.y + r.h / 2 + 5}>
+            <tspan class="long">{r.label}</tspan>
+            <tspan class="short">{r.short}</tspan>
+          </text>
+        ))}
+        {rows.map((r) => !r.sub && <line class="rule" x1="0" y1={r.y} x2={LW} y2={r.y} />)}
+        <line class="rule" x1="0" y1={LANES_END} x2={LW} y2={LANES_END} />
+        <line class="rule sub" x1="14" y1={row("time").y} x2={LW} y2={row("time").y} />
+        <line class="rule sub" x1="14" y1={row("cost").y} x2={LW} y2={row("cost").y} />
+      </svg>
+
+      <svg class="rf-chart" viewBox={`0 0 ${CW} ${H}`} aria-hidden="true">
+        <defs>
+          <marker id="rf-ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" class="ah" />
+          </marker>
+        </defs>
+
+        <!-- PPS band and row rules -->
+        <rect class="band" x="0" y={PPS.y} width={CW} height={PPS.h} />
+        {rows.map((r) => !r.sub && <line class="rule" x1="0" y1={r.y} x2={CW} y2={r.y} />)}
+        <line class="rule" x1="0" y1={LANES_END} x2={CW} y2={LANES_END} />
+        <line class="rule sub" x1="0" y1={row("time").y} x2={CW} y2={row("time").y} />
+        <line class="rule sub" x1="0" y1={row("cost").y} x2={CW} y2={row("cost").y} />
+
+        <!-- group meetings -->
+        {meetings.map((t) => <line class="meet" x1={x(t)} y1="20" x2={x(t)} y2={LANES_END} />)}
+        <text class="t s m" x={x(meetings[0])} y="14">Gruppentermine</text>
+
+        <!-- Teamleitung: documentation thread, interim results -->
+        <line class="doc" x1={x(0)} y1={mid("lead")} x2={x(DOC_END)} y2={mid("lead")} />
+        <text class="t s m" x={x(0) + 6} y={mid("lead") - 8}>Dokumentation</text>
+        {interim.map((t) => (
+          <>
+            <rect class="dia" x={x(t) - 6} y={mid("lead") - 6} width="12" height="12" transform={`rotate(45 ${x(t)} ${mid("lead")})`} />
+            <text class="t s m" x={x(t)} y={mid("lead") - 12} text-anchor="middle">Zwischenstand</text>
+          </>
+        ))}
+
+        <!-- each work plan sent down to its step: drawn first, so it passes behind the boxes -->
+        {sheets.map((s) => <path class="down" d={`M${s.sx + SHEET / 2} ${mid("plan") + 12} V${top(s.it) - 2}`} marker-end="url(#rf-ah)" />)}
+
+        <!-- the steps -->
+        {items.map((i) => (
+          <>
+            <rect class:list={["box", i.kind]} x={x(i.t0)} y={top(i)} width={x(i.t1) - x(i.t0)} height={BOX} />
+            {i.id === "tree" && (
+              <g class="tree" transform={`translate(${x(i.t0)} ${top(i)})`}>
+                <path d="M12 8 V20 M12 12 H21 M12 19 H21" />
+                <circle cx="12" cy="7" r="2.2" /><circle cx="23" cy="12" r="2" /><circle cx="23" cy="19" r="2" />
+              </g>
+            )}
+            <text
+              class:list={["t", i.kind === "lab" && "inv", i.kind === "ink" && "b2"]}
+              x={i.id === "tree" ? x(i.t0) + 34 : (x(i.t0) + x(i.t1)) / 2}
+              y={mid(i.row) + 4.5}
+              text-anchor={i.id === "tree" ? "start" : "middle"}
+            >
+              {i.label}
+            </text>
+          </>
+        ))}
+
+        <!-- arrows between steps -->
+        {links.map((l) => <path class="link" d={linkPath(l)} marker-end="url(#rf-ah)" />)}
+
+        <!-- PPS: the plan line from the tree, a work plan sheet per lab step sent down at its start -->
+        <line class="plan" x1={x(byId("tree").t1)} y1={mid("plan")} x2={sheets.at(-1)!.sx} y2={mid("plan")} />
+        {sheets.map((s) => (
+          <>
+            <path class="sheet" d={`M${s.sx} ${mid("plan") - 11} h${SHEET - 5} l5 5 v17 h-${SHEET} z`} />
+            <path class="sheet-l" d={`M${s.sx + 4} ${mid("plan") - 1} h10 M${s.sx + 4} ${mid("plan") + 3} h10 M${s.sx + 4} ${mid("plan") + 7} h7`} />
+            <text class="t s m" x={s.sx + SHEET / 2} y={s.ly} text-anchor="middle">
+              {s.label}
+            </text>
+          </>
+        ))}
+
+        <!-- PPS: the time recorded at the end of each lab step -->
+        <line class="dots" x1={x(byId(plans[0].item).t1) - 70} y1={mid("time")} x2={x(byId(plans.at(-1)!.item).t1)} y2={mid("time")} />
+        {sheets.map((s) => (
+          <g class="clock" transform={`translate(${x(s.it.t1)} ${mid("time")})`}>
+            <circle r="6.5" />
+            <path d="M0 0 V-4 M0 0 h3" />
+          </g>
+        ))}
+
+        <!-- time axis and legend -->
+        <line class="axis" x1={x(0)} y1="488" x2={x(100)} y2="488" />
+        <text class="t s m" x={x(0)} y="506">Semesterbeginn</text>
+        <text class="t s m" x={x(100)} y="506" text-anchor="end">Abgabe</text>
+        <g transform={`translate(${x(14)} 0)`}>
+          <rect class="box pc" x="0" y="522" width="14" height="12" /><text class="t s m" x="20" y="532">am Rechner</text>
+          <rect class="box sim" x="104" y="522" width="14" height="12" /><text class="t s m" x="124" y="532">Simulation</text>
+          <rect class="box lab" x="206" y="522" width="14" height="12" /><text class="t s m" x="226" y="532">im Labor</text>
+          <path class="sheet" d="M296 522 h9 l3 3 v9 h-12 z" /><text class="t s m" x="314" y="532">Arbeitsplan</text>
+          <circle class="clock-c" cx="402" cy="528" r="6" /><text class="t s m" x="414" y="532">Zeit erfasst</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+  <figcaption id="rf-note">Vereinfacht: Reihenfolge und Abhängigkeiten stimmen, die Abstände sind nicht maßstäblich.</figcaption>
+  <div class="sr-only">
+    <p>Ablauf des Ringprojekts über das Semester, in sieben Rollen.</p>
+    <p>Die Konstruktion entwirft das Teil mit der Gruppe. Guss- sowie Fräs- und Bohrsimulation führen zu kleinen Änderungen, ebenso der gedruckte Prototyp.</p>
+    <p>Aus dem Entwurf baue ich als PPS Stückliste und Arbeitsgangfolge in Infor auf. Zu jedem Laborschritt geht ein Arbeitsplan: Prototyp, Aluminiumguss, Niederhalter, Spanen, Montage des Niederhalters, Messung. Am Ende jedes Schritts erfasse ich die Zeit, daraus berechne ich die Maschinenkosten.</p>
+    <p>Die Teamleitung dokumentiert und stellt Zwischenstände vor; die Abschlusspräsentation habe ich gehalten. Regelmäßige Gruppentermine begleiten das Semester.</p>
+  </div>
+</figure>
+
+<style>
+  .rf {
+    margin: 0;
+    container-type: inline-size;
+  }
+  .rf-scroll {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+  /* the two SVGs at one scale: widths in the ratio of their viewBox widths (180 : 860). Flex,
+     not grid: a sticky grid item can't leave its own grid area, so the names wouldn't pin */
+  .rf-inner {
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem 1rem 0.75rem 0.9rem;
+  }
+  .rf-inner svg {
+    display: block;
+    min-width: 0;
+    height: auto;
+  }
+  .rf-names {
+    flex: 180 1 0;
+  }
+  .rf-chart {
+    flex: 860 1 0;
+  }
+  .rf-names {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--paper);
+  }
+  .rf-scroll:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+  .rf-hint {
+    display: none;
+    margin-bottom: 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--ink-3);
+  }
+  figcaption {
+    margin-top: 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--ink-3);
+  }
+
+  /* SVG parts */
+  .t {
+    font-family: var(--sans);
+    font-size: 13px;
+    fill: var(--ink);
+  }
+  .rf-names .t {
+    font-size: 14px;
+  }
+  .rf-names .t.m {
+    font-size: 13px;
+  }
+  .short {
+    display: none;
+  }
+  .t.b {
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .t.s {
+    font-size: 12px;
+  }
+  .t.m {
+    fill: var(--ink-2);
+  }
+  .t.inv {
+    fill: var(--paper);
+  }
+  .band {
+    fill: var(--ink);
+    fill-opacity: 0.05;
+  }
+  .edge {
+    fill: var(--ink);
+  }
+  .rule {
+    stroke: var(--ink);
+    stroke-opacity: 0.17;
+  }
+  .rule.sub {
+    stroke-opacity: 0.12;
+  }
+  .meet {
+    stroke: var(--ink);
+    stroke-opacity: 0.2;
+    stroke-dasharray: 2 3;
+  }
+  .doc {
+    stroke: var(--steel);
+    stroke-width: 2;
+    stroke-dasharray: 2 5;
+  }
+  .dia {
+    fill: var(--paper);
+    stroke: var(--ink);
+    stroke-width: 1.5;
+  }
+  .box {
+    fill: var(--paper);
+    stroke: var(--ink);
+    stroke-width: 1.5;
+  }
+  .box.sim {
+    stroke-dasharray: 5 3;
+  }
+  .box.lab {
+    fill: var(--ink);
+    stroke: none;
+  }
+  /* my own steps outside the labs: a heavy outline, so filled ink keeps meaning "im Labor" */
+  .box.ink {
+    stroke-width: 2.6;
+  }
+  .t.b2 {
+    font-weight: 600;
+  }
+  .box.minor {
+    stroke-width: 1.2;
+  }
+  .tree path {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.2;
+  }
+  .tree circle {
+    fill: var(--ink);
+  }
+  .link,
+  .down {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.2;
+  }
+  .down {
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+  }
+  .ah {
+    fill: var(--ink);
+  }
+  .plan {
+    stroke: var(--ink);
+    stroke-width: 1.2;
+  }
+  .sheet {
+    fill: var(--paper);
+    stroke: var(--ink);
+    stroke-width: 1.4;
+  }
+  .sheet-l {
+    stroke: var(--ink);
+    stroke-opacity: 0.6;
+  }
+  .dots {
+    stroke: var(--steel);
+    stroke-width: 1.5;
+    stroke-dasharray: 2 4;
+  }
+  .clock circle,
+  .clock-c {
+    fill: var(--paper);
+    stroke: var(--ink);
+    stroke-width: 1.4;
+  }
+  .clock path {
+    stroke: var(--ink);
+    stroke-width: 1.2;
+  }
+  .axis {
+    stroke: var(--ink);
+    stroke-width: 1.5;
+  }
+
+  /* a narrow column: natural size (the SVG units become px, 13px text), scrolling sideways
+     inside the panel, the lane names pinned at its left edge */
+  @container (max-width: 60rem) {
+    .rf-inner {
+      width: calc(104px + 860px + 1.9rem); /* short names 104 + chart 860 */
+      padding-left: 0;
+    }
+    /* the inner's left padding moves into the names, so they pin where they start; short
+       names in a narrow column (the SVG keeps 1:1 and is cropped, preserveAspectRatio slice) */
+    .rf-inner .rf-names {
+      flex: 0 0 calc(104px + 0.9rem);
+      height: 548px; /* H: with the width cut, slice keeps the scale 1:1 (beats `.rf-inner svg`) */
+      padding-left: 0.9rem;
+    }
+    .long {
+      display: none;
+    }
+    .short {
+      display: inline;
+    }
+    .rf-chart {
+      flex: 0 0 860px;
+    }
+    .rf-names {
+      box-shadow: 1px 0 0 var(--line);
+    }
+    .rf-hint {
+      display: block;
+    }
+  }
+</style>

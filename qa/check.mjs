@@ -9,8 +9,9 @@
 // Checks per size: console and page errors, horizontal overflow (with the elements that cause
 // it), in-page links that point nowhere or at removed pages, the heading outline, where
 // anchors land (sections and Kernkompetenzen cards just under the top bar, Werdegang
-// stations just under the pinned chart), and that every Kernkompetenzen card shows its title
-// below the top bar where it pins. Numbers first; screenshots only on request.
+// stations just under the pinned chart, project anchors (`article[data-project]`)), that every
+// Kernkompetenzen card shows its title below the top bar where it pins, and the Projekte lanes
+// scroller (pinned names, readable text). Numbers first; screenshots only on request.
 // Waits are for conditions (load, fonts, two animation frames), not fixed sleeps; every size
 // has a hard time limit, so nothing can hang.
 import { chromium } from "playwright";
@@ -136,6 +137,24 @@ async function checkSize(browser, { w, h }) {
   if (kk?.cut.length) fails.push(`Kernkompetenzen: content cut off in ${kk.cut.join(", ")}`);
   if (kk?.on) notes.push(`Kernkompetenzen pile: ${kk.fit}`);
 
+  // Projekte: the lanes figure scrolls sideways inside its panel when the column is narrow,
+  // its lane names stay pinned, and its text stays readable at every size
+  const rf = await page.evaluate(() => {
+    const s = document.querySelector(".rf-scroll");
+    const names = document.querySelector(".rf-names");
+    const txt = document.querySelector(".rf-chart text");
+    if (!s || !names || !txt) return null;
+    const scrolls = s.scrollWidth > s.clientWidth + 1;
+    const before = names.getBoundingClientRect().left;
+    s.scrollLeft = 200;
+    const after = names.getBoundingClientRect().left;
+    s.scrollLeft = 0;
+    return { scrolls, pinned: Math.abs(after - before) < 1, font: txt.getBoundingClientRect().height };
+  });
+  if (rf?.scrolls && !rf.pinned) fails.push("Projekte: the lane names scroll away with the chart");
+  if (rf && rf.font < 12) fails.push(`Projekte: chart text ${rf.font.toFixed(1)}px tall, too small to read`);
+  if (rf?.scrolls) notes.push("Projekte: lanes figure scrolls sideways");
+
   // heading outline: one h1, no skipped levels
   const outline = await page.evaluate(() => {
     const hs = [...document.querySelectorAll("h1,h2,h3,h4,h5,h6")].map((h) => Number(h.tagName[1]));
@@ -151,6 +170,7 @@ async function checkSize(browser, { w, h }) {
     sections: [...document.querySelectorAll("main > section[id]")].map((s) => s.id),
     panels: [...document.querySelectorAll("[data-kk-panel]")].map((p) => p.id),
     stations: [...document.querySelectorAll("[data-st]")].map((s) => s.id),
+    projects: [...document.querySelectorAll("article[data-project][id]")].map((p) => p.id),
   }));
   const land = async (id) => {
     await page.evaluate((id) => {
@@ -183,6 +203,11 @@ async function checkSize(browser, { w, h }) {
   for (const id of ids.sections) {
     const r = await land(id);
     if (r.top < r.bar - 1 || (r.top > r.bar + 40 && !r.atEnd)) fails.push(`#${id} lands at ${r.top} (bar ${r.bar})`);
+  }
+  if (!ids.projects.length) fails.push("Projekte: no project on the page");
+  for (const id of ids.projects) {
+    const r = await land(id);
+    if (r.titleTop < r.bar - 1 || (r.top > r.bar + 40 && !r.atEnd)) fails.push(`#${id} lands at ${r.top} (bar ${r.bar})`);
   }
   for (const id of ids.panels) {
     const r = await land(id);
