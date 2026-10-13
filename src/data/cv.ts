@@ -239,7 +239,7 @@ export const career: CareerEntry[] = [
   },
   {
     from: "Mai 2026",
-    to: "heute",
+    to: "Aug 2026",
     id: "praktikum-bi",
     tasks: [
       "ETL-Strecken für Kunden und intern aufgebaut",
@@ -256,6 +256,24 @@ export const career: CareerEntry[] = [
     project: "bi-consulting",
     story:
       "Weitere Berufserfahrung sammeln und weitere Kenntnisse sammeln. Der Wille Power BI zu erlernen führte dazu, ein Praktikum im BI Consulting zu starten.",
+  },
+  {
+    from: "Okt 2026",
+    to: "heute",
+    id: "praktikum-digital-transformation",
+    tasks: [
+      "Einführen eines geeigneten KI Systems + Schulung",
+      "weitere Punkte offen",
+    ],
+    facts: [{ label: "Bereich", value: "Digital Transformation" }],
+    tools: ["Odoo", "ChatGPT", "Claude"],
+    title: "Praktikum Digital Transformation",
+    org: "KOMAcons GmbH",
+    place: "Langenfeld",
+    kind: "beruf",
+    project: "",
+    story:
+      "Noch ein Praktikum. Gleichzeitig noch berufliche Findungsphase. Die KOMAcons GmbH ist ein kleines Unternehmen mit wenig Softwarearchitektur. Ziel ist es Prozesse zu digitalisieren über das ERP System Odoo. Gleichzeitig soll ein geeignetes KI System eingeführt werden und identifiziert werden, an welchen Stellen es sinnvoll genutzt werden kann.",
   },
 ];
 
