@@ -273,7 +273,7 @@ export const career: CareerEntry[] = [
     kind: "beruf",
     project: "",
     story:
-      "Noch ein Praktikum. Gleichzeitig noch berufliche Findungsphase. Die KOMAcons GmbH ist ein kleines Unternehmen mit wenig Softwarearchitektur. Ziel ist es Prozesse zu digitalisieren über das ERP System Odoo. Gleichzeitig soll ein geeignetes KI System eingeführt werden und identifiziert werden, an welchen Stellen es sinnvoll genutzt werden kann.",
+      "Die Prozesse eines kleinen Unternehmens über das ERP-System Odoo digitalisieren, dazu ein passendes KI-System einführen und klären, wo es sinnvoll hilft.",
   },
 ];
 
