@@ -29,7 +29,7 @@ secondary (owner: "specifics are not really relevant in this part, more on how w
   fictitious staff costs as a minor point. Total cost is not important.
 - The team lead was ill at the end: the owner gave the **final presentation**. The team lead
   did the general documentation and presented interim results.
-- PROCAD barely used (owner was not in the design group): not shown.
+- PROCAD (CAD and the software for working across the team) barely used by the owner (he was not in the design group): named once in the team paragraph as the team's shared tool, not in his software line (owner 2026-10-13: "PROCAD should be named somewhere").
 - Specific machines and figures are not available: no numbers, dates or machine names.
 - The owner has real pictures; they replace the sketch later. The owner will describe the
   figure in more detail later.
@@ -78,7 +78,7 @@ Copy (German, plain; as in mockup v3 with the presentation corrected):
     nebenbei fiktive Personalkosten"
   - "Die Teamleitung vertreten" / "Als der Teamleiter krank war, die Abschlusspräsentation
     gehalten"
-- Team paragraph: as in mockup v3.
+- Team paragraph: as in mockup v3, plus one clause that the team designed and shared its data in PROCAD.
 
 ## The lanes figure (`src/components/figures/RingFlow.astro`)
 
