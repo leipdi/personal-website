@@ -2,6 +2,8 @@
 import { projects } from "../../data/cv";
 import RingPhotos from "../figures/RingPhotos.astro";
 import RingFlow from "../figures/RingFlow.astro";
+import HeliostatPhotos from "../figures/HeliostatPhotos.astro";
+import HeliostatCost from "../figures/HeliostatCost.astro";
 
 // Projekte, rebuilt one project at a time in chronological order (owner 2026-10-13), each a
 // full-width block: what the project was and how the team worked first, then the owner's role
@@ -58,11 +60,17 @@ import RingFlow from "../figures/RingFlow.astro";
                   </div>
                 )}
               </dl>
+              {p.link && (
+                <p class="link">
+                  <a class="prose-link" href={p.link.href}>{p.link.label}</a>
+                </p>
+              )}
               </div>
             </div>
-            {p.figure === "ringprojekt" && (
+            {p.figure && (
               <div class="side">
-                <RingPhotos />
+                {p.figure === "ringprojekt" && <RingPhotos />}
+                {p.figure === "heliostat" && <HeliostatPhotos />}
               </div>
             )}
           </div>
@@ -74,6 +82,16 @@ import RingFlow from "../figures/RingFlow.astro";
                 Oben und unten meine Arbeit als PPS, dazwischen das Team: zu jedem Fertigungsschritt ein Arbeitsplan von mir, während der Fertigung habe ich die Zeiten erfasst.
               </p>
               <RingFlow />
+            </div>
+          )}
+
+          {p.figure === "heliostat" && (
+            <div class="flow">
+              <h4>Vom Blechteil zum Heliostaten</h4>
+              <p class="cap">
+                Meine Endkalkulation, nach Baugruppen in der Reihenfolge, in der der Heliostat gebaut wird. Rund vier Fünftel der Kosten sind Material; am teuersten ist der Konzentrator mit dem Spiegelglas.
+              </p>
+              <HeliostatCost />
             </div>
           )}
         </article>
@@ -206,6 +224,10 @@ import RingFlow from "../figures/RingFlow.astro";
     margin-top: 1.5rem;
     padding-top: 1.25rem;
     border-top: 1px solid var(--line);
+  }
+  .link {
+    margin-top: 1rem;
+    font-size: 0.9375rem;
   }
   .side {
     max-width: 34rem;

@@ -307,23 +307,6 @@ export const projectDrafts: ProjectDraft[] = [
       "Über zehn Jahre in einem A350 entfallen fast 99 % des Energieaufwands der Luftleitschaufel auf die Nutzung, Herstellung und Material sind Nebensache. Die hohle Variante braucht deshalb rund zwei Drittel weniger Energie als die massive. Ein Tool, das Zulieferer, Kabinenhersteller und Airlines auf weitere Bauteile anwenden können. Mit Note 1,2 bewertet.",
   },
   {
-    slug: "heliostat",
-    figure: "heliostat",
-    title: "Was ein Heliostat in der Herstellung kostet",
-    org: "Bachelorarbeit am DLR",
-    period: "2024",
-    context:
-      "Solarturm-Kraftwerke brauchen tausende Heliostaten, nachgeführte Spiegel, die Sonnenlicht auf einen Receiver an der Turmspitze lenken. Sie machen einen großen Teil der Anlagenkosten aus. Das DLR hat einen neuen, günstigeren Heliostaten entworfen, und die Frage war, was er in Serie tatsächlich kosten würde.",
-    approach:
-      "Zuerst Kalkulationssoftware verglichen; die gewählte (Costing24) ließ sich nur teilweise nutzen. Deshalb bottom-up von Hand: aus den CAD-Daten Fertigungsstücklisten und Baumstrukturen abgeleitet, für jedes Teil ein Verfahren gewählt, das hohe Stückzahlen und viel Automatisierung erlaubt (etwa Laserschneiden für dünne Stahlteile), dann Bearbeitungszeiten, Maschinenstundensätze und Materialkosten je Kilogramm berechnet. Pylon, Ausleger und Traverse sind im Detail kalkuliert, Spritzgussteile mit dem Hersteller abgeschätzt, Zukaufteile recherchiert.",
-    result:
-      "Rund 116 € Herstellkosten pro Heliostat oder 58 € pro Quadratmeter Spiegelfläche, eine erste Abschätzung, die schon nah am Kostenziel liegt. Dazu Ansätze für Beschaffung und Marketing. Veröffentlicht als Fachbeitrag bei der SolarPACES Conference.",
-    link: {
-      label: "SolarPACES Conference Proceedings, DOI",
-      href: "https://doi.org/10.52825/solarpaces.v3i.2420",
-    },
-  },
-  {
     slug: "bi-consulting",
     title: "Berichte in Power BI und Jedox",
     org: "Praktikum bei ATVISIO Consult GmbH",
@@ -362,7 +345,8 @@ export type Project = {
   tasks: { text: string; sub?: string }[];
   facts: { label: string; value: string }[];
   tools: string[]; // Klartext, keine Logos
-  figure?: "ringprojekt";
+  link?: { label: string; href: string }; // z. B. die Veröffentlichung
+  figure?: "ringprojekt" | "heliostat";
 };
 
 export const projects: Project[] = [
@@ -394,6 +378,57 @@ export const projects: Project[] = [
     facts: [{ label: "Note", value: "1,2" }],
     tools: ["Infor (ERP)"],
     figure: "ringprojekt",
+  },
+  // Bachelorarbeit (2026-10-14): Fakten aus der Arbeit (Endfassung 17.06.2024) und den
+  // Kolloquiumsfolien, die Zahl der Heliostaten aus der DLR-Bildunterschrift. Die Kostentreppe
+  // darunter (figures/HeliostatCost.astro) ist Tabelle 30 der Arbeit.
+  {
+    id: "heliostat",
+    title: "Bachelorarbeit: Herstellkostenoptimierung von Heliostaten künftiger Solarturm-Anlagen", // offizieller Titel
+    org: "DLR, Institut für Solarforschung, Jülich",
+    period: "März bis Juni 2024",
+    intro:
+      "In Jülich lenken über 2.000 Heliostaten, nachgeführte Spiegel, das Sonnenlicht auf zwei Solartürme. Das DLR entwirft dort einen neuen, möglichst günstigen Heliostaten. Ich habe für die Großserie die wirtschaftlichste Art gesucht, ihn zu fertigen, und berechnet, was er dann in der Herstellung kostet.",
+    brief: [
+      {
+        label: "Ausgangslage",
+        text: "Heliostaten machen 40 bis 50 % der Kosten eines Solarturmkraftwerks aus. Vom neuen Entwurf gab es ein CAD-Modell und einen früheren Prototyp, aber keine belastbaren Kosten: Der Prototyp war eine Einzelfertigung und kaum dokumentiert.",
+      },
+      {
+        label: "Aufgabe",
+        text: "Für jedes Bauteil die wirtschaftlichste Fertigung in Großserie auswählen und damit die Herstellkosten berechnen. Daneben Bezugsquellen für die Zukaufteile und erste Ideen für ein Marketingkonzept.",
+      },
+    ],
+    role: "Mein Vorgehen",
+    lead: "Eine fertige Kalkulationssoftware ließ sich nicht sinnvoll einsetzen. Also habe ich die Kosten von unten aufgebaut, vom einzelnen Blechteil bis zum fertigen Heliostaten.",
+    tasks: [
+      {
+        text: "Kalkulationssoftware gesucht und getestet",
+        sub: "Bei 4cost und simus systems wäre die Einführung ein eigenes Projekt gewesen. Costing24 rechnet nicht für Großserie, übernommen habe ich daraus die Maschinenstundensätze",
+      },
+      {
+        text: "Aus dem CAD-Modell die Fertigung aufgebaut",
+        sub: "Baumstrukturen nach Montageschritten statt nach CAD-Baugruppen, daraus die Fertigungsstücklisten; die Fertigung der Pylone zur Übersicht als Ausschnitt einer Fertigungsstraße in Witness abgebildet",
+      },
+      {
+        text: "Fertigungsverfahren im technologischen Variantenvergleich ausgewählt",
+        sub: "Je Bauteil die möglichen Verfahren aus der Fachliteratur zusammengetragen, nach Automatisierbarkeit, Betriebskosten und Bearbeitungszeit bei großen Stückzahlen bewertet und das wirtschaftlichste gewählt, etwa Laserschneiden für die dünnwandigen Stahlteile, Walzrunden und HF-Schweißen für das Rohr der Pylone",
+      },
+      {
+        text: "Zeiten und Kosten in Excel berechnet",
+        sub: "Bearbeitungszeiten mal Maschinenstundensatz, Material über den Preis je Kilogramm, Zukaufteile über Staffelpreise von Händlern auf große Stückzahlen hochgerechnet",
+      },
+    ],
+    facts: [
+      { label: "Herstellkosten", value: "ca. 116 € pro Heliostat" },
+      { label: "Pro Quadratmeter Spiegel", value: "ca. 58 €" },
+    ],
+    tools: ["Autodesk Inventor", "Excel", "Costing24", "Witness"],
+    link: {
+      label: "Veröffentlicht als Fachbeitrag auf der SolarPACES-Konferenz (DOI 10.52825/solarpaces.v3i.2420)",
+      href: "https://doi.org/10.52825/solarpaces.v3i.2420",
+    },
+    figure: "heliostat",
   },
 ];
 

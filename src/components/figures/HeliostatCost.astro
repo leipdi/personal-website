@@ -1,0 +1,281 @@
+---
+// The Bachelorarbeit's result as a cost staircase (2026-10-14): Tabelle 30 of the thesis
+// ("Endkalkulation des Heliostaten") summed per assembly group (the thesis's trees: Pylone,
+// T-Gestell, Aufsatz, Konzentrator), in the order the heliostat is built, each bar starting where
+// the one before ended. Every group splits into material (MK) and manufacturing (FK), both with
+// the thesis's 10 % overhead. Without set-up costs (Rüsten), as the thesis's end figure: the
+// table's two set-up items, 3,50 € (Blechteil) and 5,25 € (Pylone), are taken out of the Pylone,
+// so the end is 115,94 € like the facts above (124,69 € with them). First version had all 14
+// stages; the critic found the slivers unreadable, so the stages are a sub-line now.
+// HTML, not SVG: text stays at its real size on phones; table roles give screen readers a table.
+// Ink and steel only (sun means light, the category colours mean Werdegang). Each value is printed
+// at its bar's end, so no hover layer is needed. No JS.
+
+// sum = the group's stage subtotals added up (MK + FK); manufacturing is the rest after material
+type Group = { name: string; stages: string; mk: number; sum: number };
+const groups: Group[] = [
+  { name: "Pylone", stages: "Blechteil, zum Rohr gerollt und geschweißt", mk: 5.03, sum: 6.66 },
+  {
+    name: "T-Gestell",
+    stages: "Vierkantprofil, Ausleger, Traverse, verschweißt; Zentralgelenk; Montage mit Zukaufteilen",
+    mk: 21.51,
+    sum: 31.53,
+  },
+  { name: "Aufsatz", stages: "Zahnkranz, Dreheinheit, Spindelmotor für die Elevation", mk: 25.85, sum: 29.69 },
+  { name: "Konzentrator", stages: "Spiegelhaltestruktur, Spiegelglas", mk: 39.95, sum: 48.05 },
+];
+const TOTAL = 115.94; // the thesis's end figure without set-up costs (the groups add up to 115,93 by rounding)
+const MAX = 120; // scale end in €, ticks every 20
+const ticks = [0, 20, 40, 60, 80, 100, 120];
+const pct = (v: number) => `${((v / MAX) * 100).toFixed(3)}%`;
+const eur = (v: number) => v.toFixed(2).replace(".", ",");
+
+let run = 0;
+const rows = groups.map((g) => {
+  const r = { ...g, from: run, fk: g.sum - g.mk };
+  run += g.sum;
+  return r;
+});
+const mk = groups.reduce((a, g) => a + g.mk, 0); // 92,34 €
+const share = Math.round((mk / TOTAL) * 100);
+---
+
+<figure class="hc">
+  <div class="panel">
+    <div class="tbl" role="table" aria-label="Herstellkosten des Heliostaten nach Fertigungsstufen, Beträge in Euro">
+      <div role="rowgroup" class="head">
+        <div role="row" class="row">
+          <span role="columnheader">Baugruppe</span>
+          <span role="columnheader">Kosten, aufsummiert</span>
+        </div>
+      </div>
+      <div role="rowgroup">
+        {
+          rows.map((g) => (
+            <div role="row" class="row">
+              <span role="rowheader" class="name">
+                {g.name}
+                <span class="stages">{g.stages}</span>
+              </span>
+              <span role="cell" class="track">
+                <span class="bar" style={`left:${pct(g.from)};width:${pct(g.sum)}`} aria-hidden="true">
+                  <i class="mk" style={`width:${((g.mk / g.sum) * 100).toFixed(2)}%`} />
+                  <i class="fk" />
+                </span>
+                <span class="val" style={`left:${pct(g.from + g.sum)}`}>
+                  +{eur(g.sum)} €
+                </span>
+              </span>
+            </div>
+          ))
+        }
+      </div>
+      <div role="rowgroup" class="end">
+        <div role="row" class="row">
+          <span role="rowheader" class="name">Heliostat</span>
+          <span role="cell" class="track">
+            <span class="bar" style={`left:0;width:${pct(TOTAL)}`} aria-hidden="true">
+              <i class="mk" style={`width:${((mk / TOTAL) * 100).toFixed(2)}%`} />
+              <i class="fk" />
+            </span>
+            <span class="val" style={`left:${pct(TOTAL)}`}>{eur(TOTAL)} €</span>
+          </span>
+        </div>
+      </div>
+      <div class="axis" aria-hidden="true">
+        <span class="track">
+          {ticks.map((t) => (
+            <span class="tick" style={`left:${pct(t)}`}>
+              {t} €
+            </span>
+          ))}
+        </span>
+      </div>
+    </div>
+  </div>
+  <figcaption>
+    <span class="keys">
+      <span class="key"><i class="mk" />Material, {share} %</span>
+      <span class="key"><i class="fk" />Fertigung: Maschinen und Lohn</span>
+    </span>
+    <span class="note">
+      Beides mit 10 % Gemeinkosten. Ohne Rüstkosten (8,75 €), die bei Großserie kaum ins Gewicht fallen.
+    </span>
+  </figcaption>
+</figure>
+
+<style>
+  .hc {
+    margin: 0;
+    max-width: 50rem;
+    container-type: inline-size;
+  }
+  .panel {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 1rem clamp(0.75rem, 3cqi, 1.5rem) 0.75rem;
+  }
+  /* name | track; the value sits at its bar's end, so the track keeps room for it on the right */
+  .row,
+  .axis {
+    display: grid;
+    grid-template-columns: minmax(8rem, 13rem) minmax(0, 1fr);
+    column-gap: 1.25rem;
+  }
+  .row {
+    align-items: center;
+    padding: 0.55rem 0;
+  }
+  .row + .row {
+    border-top: 1px solid var(--line);
+  }
+  .head .row {
+    padding: 0 0 0.4rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .name {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    line-height: 1.3;
+  }
+  .stages {
+    display: block;
+    margin-top: 0.15rem;
+    font-weight: 400;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    color: var(--ink-2);
+  }
+  .track {
+    position: relative;
+    align-self: stretch;
+    min-height: 1.5rem;
+    margin-right: 5.5rem; /* room for the last value */
+    background: repeating-linear-gradient(to right, var(--line) 0 1px, transparent 1px calc(100% / 6));
+    box-shadow: inset -1px 0 var(--line); /* the guide at 120 €, which the gradient leaves out */
+  }
+  /* bars: thin, rounded at the data ends, a 2px paper gap between material and manufacturing */
+  .bar {
+    position: absolute;
+    top: 50%;
+    height: 0.75rem;
+    margin-top: -0.375rem;
+    display: flex;
+  }
+  .bar i {
+    display: block;
+    height: 100%;
+  }
+  i.mk {
+    background: var(--ink);
+    border-radius: 3px 0 0 3px;
+  }
+  i.fk {
+    flex: 1;
+    background: var(--steel);
+    border-left: 2px solid var(--paper);
+    border-radius: 0 3px 3px 0;
+  }
+  .val {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    padding-left: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+  .end {
+    border-top: 1.5px solid var(--ink);
+    margin-top: 0.1rem;
+  }
+  .end .bar {
+    height: 1rem;
+    margin-top: -0.5rem;
+  }
+  .end .val {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .axis {
+    margin-top: 0.2rem;
+    height: 1.2rem;
+  }
+  .axis .track {
+    grid-column: 2;
+    background: none;
+    min-height: 0;
+  }
+  .tick {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    font-size: 0.75rem;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+  .tick:first-child {
+    transform: none;
+  }
+
+  figcaption {
+    margin-top: 0.6rem;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--ink-2);
+  }
+  .keys {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1.5rem;
+  }
+  .key {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .key i {
+    display: inline-block;
+    width: 1.25rem;
+    height: 0.625rem;
+    border-radius: 3px;
+    border: 0;
+  }
+  .note {
+    display: block;
+    margin-top: 0.3rem;
+  }
+
+  /* narrow column: the name above its bar */
+  @container (max-width: 34rem) {
+    .row,
+    .axis {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 0.35rem;
+    }
+    .axis .track {
+      grid-column: 1;
+    }
+    .track {
+      margin-right: 4.75rem;
+    }
+    /* one column: the second header only for screen readers (they still get two columns) */
+    .head .row > :last-child {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    /* a 1px gap, so a thin manufacturing part (Pylone: about 2px here) still shows steel */
+    i.fk {
+      border-left-width: 1px;
+    }
+    .tick:nth-child(even) {
+      display: none;
+    }
+  }
+</style>

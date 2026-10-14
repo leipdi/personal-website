@@ -1,0 +1,91 @@
+---
+import { url } from "../../lib/url";
+
+// The Bachelorarbeit's pictures (2026-10-14): the object first (the critic: lead with the work, not
+// a press photo), then the place. DLR's photo
+// of the Jülich towers from the heliostat field (CC BY-NC-ND 3.0: shown whole, only resized, never
+// cropped, with the credit; original in assets-src/projekte/juelich-solartuerme.jpg, page
+// dlr.de/de/ff/medien/bilder/solartuerme-juelich/die-angestrahlten-juelicher-solartuerme-fotografiert-aus-dem-heliostat-feld).
+// On top the new design from the thesis (Abbildung 6, split in two, black frames trimmed): the CAD
+// model the costs were calculated for, and the earlier prototype. The pair shares one height:
+// the columns follow the two pictures' widths.
+const src = (id: string) => url(`/img/projekte/${id}.webp`);
+---
+
+<div class="hp">
+  <div class="pair">
+    <figure class="shot">
+      <img
+        src={src("heliostat-cad")}
+        alt="CAD-Modell des neuen Heliostaten: ein schwarzes Rohr als Säule, darauf ein Ausleger und ein schräg gestellter Spiegel mit Rahmen"
+        width="335"
+        height="391"
+        loading="lazy"
+        decoding="async"
+      />
+      <figcaption>Der Entwurf im CAD: für ihn habe ich die Kosten berechnet</figcaption>
+    </figure>
+    <figure class="shot">
+      <img
+        src={src("heliostat-prototyp")}
+        alt="Früherer Prototyp im Freien: eine Säule aus Aluminium auf einer Bodenplatte, darauf der schräg gestellte Spiegel"
+        width="387"
+        height="391"
+        loading="lazy"
+        decoding="async"
+      />
+      <figcaption>Der frühere Prototyp, eine Einzelfertigung</figcaption>
+    </figure>
+  </div>
+  <figure class="shot big">
+    <img
+      src={src("juelich")}
+      srcset={`${url("/img/projekte/juelich-640.webp")} 640w, ${src("juelich")} 1200w`}
+      sizes="(min-width: 56rem) min(700px, 40vw), 100vw"
+      alt="Blick aus dem Heliostatfeld: schräg gestellte Spiegel im Vordergrund, dahinter die beiden Solartürme, über ihnen die Sonne"
+      width="1200"
+      height="675"
+      loading="lazy"
+      decoding="async"
+    />
+    <figcaption>
+      Die beiden Solartürme in Jülich, fotografiert aus dem Heliostatfeld.
+      <span class="credit">
+        Foto: DLR, <a class="prose-link" href="https://creativecommons.org/licenses/by-nc-nd/3.0/de/" rel="license noopener">CC BY-NC-ND 3.0</a>
+      </span>
+    </figcaption>
+  </figure>
+</div>
+
+<style>
+  /* capped like RingPhotos, so the pictures don't outgrow the text beside them */
+  .hp {
+    max-width: 36rem;
+    display: grid;
+    gap: 1rem;
+  }
+  .shot {
+    margin: 0;
+  }
+  .pair {
+    display: grid;
+    grid-template-columns: 335fr 387fr;
+    gap: 0.75rem;
+    align-items: start;
+  }
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--line);
+  }
+  figcaption {
+    margin-top: 0.4rem;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--ink-3);
+  }
+  .credit {
+    display: block;
+  }
+</style>
