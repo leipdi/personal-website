@@ -48,7 +48,14 @@ import LifeCycle from "../figures/LifeCycle.astro";
             <p class="where">{[p.org, p.period, p.team].filter(Boolean).join(", ")}</p>
           </header>
 
-          <div class="top">
+          <div class="project-body">
+            {p.figure && (
+              <div class="side">
+                {p.figure === "ringprojekt" && <RingPhotos />}
+                {p.figure === "heliostat" && <HeliostatPhotos />}
+                {p.figure === "luftfahrt" && <ImpactScreen />}
+              </div>
+            )}
             <div class="prose">
               <p class="intro">{p.intro}</p>
               {p.brief && (
@@ -93,13 +100,6 @@ import LifeCycle from "../figures/LifeCycle.astro";
               )}
               </div>
             </div>
-            {p.figure && (
-              <div class="side">
-                {p.figure === "ringprojekt" && <RingPhotos />}
-                {p.figure === "heliostat" && <HeliostatPhotos />}
-                {p.figure === "luftfahrt" && <ImpactScreen />}
-              </div>
-            )}
           </div>
 
           {p.figure === "ringprojekt" && (
@@ -438,7 +438,7 @@ import LifeCycle from "../figures/LifeCycle.astro";
     color: var(--ink-2);
   }
 
-  .top {
+  .project-body {
     display: grid;
     gap: var(--sp-gap);
     margin-top: var(--sp-gap);
@@ -452,7 +452,6 @@ import LifeCycle from "../figures/LifeCycle.astro";
   }
   .lead {
     margin-top: 0.5rem;
-    max-width: var(--measure);
     font-family: var(--serif);
     font-size: 1.25rem;
     line-height: 1.5;
@@ -508,14 +507,12 @@ import LifeCycle from "../figures/LifeCycle.astro";
   /* the project first: a short intro, then the task and the team as two labelled points, then
      my role (owner 2026-10-13/14) */
   .intro {
-    max-width: var(--measure);
     font-family: var(--serif);
     font-size: 1.25rem;
     line-height: 1.5;
   }
   .brief {
     margin: 1.1rem 0 0;
-    max-width: var(--measure);
   }
   .brief > div + div {
     margin-top: 0.85rem;
@@ -532,6 +529,9 @@ import LifeCycle from "../figures/LifeCycle.astro";
   }
   .role {
     margin-top: 1.5rem;
+  }
+  .role h4 {
+    display: flow-root;
     padding-top: 1.25rem;
     border-top: 1px solid var(--line);
   }
@@ -540,6 +540,7 @@ import LifeCycle from "../figures/LifeCycle.astro";
     font-size: 0.9375rem;
   }
   .side {
+    order: 1;
     max-width: 34rem;
   }
 
@@ -553,14 +554,24 @@ import LifeCycle from "../figures/LifeCycle.astro";
     color: var(--ink-2);
   }
 
-  /* wide: text | photos side by side */
+  /* Pictures reserve space only for their own height. Each text unit fits beside the
+     float, then uses the full width once it has passed the pictures and their captions.
+     flow-root contains the float, so the following chart always starts underneath. */
   @media (min-width: 56rem) {
-    .top {
-      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
-      align-items: start;
+    .project-body {
+      display: flow-root;
     }
     .side {
-      max-width: none;
+      float: right;
+      width: calc((100% - var(--sp-gap)) * 5 / 11);
+      max-width: 36rem;
+      margin: 0 0 1.25rem var(--sp-gap);
+    }
+    .intro,
+    .brief > div,
+    .lead,
+    .tasks > li {
+      display: flow-root;
     }
   }
 </style>

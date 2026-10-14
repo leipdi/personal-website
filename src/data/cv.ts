@@ -526,8 +526,8 @@ export const ratedSkills: RatedSkill[] = [
   { name: "Jedox", level: 2, levelLabel: "Grundkenntnisse", group: "Software & BI" },
   { name: "Autodesk Fusion", level: 2, levelLabel: "Grundkenntnisse", group: "Software & BI" },
   { name: "Autodesk Inventor", level: 2, levelLabel: "Grundkenntnisse", group: "Software & BI" },
-  // Infor: Stufe vom Besitzer selbst (2026-10-13, Ringprojekt), nicht aus dem CV
-  { name: "Infor", level: 2, levelLabel: "Grundkenntnisse", group: "Software & BI" },
+  // Infor: Stufe vom Besitzer selbst (2026-10-13); SAP gemeinsam bestätigt am 2026-10-14.
+  { name: "SAP / Infor", level: 2, levelLabel: "Grundkenntnisse", group: "Software & BI" },
   // KI-Kenntnisse: Auswahl und Stufen von Daniel abgestimmt (2026-10-09), nicht aus dem CV.
   { name: "Agentic Coding", level: 4, levelLabel: "gut", group: "KI" },
   { name: "Prompt & Context Engineering", level: 4, levelLabel: "gut", group: "KI" },
