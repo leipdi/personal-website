@@ -321,13 +321,14 @@ export const projectDrafts: ProjectDraft[] = [
 // zuerst das Ringprojekt. Nur Fakten vom Besitzer, keine erfundenen Zahlen.
 export type Project = {
   id: string; // Anker auf der Seite (#id), stabil halten
-  tab: string; // kurzer Name in der Projektleiste oben in Projekte
+  tab: string; // kurzer Name in der Projektliste (Seitenleiste, auf Handys die Pille)
+  year: string; // Jahr in der Projektliste
   title: string;
   org: string;
   period: string;
   team?: string; // in der Kopfzeile, wenn das Team nicht schon unter `brief` steht
   intro: string; // ein, zwei Sätze: worum es ging
-  brief: { label: string; text: string }[]; // die Eckpunkte vor der eigenen Rolle (Aufgabe, Team)
+  brief?: { label: string; text: string }[]; // die Eckpunkte vor der eigenen Rolle (Aufgabe, Team)
   role: string;
   lead: string;
   tasks: { text: string; sub?: string }[];
@@ -341,6 +342,7 @@ export const projects: Project[] = [
   {
     id: "ringprojekt",
     tab: "Ringprojekt",
+    year: "2022",
     title: "Ringprojekt: eine Messhalterung für einen Turbolader konstruieren und fertigen",
     org: "Hochschule Düsseldorf",
     period: "5. Semester (Wintersemester 2022/23)",
@@ -374,6 +376,7 @@ export const projects: Project[] = [
   {
     id: "heliostat",
     tab: "Bachelorarbeit",
+    year: "2024",
     title: "Bachelorarbeit: Herstellkostenoptimierung von Heliostaten künftiger Solarturm-Anlagen", // offizieller Titel
     org: "DLR, Institut für Solarforschung, Jülich",
     period: "März bis Juni 2024",
@@ -426,6 +429,7 @@ export const projects: Project[] = [
   {
     id: "luftfahrt",
     tab: "Masterarbeit",
+    year: "2026",
     title: "Masterarbeit: Ökologische Einflussfaktoren für einen flexiblen Einsatz der additiven Fertigung in der Luftfahrt – Erstellen einer Bewertungsmetrik",
     org: "Hochschule Düsseldorf, mit der RWTH Aachen",
     period: "Januar bis Juni 2026",
@@ -472,6 +476,38 @@ export const projects: Project[] = [
     facts: [{ label: "Note", value: "1,2" }],
     tools: ["Excel"],
     figure: "luftfahrt",
+  },
+  // Portfolio-Website (2026-10-14; Name und "mit Hilfe von Agentic Coding" vom Besitzer, Besitzer: "shouldn't be that long, the website itself is the
+  // project"): kurz, ohne Abbildung. Fakten aus dem Repo (erster Commit 15.09.2026, package.json,
+  // AGENTS.md: Prozess mit Test- und Kritik-Agenten).
+  {
+    id: "website",
+    tab: "Portfolio-Website",
+    year: "2026",
+    title: "Portfolio-Website",
+    org: "Eigenes Projekt",
+    period: "seit September 2026",
+    intro:
+      "Das Projekt ist diese Seite selbst: entworfen und gebaut mit Hilfe von Agentic Coding in Claude Code, von den Inhalten über die Gestaltung bis zur Veröffentlichung auf GitHub Pages.",
+    role: "Mein Vorgehen",
+    lead: "Ich arbeite in Runden: planen, bauen, prüfen, entscheiden.",
+    tasks: [
+      {
+        text: "Inhalte aus echten Quellen",
+        sub: "Lebenslauf, LinkedIn-Export und die beiden Abschlussarbeiten; die Zahlen hat zuletzt ein eigener Prüf-Agent mit den Arbeiten abgeglichen",
+      },
+      {
+        text: "Gestaltung über Entwürfe entschieden",
+        sub: "Mehrere Richtungen als Mockups verglichen und verworfen, bis zur jetzigen: Stahl und Sonnengelb, der Tag wandert beim Scrollen mit",
+      },
+      {
+        text: "Bauen, testen, korrigieren",
+        sub: "Nach jedem größeren Schritt testet ein separater Agent auf allen Bildschirmgrößen und meldet nur Fehler, ein weiterer kritisiert die Gestaltung; dazu ein automatischer Browsertest",
+      },
+    ],
+    facts: [],
+    tools: ["Claude Code", "Astro", "Tailwind CSS", "three.js", "Playwright", "GitHub Pages"],
+    link: { label: "Quellcode auf GitHub", href: "https://github.com/leipdi/personal-website" },
   },
 ];
 
