@@ -170,7 +170,7 @@ export const career: CareerEntry[] = [
     kind: "beruf",
     project: "heliostat",
     story:
-      "Ein Heliostat ist ein nachgeführter Spiegel, der Sonnenlicht auf den Receiver eines Solarturms lenkt. Ausgangslage: Neue Konstruktion eine Heliostaten. Die Frage: Was kostet der neue Heliostat des DLR in Serie und was sind die Produktionsschritte?",
+      "Ein Heliostat ist ein nachgeführter Spiegel, der Sonnenlicht auf den Receiver eines Solarturms lenkt. Ausgangslage: eine neue Konstruktion eines Heliostaten. Die Frage: Was kostet der neue Heliostat des DLR in Serie und was sind die Produktionsschritte?",
   },
   {
     from: "2024",
@@ -179,7 +179,7 @@ export const career: CareerEntry[] = [
     id: "master",
     tasks: [
       "Schwerpunkt Produktion und Innovation",
-      "Masterarbeit an der RWTH Aachen, gemeinsam mit Diehl Aviation",
+      "Masterarbeit an der Hochschule Düsseldorf, gemeinsam mit der RWTH Aachen",
       "Parallel Hilfskraft am Fachbereich und Praktikum im BI Consulting",
     ],
     facts: [
@@ -219,7 +219,7 @@ export const career: CareerEntry[] = [
     tasks: [
       "Anforderungskatalog aus ISO 14044, REACH und den ICAO-Vorgaben",
       "Excel-Tool für kumulierten Energieaufwand und Treibhauspotenzial über fünf Lebensphasen",
-      "Erprobt mit Diehl Aviation an einer FDM-gedruckten Luftleitschaufel aus Ultem 9085",
+      "Praxischeck mit Diehl Aviation an einer FDM-gedruckten Luftleitschaufel aus Ultem 9085",
     ],
     facts: [
       { label: "Note", value: "1,2" },
@@ -227,15 +227,15 @@ export const career: CareerEntry[] = [
       { label: "Hohle Variante", value: "rund 68 % weniger" },
     ],
     tools: ["Excel"],
-    short: "Masterarbeit, RWTH Aachen",
+    short: "Masterarbeit, HSD und RWTH",
     milestone: { at: "01.06.2026", label: "Abgabe der Masterarbeit", tag: "Abgabe MA" },
     title: "Masterarbeit: Ökobilanz additiver Fertigung in der Luftfahrt",
-    org: "RWTH Aachen, mit Diehl Aviation",
+    org: "Hochschule Düsseldorf, mit der RWTH Aachen",
     place: "Remote",
     kind: "beruf",
     project: "luftfahrt",
     story:
-      "Lohnt sich ein 3D-gedrucktes Kabinenteil ökologisch, über ein ganzes Flugzeugleben gerechnet? Dafür eine Bewertungsmetrik nach ISO 14044 entwickelt.",
+      "Lohnt sich ein 3D-gedrucktes Kabinenteil ökologisch, über das ganze Leben des Bauteils gerechnet? Dafür eine Bewertungsmetrik nach ISO 14044 entwickelt.",
   },
   {
     from: "Mai 2026",
@@ -294,19 +294,6 @@ export type ProjectDraft = {
 // überarbeitet und wandern dann nach `projects`.
 export const projectDrafts: ProjectDraft[] = [
   {
-    slug: "luftfahrt",
-    figure: "am-model",
-    title: "Wann sich ein gedrucktes Kabinenteil ökologisch lohnt",
-    org: "Masterarbeit an der RWTH Aachen",
-    period: "2026",
-    context:
-      "Kabinenteile werden in der Luftfahrt immer öfter gedruckt, weil sich damit Gewicht und Werkzeugkosten sparen lassen. Ob das über den ganzen Lebenszyklus auch ökologisch aufgeht, ließ sich bisher kaum einheitlich bewerten: Eine Recherche in Web of Science fand zu Ökobilanz, Luftfahrt und Bewertungsrahmen 51 Arbeiten, mit additiver Fertigung dazu nur noch zwei.",
-    approach:
-      "Aus Normen (ISO 14044), Luftfahrtregeln (REACH, ICAO) und bestehenden Ansätzen einen Anforderungskatalog aufgestellt und darauf eine Bewertungsmetrik gebaut. Umgesetzt als Excel-Tool, das ein Modell des Oak Ridge National Laboratory für Kunststoff-Kabinenteile erweitert: kumulierter Energieaufwand (VDI 4600) und Treibhauspotenzial über fünf Lebensphasen, dazu ein Modul für Kabinenwechsel und eine Ampel für die übrigen Umweltkategorien. Erprobt mit Diehl Aviation an einer Luftleitschaufel aus Ultem 9085, gedruckt im FDM-Verfahren, einmal massiv und einmal hohl.",
-    result:
-      "Über zehn Jahre in einem A350 entfallen fast 99 % des Energieaufwands der Luftleitschaufel auf die Nutzung, Herstellung und Material sind Nebensache. Die hohle Variante braucht deshalb rund zwei Drittel weniger Energie als die massive. Ein Tool, das Zulieferer, Kabinenhersteller und Airlines auf weitere Bauteile anwenden können. Mit Note 1,2 bewertet.",
-  },
-  {
     slug: "bi-consulting",
     title: "Berichte in Power BI und Jedox",
     org: "Praktikum bei ATVISIO Consult GmbH",
@@ -334,6 +321,7 @@ export const projectDrafts: ProjectDraft[] = [
 // zuerst das Ringprojekt. Nur Fakten vom Besitzer, keine erfundenen Zahlen.
 export type Project = {
   id: string; // Anker auf der Seite (#id), stabil halten
+  tab: string; // kurzer Name in der Projektleiste oben in Projekte
   title: string;
   org: string;
   period: string;
@@ -346,17 +334,18 @@ export type Project = {
   facts: { label: string; value: string }[];
   tools: string[]; // Klartext, keine Logos
   link?: { label: string; href: string }; // z. B. die Veröffentlichung
-  figure?: "ringprojekt" | "heliostat";
+  figure?: "ringprojekt" | "heliostat" | "luftfahrt";
 };
 
 export const projects: Project[] = [
   {
     id: "ringprojekt",
+    tab: "Ringprojekt",
     title: "Ringprojekt: eine Messhalterung für einen Turbolader konstruieren und fertigen",
     org: "Hochschule Düsseldorf",
     period: "5. Semester (Wintersemester 2022/23)",
     intro:
-      "Im 5. Semester haben wir zu siebt eine Messhalterung für einen Turbolader entwickelt und selbst gefertigt, vom Entwurf am Rechner bis zur Messung im Labor.",
+      "Im 5. Semester haben wir zu siebt eine Messhalterung für einen Turbolader entwickelt und selbst gefertigt, vom Entwurf am Rechner bis zur Messung.",
     brief: [
       {
         label: "Aufgabe",
@@ -364,7 +353,7 @@ export const projects: Project[] = [
       },
       {
         label: "Team",
-        text: "Sieben Studierende, jede und jeder mit einer Rolle: Teamleitung, Produktionsplanung und -⁠steuerung (ich), Konstruktion, spanlose Fertigung (Guss), spanende Fertigung, Rapid Prototyping und Messtechnik. Entworfen haben wir gemeinsam in PROCAD, über das auch die Daten im Team liefen. Dazu kamen regelmäßige Gruppentermine.",
+        text: "Sieben Studierende, jede und jeder mit einer Rolle: Teamleitung, Produktionsplanung und -⁠steuerung (ich), Konstruktion, spanlose Fertigung (Guss), spanende Fertigung, Rapid Prototyping und Messtechnik. Entworfen wurde gemeinsam in der Gruppe, konstruiert in PROCAD, über das auch die Daten im Team liefen. Dazu kamen regelmäßige Gruppentermine.",
       },
     ],
     role: "Meine Rolle: Produktionsplanung und -⁠steuerung", // kein Umbruch vor oder nach dem Bindestrich
@@ -379,11 +368,12 @@ export const projects: Project[] = [
     tools: ["Infor (ERP)"],
     figure: "ringprojekt",
   },
-  // Bachelorarbeit (2026-10-14): Fakten aus der Arbeit (Endfassung 17.06.2024) und den
+  // Bachelorarbeit (2026-10-14): Fakten aus der Arbeit (Endfassung, abgegeben 18.06.2024) und den
   // Kolloquiumsfolien, die Zahl der Heliostaten aus der DLR-Bildunterschrift. Die Kostentreppe
   // darunter (figures/HeliostatCost.astro) ist Tabelle 30 der Arbeit.
   {
     id: "heliostat",
+    tab: "Bachelorarbeit",
     title: "Bachelorarbeit: Herstellkostenoptimierung von Heliostaten künftiger Solarturm-Anlagen", // offizieller Titel
     org: "DLR, Institut für Solarforschung, Jülich",
     period: "März bis Juni 2024",
@@ -392,7 +382,7 @@ export const projects: Project[] = [
     brief: [
       {
         label: "Ausgangslage",
-        text: "Heliostaten machen 40 bis 50 % der Kosten eines Solarturmkraftwerks aus. Vom neuen Entwurf gab es ein CAD-Modell und einen früheren Prototyp, aber keine belastbaren Kosten: Der Prototyp war eine Einzelfertigung und kaum dokumentiert.",
+        text: "Heliostaten machen 40 bis 50 % der Kosten eines Solarturmkraftwerks aus. Vom neuen Entwurf gab es ein CAD-Modell, aber keine belastbaren Kosten. Ein früherer Prototyp nach einer älteren Zeichnung war eine Einzelfertigung, seine Kosten kaum dokumentiert.",
       },
       {
         label: "Aufgabe",
@@ -416,7 +406,7 @@ export const projects: Project[] = [
       },
       {
         text: "Zeiten und Kosten in Excel berechnet",
-        sub: "Bearbeitungszeiten mal Maschinenstundensatz, Material über den Preis je Kilogramm, Zukaufteile über Staffelpreise von Händlern auf große Stückzahlen hochgerechnet",
+        sub: "Bearbeitungszeiten mal Maschinenstundensatz, Material über den Preis je Kilogramm, Zukaufteile über Händlerpreise, einige über Staffelpreise auf große Stückzahlen hochgerechnet",
       },
     ],
     facts: [
@@ -425,10 +415,63 @@ export const projects: Project[] = [
     ],
     tools: ["Autodesk Inventor", "Excel", "Costing24", "Witness"],
     link: {
-      label: "Veröffentlicht als Fachbeitrag auf der SolarPACES-Konferenz (DOI 10.52825/solarpaces.v3i.2420)",
+      label: "Daraus entstand ein Konferenzbeitrag mit mir als Erstautor: SolarPACES 2024, Conference Proceedings (DOI 10.52825/solarpaces.v3i.2420)",
       href: "https://doi.org/10.52825/solarpaces.v3i.2420",
     },
     figure: "heliostat",
+  },
+  // Masterarbeit (2026-10-14): Fakten aus der Endfassung (01.06.2026). Relevanztabelle daneben
+  // (figures/ImpactScreen.astro) = Tabelle 6, Ergebnis darunter (figures/LifeCycle.astro) =
+  // Tabellen 25 und 26. Keine Betreuer- oder Kontaktdaten aus dem Titelblatt.
+  {
+    id: "luftfahrt",
+    tab: "Masterarbeit",
+    title: "Masterarbeit: Ökologische Einflussfaktoren für einen flexiblen Einsatz der additiven Fertigung in der Luftfahrt – Erstellen einer Bewertungsmetrik",
+    org: "Hochschule Düsseldorf, mit der RWTH Aachen",
+    period: "Januar bis Juni 2026",
+    intro:
+      "Kabinenteile werden in der Luftfahrt immer öfter gedruckt, weil sich damit Gewicht und Werkzeugkosten sparen lassen. Ob sich das über das ganze Leben eines Bauteils auch ökologisch lohnt, ließ sich bisher nicht einheitlich bewerten. Dafür habe ich eine Bewertungsmetrik entwickelt und als Excel-Tool umgesetzt.",
+    brief: [
+      {
+        label: "Ausgangslage",
+        text: "Eine Recherche in Web of Science fand zu Ökobilanz, Luftfahrt und Bewertungsrahmen 51 Arbeiten, mit additiver Fertigung dazu nur noch zwei. Eine Methode, die gedruckte Luftfahrtbauteile über den ganzen Lebenszyklus bewertet, fand sich nicht.",
+      },
+      {
+        label: "Aufgabe",
+        text: "Eine Bewertungsmetrik nach ISO 14044 entwickeln, mit der sich additiv und konventionell gefertigte Kabinenbauteile ökologisch vergleichen lassen, und sie mit einem Industriepartner erproben.",
+      },
+      {
+        label: "Ansatz: quantitativ und qualitativ",
+        text: "Berechnet werden kumulierter Energieaufwand und Treibhauspotenzial: Für sie gibt es Daten, und der Energieaufwand hängt eng mit den Treibhausgasen zusammen. Die übrigen Umweltwirkungen lassen sich ohne belastbare öffentliche Daten und eine vollwertige Ökobilanzsoftware nicht rechnen; sie werden begründet eingeordnet. Ausgewertet wird beides zusammen, weil der Energieaufwand allein nicht alle Umweltwirkungen abbildet.",
+      },
+    ],
+    role: "Mein Vorgehen",
+    lead: "Zuerst habe ich gesammelt, was eine solche Bewertung erfüllen muss. Darauf habe ich den rechnenden und den einordnenden Teil der Metrik aufgebaut und beide an einem echten Bauteil erprobt.",
+    tasks: [
+      {
+        text: "Anforderungskatalog aufgestellt",
+        sub: "Aus ISO 14040/14044, europäischem Umweltrecht wie REACH und den Luftfahrtregeln (EU-ETS, ICAO/CORSIA), dazu aus bestehenden Bewertungsansätzen. Das Recht gibt für Bauteile keine Grenzwerte vor, die Metrik vergleicht deshalb mit dem konventionell gefertigten Bauteil",
+      },
+      {
+        text: "Quantitativ: ein Excel-Tool über fünf Lebensphasen gebaut",
+        sub: "Rohmaterial, Produktion, Transport, Nutzung und Entsorgung; berechnet werden kumulierter Energieaufwand (VDI 4600) und Treibhauspotenzial, dazu ein Modul für Kabinenwechsel. Grundlage ist ein Modell des Oak Ridge National Laboratory, das ich für die Flugzeugkabine erweitert habe",
+      },
+      {
+        text: "Fehlende Daten recherchiert",
+        sub: "Materialdaten für Kunststoffe, Fertigungsenergien additiver Verfahren und den Kerosinverbrauch verschiedener Flugzeuge je Kilogramm Bauteil",
+      },
+      {
+        text: "Qualitativ: eine Relevanztabelle abgeleitet",
+        sub: "Die Kategorien von vier gängigen Wirkungsabschätzungsmethoden (CML-IA, ReCiPe 2016, ILCD 2011, IMPACT 2002+) in drei Screenings auf drei Stufen eingeordnet und jede Einstufung begründet; ohne Gewichtung: Nach ISO 14044 ist sie eine Wertentscheidung, die Arbeit überlässt sie dem Anwender",
+      },
+      {
+        text: "Praxischeck mit Diehl Aviation",
+        sub: "Gemeinsam ein Bauteil ausgewählt, eine im FDM-Verfahren gedruckte Luftleitschaufel aus Ultem 9085; die Daten über eine Eingabeliste erhoben, die massive mit einer hohlen Variante verglichen",
+      },
+    ],
+    facts: [{ label: "Note", value: "1,2" }],
+    tools: ["Excel"],
+    figure: "luftfahrt",
   },
 ];
 

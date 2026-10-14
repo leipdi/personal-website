@@ -205,9 +205,14 @@ async function checkSize(browser, { w, h }) {
     if (r.top < r.bar - 1 || (r.top > r.bar + 40 && !r.atEnd)) fails.push(`#${id} lands at ${r.top} (bar ${r.bar})`);
   }
   if (!ids.projects.length) fails.push("Projekte: no project on the page");
+  // projects land under the project bar, which pins under the top bar inside Projekte
   for (const id of ids.projects) {
     const r = await land(id);
-    if (r.titleTop < r.bar - 1 || (r.top > r.bar + 40 && !r.atEnd)) fails.push(`#${id} lands at ${r.top} (bar ${r.bar})`);
+    const pb = await page.evaluate(() => Math.round(document.querySelector("[data-pnav]")?.getBoundingClientRect().bottom ?? 0));
+    const under = Math.max(r.bar, pb);
+    if (r.titleTop < under - 1 || (r.top > under + 40 && !r.atEnd)) fails.push(`#${id} lands at ${r.top} (bars end at ${under})`);
+    const cur = await page.evaluate(() => document.querySelector("[data-pnav-link][aria-current]")?.dataset.pnavLink ?? "");
+    if (pb && cur !== id) fails.push(`#${id}: the project bar marks "${cur}"`);
   }
   for (const id of ids.panels) {
     const r = await land(id);
@@ -231,7 +236,9 @@ async function checkSize(browser, { w, h }) {
     await settle(page);
     const sw = await page.evaluate(() => {
       const w = document.getElementById("werdegang");
-      const k = document.getElementById("kenntnisse");
+      // the next section as the reference: stopping there keeps the sweep to Werdegang (it used to
+      // run to Kenntnisse, through all of Projekte, and timed out on phones once that grew)
+      const k = document.getElementById("projekte") || document.getElementById("kenntnisse");
       if (!w || !k) return null;
       return { start: w.getBoundingClientRect().top + scrollY - 200, end: k.getBoundingClientRect().top + scrollY };
     });
@@ -243,7 +250,7 @@ async function checkSize(browser, { w, h }) {
       for (let y = sw.start; y < sw.end; y += 80) {
         await page.evaluate(() => scrollBy(0, 80));
         await settle(page);
-        const ref = await page.evaluate(() => ({ top: document.getElementById("kenntnisse").getBoundingClientRect().top, sy: scrollY }));
+        const ref = await page.evaluate(() => ({ top: (document.getElementById("projekte") || document.getElementById("kenntnisse")).getBoundingClientRect().top, sy: scrollY }));
         if (prev && ref.sy - prev.sy === 80 && Math.abs(prev.top - ref.top - 80) > 3) jumps++;
         prev = ref;
       }

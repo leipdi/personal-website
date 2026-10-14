@@ -4,17 +4,41 @@ import RingPhotos from "../figures/RingPhotos.astro";
 import RingFlow from "../figures/RingFlow.astro";
 import HeliostatPhotos from "../figures/HeliostatPhotos.astro";
 import HeliostatCost from "../figures/HeliostatCost.astro";
+import ImpactScreen from "../figures/ImpactScreen.astro";
+import LifeCycle from "../figures/LifeCycle.astro";
 
 // Projekte, rebuilt one project at a time in chronological order (owner 2026-10-13), each a
 // full-width block: what the project was and how the team worked first, then the owner's role
 // (lead, tasks with sub-lines like the Kernkompetenzen sheets, the facts); its figures beside
 // and below. Mockups and picks:
-// docs/decisions.md (Projekte). No card grid, no JS.
+// docs/decisions.md (Projekte). No card grid. JS only marks the project in view in the bar.
 ---
 
 <section id="projekte" class="sec" aria-labelledby="h-projekte">
-  <div class="wrap page">
+  <div class="wrap head">
     <h2 id="h-projekte" class="display page-title">Projekte</h2>
+  </div>
+
+  <!-- the project bar (owner 2026-10-14: jump between the projects without scrolling through
+       them): pinned under the top bar while Projekte is on screen, gone after it; the project in
+       view gets an ink bar from the script below (plain anchors without JS) -->
+  <nav class="pnav frost" aria-label="Projekte" data-pnav>
+    <div class="wrap">
+      <ul>
+        {
+          projects.map((p) => (
+            <li>
+              <a href={`#${p.id}`} data-pnav-link={p.id}>
+                {p.tab}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </nav>
+
+  <div class="wrap page">
 
     {
       projects.map((p) => (
@@ -71,6 +95,7 @@ import HeliostatCost from "../figures/HeliostatCost.astro";
               <div class="side">
                 {p.figure === "ringprojekt" && <RingPhotos />}
                 {p.figure === "heliostat" && <HeliostatPhotos />}
+                {p.figure === "luftfahrt" && <ImpactScreen />}
               </div>
             )}
           </div>
@@ -89,9 +114,19 @@ import HeliostatCost from "../figures/HeliostatCost.astro";
             <div class="flow">
               <h4>Vom Blechteil zum Heliostaten</h4>
               <p class="cap">
-                Meine Endkalkulation, nach Baugruppen in der Reihenfolge, in der der Heliostat gebaut wird. Rund vier Fünftel der Kosten sind Material; am teuersten ist der Konzentrator mit dem Spiegelglas.
+                Meine Endkalkulation, nach Baugruppen in der Reihenfolge, in der der Heliostat gebaut wird. Rund vier Fünftel der Kosten sind Material und Zukaufteile; am teuersten ist der Konzentrator mit dem Spiegelglas.
               </p>
               <HeliostatCost />
+            </div>
+          )}
+
+          {p.figure === "luftfahrt" && (
+            <div class="flow">
+              <h4>Quantitativ: was der Praxischeck mit Diehl zeigt</h4>
+              <p class="cap">
+                Der rechnende Teil der Metrik, angewendet auf die Luftleitschaufel. Fast die ganze Energie fällt im Flug an: Jedes Kilogramm Bauteil kostet zehn Jahre lang Kerosin. Herstellung und Material sind dagegen Nebensache, deshalb spart die leichtere, hohle Variante so viel. Den einordnenden Teil zeigt die Relevanztabelle oben.
+              </p>
+              <LifeCycle />
             </div>
           )}
         </article>
@@ -100,18 +135,108 @@ import HeliostatCost from "../figures/HeliostatCost.astro";
   </div>
 </section>
 
+<script>
+  import { onScrollFrame } from "../../scripts/page";
+
+  // The project in view: the last one whose top has passed the bar's bottom plus 3rem (in rem,
+  // so a jump that lands just under the bar counts at any root size). Only while the bar is pinned
+  // under the top bar; before that (Projekte's head still scrolling in) nothing is marked.
+  const bar = document.querySelector<HTMLElement>("[data-pnav]");
+  const top = document.querySelector<HTMLElement>(".top");
+  const links = [...document.querySelectorAll<HTMLAnchorElement>("[data-pnav-link]")];
+  const arts = links.map((a) => document.getElementById(a.dataset.pnavLink!)).filter((el): el is HTMLElement => !!el);
+  if (bar && arts.length) {
+    let cur = "";
+    const mark = () => {
+      const b = bar.getBoundingClientRect();
+      const pinned = b.top <= (top?.getBoundingClientRect().bottom ?? 0) + 1;
+      const edge = b.bottom + 3 * parseFloat(getComputedStyle(document.documentElement).fontSize);
+      let id = "";
+      if (pinned) for (const el of arts) if (el.getBoundingClientRect().top <= edge) id = el.id;
+      if (id === cur) return;
+      cur = id;
+      for (const a of links) {
+        if (a.dataset.pnavLink === id) a.setAttribute("aria-current", "true");
+        else a.removeAttribute("aria-current");
+      }
+    };
+    onScrollFrame(mark);
+    addEventListener("resize", mark, { passive: true });
+    mark();
+  }
+</script>
+
 <style>
-  .page {
+  .head {
     padding-top: var(--sp-section);
+  }
+  .page {
     padding-bottom: var(--sp-block);
   }
+
+  /* pinned under the top bar (its height is measured by Werdegang's script; the fallbacks are
+     its CSS heights), a hairline below: structure lines inside a section are hairlines */
+  .pnav {
+    position: sticky;
+    top: var(--top-bar-h, calc(var(--top-h) + 1.5px));
+    z-index: 30;
+    margin-top: var(--sp-gap);
+    border-bottom: 1px solid var(--line);
+  }
+  @media (min-width: 64rem) {
+    .pnav {
+      top: var(--top-bar-h, calc(3.75rem + 1.5px));
+    }
+  }
+  .pnav ul {
+    display: flex;
+    gap: clamp(1rem, 4vw, 2.25rem);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .pnav a {
+    display: block;
+    padding: 0.55rem 0 0.4rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    white-space: nowrap;
+    color: var(--ink-2);
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+  }
+  .pnav a:hover {
+    color: var(--ink);
+    border-bottom-color: var(--line);
+  }
+  /* the project in view: ink and an ink bar (the spectrum stays on the top bar's bar) */
+  .pnav a[aria-current="true"] {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+  }
+  /* 320: the three names fit without scrolling */
+  @media (max-width: 22rem) {
+    .pnav ul {
+      gap: 0.625rem;
+    }
+    .pnav a {
+      font-size: 0.875rem;
+    }
+  }
+
+  /* a jump lands the project below both bars */
   .proj {
     margin-top: var(--sp-gap);
+    scroll-margin-top: 2.75rem;
   }
   .proj + .proj {
     margin-top: var(--sp-block);
     padding-top: var(--sp-block);
     border-top: 1px solid var(--line);
+    /* skip the gap above the title, so a jump puts the title right under the bar */
+    scroll-margin-top: calc(2.75rem - var(--sp-block));
   }
   .proj-head h3 {
     font-family: var(--serif);

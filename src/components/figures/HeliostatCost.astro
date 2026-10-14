@@ -2,7 +2,8 @@
 // The Bachelorarbeit's result as a cost staircase (2026-10-14): Tabelle 30 of the thesis
 // ("Endkalkulation des Heliostaten") summed per assembly group (the thesis's trees: Pylone,
 // T-Gestell, Aufsatz, Konzentrator), in the order the heliostat is built, each bar starting where
-// the one before ended. Every group splits into material (MK) and manufacturing (FK), both with
+// the one before ended. Every group splits into material (MK: raw material and bought-in parts like
+// the motors) and manufacturing (FK), both with
 // the thesis's 10 % overhead. Without set-up costs (Rüsten), as the thesis's end figure: the
 // table's two set-up items, 3,50 € (Blechteil) and 5,25 € (Pylone), are taken out of the Pylone,
 // so the end is 115,94 € like the facts above (124,69 € with them). First version had all 14
@@ -95,7 +96,7 @@ const share = Math.round((mk / TOTAL) * 100);
   </div>
   <figcaption>
     <span class="keys">
-      <span class="key"><i class="mk" />Material, {share} %</span>
+      <span class="key"><i class="mk" />Material und Zukaufteile, {share} %</span>
       <span class="key"><i class="fk" />Fertigung: Maschinen und Lohn</span>
     </span>
     <span class="note">

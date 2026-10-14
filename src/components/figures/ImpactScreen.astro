@@ -1,0 +1,131 @@
+---
+// The Masterarbeit's relevance table (2026-10-14): Tabelle 6 of the thesis, the impact categories
+// (all but climate change are not calculated by the Excel tool), sorted into three levels for comparing printed and
+// conventionally made cabin parts. In the thesis a traffic light (green, yellow, red); here the
+// level is a row of three ink marks, because colour on this site means light (sun) or a Werdegang
+// category. Plain lists (role="list": Safari drops list semantics without bullets), no JS.
+const levels = [
+  { marks: 3, name: "Sehr relevant", items: ["Klimawandel", "Abiotische Ressourcenverknappung"] },
+  {
+    marks: 2,
+    name: "Relevant",
+    items: ["Humantoxizität, karzinogen und nicht karzinogen", "Ozonabbau", "Ozonbildung", "Eutrophierung", "Feinstaub"],
+  },
+  {
+    marks: 1,
+    name: "Geringe Relevanz",
+    items: ["Versauerung", "Ökotoxizität in Süßwasser und Boden", "Wasserverbrauch"],
+  },
+];
+---
+
+<figure class="is">
+  <div class="panel">
+    <p class="head"><span class="kind">Qualitativ</span>Welche Umweltwirkungen zählen bei Kabinenbauteilen?</p>
+    <dl>
+      {
+        levels.map((l) => (
+          <div class="lvl">
+            <dt>
+              <span class="marks" aria-hidden="true">
+                {[1, 2, 3].map((k) => (
+                  <i class:list={[k <= l.marks && "on"]} />
+                ))}
+              </span>
+              {l.name}
+            </dt>
+            <dd>
+              <ul role="list">
+                {l.items.map((it) => (
+                  <li>{it}</li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+    <p class="out">Entfallen ganz: ionisierende Strahlung und Landnutzung.</p>
+  </div>
+  <figcaption>
+    Meine Relevanztabelle der Wirkungskategorien. Außer dem Klimawandel (Treibhauspotenzial) berechnet das Tool keine
+    davon: Für sie fehlen belastbare öffentliche Daten. Jede Einstufung ist in der Arbeit begründet, etwa: Flammschutzmittel machen Humantoxizität relevant, unterscheiden
+    aber kaum zwischen den Verfahren.
+  </figcaption>
+</figure>
+
+<style>
+  .is {
+    margin: 0;
+    max-width: 36rem;
+  }
+  .panel {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 1rem 1.25rem 1.1rem;
+  }
+  .head {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    line-height: 1.35;
+  }
+  .kind {
+    display: block;
+    margin-bottom: 0.15rem;
+    font-weight: 400;
+    font-size: 0.8125rem;
+    color: var(--ink-2);
+  }
+  dl {
+    margin: 0.75rem 0 0;
+  }
+  .lvl {
+    padding: 0.7rem 0;
+    border-top: 1px solid var(--line);
+  }
+  dt {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+  .marks {
+    display: inline-flex;
+    gap: 3px;
+  }
+  .marks i {
+    display: block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink);
+    box-sizing: border-box;
+  }
+  .marks i.on {
+    background: var(--ink);
+  }
+  dd {
+    margin: 0.3rem 0 0;
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-family: var(--serif);
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+  .out {
+    padding-top: 0.7rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.8125rem;
+    color: var(--ink-2);
+  }
+  figcaption {
+    margin-top: 0.4rem;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--ink-3);
+  }
+</style>
