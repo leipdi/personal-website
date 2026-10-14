@@ -6,11 +6,11 @@ import HeliostatPhotos from "../figures/HeliostatPhotos.astro";
 import HeliostatCost from "../figures/HeliostatCost.astro";
 import ImpactScreen from "../figures/ImpactScreen.astro";
 import LifeCycle from "../figures/LifeCycle.astro";
+import ProjectMethod from "../ProjectMethod.astro";
 
 // Projekte, rebuilt one project at a time in chronological order (owner 2026-10-13), each a
-// full-width block: what the project was and how the team worked first, then the owner's role
-// (lead, tasks with sub-lines like the Kernkompetenzen sheets, the facts); its figures beside
-// and below. Mockups and picks:
+// full-width block: purpose, contribution and outcome first; methodology in native
+// disclosures, with photos and result charts always visible. Mockups and picks:
 // docs/decisions.md (Projekte). No card grid. JS only marks the project in view and runs the pill.
 ---
 
@@ -51,34 +51,30 @@ import LifeCycle from "../figures/LifeCycle.astro";
           <div class="project-body">
             {p.figure && (
               <div class="side">
-                {p.figure === "ringprojekt" && <RingPhotos />}
-                {p.figure === "heliostat" && <HeliostatPhotos />}
+                {p.figure !== "luftfahrt" && (
+                  <div class="photo-gallery" data-project-photos>
+                    {p.figure === "ringprojekt" && <RingPhotos />}
+                    {p.figure === "heliostat" && <HeliostatPhotos />}
+                  </div>
+                )}
                 {p.figure === "luftfahrt" && <ImpactScreen />}
               </div>
             )}
             <div class="prose">
-              <p class="intro">{p.intro}</p>
-              {p.brief && (
-              <dl class="brief">
-                {p.brief.map((b) => (
-                  <div>
-                    <dt>{b.label}</dt>
-                    <dd>{b.text}</dd>
-                  </div>
-                ))}
+              <dl class="overview">
+                <div>
+                  <dt>Aufgabe</dt>
+                  <dd>{p.intro}</dd>
+                </div>
+                <div>
+                  <dt>Mein Beitrag</dt>
+                  <dd>{p.contribution}</dd>
+                </div>
+                <div>
+                  <dt>Ergebnis</dt>
+                  <dd>{p.outcome}</dd>
+                </div>
               </dl>
-              )}
-              <div class="role">
-              <h4>{p.role}</h4>
-              <p class="lead">{p.lead}</p>
-              <ul class="tasks">
-                {p.tasks.map((t) => (
-                  <li>
-                    {t.text}
-                    {t.sub && <span class="sub">{t.sub}</span>}
-                  </li>
-                ))}
-              </ul>
               <dl class="facts">
                 {p.facts.map((f) => (
                   <div>
@@ -98,9 +94,10 @@ import LifeCycle from "../figures/LifeCycle.astro";
                   <a class="prose-link" href={p.link.href}>{p.link.label}</a>
                 </p>
               )}
-              </div>
             </div>
           </div>
+
+          <ProjectMethod project={p} />
 
           {p.figure === "ringprojekt" && (
             <div class="flow">
@@ -163,7 +160,7 @@ import LifeCycle from "../figures/LifeCycle.astro";
 </section>
 
 <script>
-  import { onScrollFrame } from "../../scripts/page";
+  import { onScrollFrame, requestFrame } from "../../scripts/page";
 
   // The project in view: the last one whose top has passed the top bar plus 3rem (rem, so it holds
   // at any root size); it stays marked across the gap to the next one, until Projekte has left
@@ -179,6 +176,54 @@ import LifeCycle from "../figures/LifeCycle.astro";
   const details = pill?.querySelector("details");
   const pos = pill?.querySelector("[data-ppill-pos]");
   const name = pill?.querySelector("[data-ppill-name]");
+
+  // Match photo height to the short overview without cropping or scaling captions.
+  // CSS bottom-aligns the columns too, including the no-JS fallback and the relevance table.
+  const wide = matchMedia("(min-width: 56rem)");
+  const galleries = [...document.querySelectorAll<HTMLElement>("[data-project-photos]")];
+  const measured = new WeakMap<HTMLElement, string>();
+  let refreshProject = () => {};
+  const fitPhotos = () => {
+    for (const gallery of galleries) {
+      if (!wide.matches) {
+        gallery.style.removeProperty("width");
+        measured.delete(gallery);
+        continue;
+      }
+      const side = gallery.parentElement!;
+      const prose = side.parentElement!.querySelector<HTMLElement>(".prose")!;
+      const max = side.getBoundingClientRect().width;
+      const height = prose.getBoundingClientRect().height;
+      const key = `${max}:${height}`;
+      if (!max || measured.get(gallery) === key) continue;
+      measured.set(gallery, key);
+      gallery.style.width = `${max}px`;
+      if (gallery.getBoundingClientRect().height <= height) continue;
+      let low = Math.min(max, 12 * parseFloat(getComputedStyle(prose).fontSize));
+      let high = max;
+      // Find the largest gallery that fits; actual caption wrapping is included.
+      for (let i = 0; i < 12; i++) {
+        const width = (low + high) / 2;
+        gallery.style.width = `${width}px`;
+        if (gallery.getBoundingClientRect().height > height) high = width;
+        else low = width;
+      }
+      gallery.style.width = `${low}px`;
+    }
+    refreshProject();
+  };
+  const schedulePhotos = () => requestFrame(fitPhotos);
+  const photoObserver = new ResizeObserver(schedulePhotos);
+  for (const gallery of galleries) {
+    photoObserver.observe(gallery.parentElement!);
+    photoObserver.observe(gallery.parentElement!.parentElement!.querySelector(".prose")!);
+  }
+  wide.addEventListener("change", schedulePhotos);
+  document.fonts.ready.then(() => {
+    galleries.forEach((gallery) => measured.delete(gallery));
+    schedulePhotos();
+  });
+  schedulePhotos();
   if (arts.length) {
     let cur = "";
     const mark = () => {
@@ -213,7 +258,12 @@ import LifeCycle from "../figures/LifeCycle.astro";
         name.textContent = links.find((a) => a.dataset.pnavLink === id)?.querySelector(".nm")?.textContent ?? "";
       }
     };
+    refreshProject = mark;
     onScrollFrame(mark);
+    // Expanding a method changes project height without necessarily scrolling.
+    section?.querySelectorAll<HTMLDetailsElement>("details.method").forEach((el) => {
+      el.addEventListener("toggle", () => requestFrame(mark));
+    });
     addEventListener("resize", mark, { passive: true });
     mark();
   }
@@ -443,57 +493,37 @@ import LifeCycle from "../figures/LifeCycle.astro";
     gap: var(--sp-gap);
     margin-top: var(--sp-gap);
   }
-  .prose h4,
   .flow h4 {
     font-family: var(--sans);
     font-weight: 600;
     font-size: 1.0625rem;
     line-height: 1.3;
   }
-  .lead {
-    margin-top: 0.5rem;
-    font-family: var(--serif);
-    font-size: 1.25rem;
-    line-height: 1.5;
+  .overview {
+    margin: 0;
   }
-  .tasks {
-    list-style: none;
-    margin: 1rem 0 1.25rem;
-    padding: 0;
+  .overview > div {
+    display: flow-root;
   }
-  .tasks > li {
-    position: relative;
-    padding-left: 1.2rem;
-    margin-bottom: 0.7rem;
-    font-family: var(--serif);
-    font-weight: 500;
-    font-size: 1.1875rem;
-    line-height: 1.4;
+  .overview > div + div {
+    margin-top: 1.1rem;
   }
-  .tasks > li::before {
-    content: "";
-    position: absolute;
-    left: 0.1rem;
-    top: 0.58em;
-    width: 0.42rem;
-    height: 0.42rem;
-    border-radius: 50%;
-    background: var(--ink);
-  }
-  .sub {
-    display: block;
-    margin-top: 0.2rem;
-    font-family: var(--sans);
-    font-weight: 400;
+  .overview dt {
     font-size: 0.9375rem;
-    line-height: 1.45;
-    color: var(--ink-2);
+    font-weight: 600;
+  }
+  .overview dd {
+    margin: 0.25rem 0 0;
+    max-width: 68ch;
+    font-family: var(--serif);
+    font-size: 1.1875rem;
+    line-height: 1.5;
   }
   .facts {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem 2.5rem;
-    margin: 0;
+    margin: 1.5rem 0 0;
     font-size: 0.9375rem;
   }
   .facts dt {
@@ -504,44 +534,17 @@ import LifeCycle from "../figures/LifeCycle.astro";
     margin: 0;
     color: var(--ink-2);
   }
-  /* the project first: a short intro, then the task and the team as two labelled points, then
-     my role (owner 2026-10-13/14) */
-  .intro {
-    font-family: var(--serif);
-    font-size: 1.25rem;
-    line-height: 1.5;
-  }
-  .brief {
-    margin: 1.1rem 0 0;
-  }
-  .brief > div + div {
-    margin-top: 0.85rem;
-  }
-  .brief dt {
-    font-weight: 600;
-    font-size: 0.9375rem;
-  }
-  .brief dd {
-    margin: 0.15rem 0 0;
-    font-family: var(--serif);
-    font-size: 1.0625rem;
-    line-height: 1.5;
-  }
-  .role {
-    margin-top: 1.5rem;
-  }
-  .role h4 {
-    display: flow-root;
-    padding-top: 1.25rem;
-    border-top: 1px solid var(--line);
-  }
   .link {
     margin-top: 1rem;
     font-size: 0.9375rem;
+    max-width: 75ch;
   }
   .side {
     order: 1;
     max-width: 34rem;
+  }
+  .photo-gallery {
+    width: 100%;
   }
 
   .flow {
@@ -554,24 +557,25 @@ import LifeCycle from "../figures/LifeCycle.astro";
     color: var(--ink-2);
   }
 
-  /* Pictures reserve space only for their own height. Each text unit fits beside the
-     float, then uses the full width once it has passed the pictures and their captions.
-     flow-root contains the float, so the following chart always starts underneath. */
+  /* The overview determines photo size. Both columns end together before Details,
+     including without JS; narrow screens retain text followed by pictures. */
   @media (min-width: 56rem) {
-    .project-body {
-      display: flow-root;
+    .project-body:has(.side) {
+      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+      align-items: end;
+    }
+    .project-body:has(.side) .prose {
+      grid-column: 1;
+      grid-row: 1;
     }
     .side {
-      float: right;
-      width: calc((100% - var(--sp-gap)) * 5 / 11);
+      grid-column: 2;
+      grid-row: 1;
+      display: flex;
+      justify-content: flex-end;
+      width: 100%;
       max-width: 36rem;
-      margin: 0 0 1.25rem var(--sp-gap);
-    }
-    .intro,
-    .brief > div,
-    .lead,
-    .tasks > li {
-      display: flow-root;
+      justify-self: end;
     }
   }
 </style>

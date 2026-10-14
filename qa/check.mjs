@@ -212,6 +212,32 @@ async function checkSize(browser, { w, h }) {
     const cur = await page.evaluate(() => document.querySelector("[data-pnav-link][aria-current]")?.dataset.pnavLink ?? "");
     if (!r.atEnd && cur !== id) fails.push(`#${id}: the project list marks "${cur}"`);
   }
+  // Photo fitting changes project height after resize. The rail must reflect the new
+  // reading progress immediately, even when the visitor has not scrolled again.
+  if (w >= 1200) {
+    await page.evaluate(() => {
+      const el = document.getElementById("heliostat");
+      scrollTo(0, el.getBoundingClientRect().top + scrollY + el.offsetHeight * 0.35);
+    });
+    await settle(page);
+    for (const width of [w === 1536 ? 1440 : 1536, w]) {
+      await page.setViewportSize({ width, height: h });
+      await settle(page);
+      await settle(page);
+      const progress = await page.evaluate(() => {
+        const r = document.getElementById("heliostat").getBoundingClientRect();
+        const edge = document.querySelector(".top").getBoundingClientRect().bottom
+          + 3 * parseFloat(getComputedStyle(document.documentElement).fontSize);
+        const link = document.querySelector('.prail [data-pnav-link="heliostat"]');
+        return {
+          expected: Math.min(1, Math.max(0, (edge - r.top) / r.height)),
+          actual: parseFloat(link.style.getPropertyValue("--p")),
+        };
+      });
+      if (!Number.isFinite(progress.actual) || Math.abs(progress.actual - progress.expected) > 0.005)
+        fails.push(`Projekte: stale progress after resize to ${width}px (${progress.actual}, expected ${progress.expected.toFixed(3)})`);
+    }
+  }
   for (const id of ids.panels) {
     const r = await land(id);
     if (r.titleTop < r.bar) fails.push(`#${id}: title at ${r.titleTop}, under the top bar (${r.bar})`);

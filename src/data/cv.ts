@@ -328,9 +328,12 @@ export type Project = {
   period: string;
   team?: string; // in der Kopfzeile, wenn das Team nicht schon unter `brief` steht
   intro: string; // ein, zwei Sätze: worum es ging
+  contribution: string; // der eigene Beitrag, im Überblick sichtbar
+  outcome: string; // belegtes Ergebnis mit nötigen Einschränkungen
+  detailsLabel?: string; // nur längere Projekte: technische Vertiefung aufklappen
   brief?: { label: string; text: string }[]; // die Eckpunkte vor der eigenen Rolle (Aufgabe, Team)
   role: string;
-  lead: string;
+  lead?: string;
   tasks: { text: string; sub?: string }[];
   facts: { label: string; value: string }[];
   tools: string[]; // Klartext, keine Logos
@@ -348,6 +351,9 @@ export const projects: Project[] = [
     period: "5. Semester (Wintersemester 2022/23)",
     intro:
       "Im 5. Semester haben wir zu siebt eine Messhalterung für einen Turbolader entwickelt und selbst gefertigt, vom Entwurf am Rechner bis zur Messung.",
+    contribution: "Als Verantwortlicher für Produktionsplanung und -steuerung habe ich Stückliste und Arbeitspläne in Infor aufgebaut, Fertigungszeiten erfasst und die Abschlusspräsentation übernommen.",
+    outcome: "Im Team entstand die fertige Messhalterung aus Aluminium mit einem 3D-gedruckten Niederhalter.",
+    detailsLabel: "Team und Fertigungsplanung im Detail",
     brief: [
       {
         label: "Aufgabe",
@@ -381,7 +387,10 @@ export const projects: Project[] = [
     org: "DLR, Institut für Solarforschung, Jülich",
     period: "März bis Juni 2024",
     intro:
-      "In Jülich lenken über 2.000 Heliostaten, nachgeführte Spiegel, das Sonnenlicht auf zwei Solartürme. Das DLR entwirft dort einen neuen, möglichst günstigen Heliostaten. Ich habe für die Großserie die wirtschaftlichste Art gesucht, ihn zu fertigen, und berechnet, was er dann in der Herstellung kostet.",
+      "Für einen neuen Heliostaten des DLR sollte die wirtschaftlichste Fertigung in Großserie bestimmt werden. Heliostaten sind nachgeführte Spiegel, die Sonnenlicht auf einen Solarturm lenken.",
+    contribution: "Ich habe aus dem CAD-Modell die Fertigung abgeleitet, Verfahren im technologischen Variantenvergleich ausgewählt und Material, Zukaufteile und Bearbeitungszeiten in Excel kalkuliert.",
+    outcome: "Die Kalkulation ergibt rund 116 € Herstellkosten pro Heliostat für die angenommene Großserie, ohne Rüstkosten. Aus der Arbeit entstand ein SolarPACES-Konferenzbeitrag mit mir als Erstautor.",
+    detailsLabel: "Variantenvergleich und Kalkulation im Detail",
     brief: [
       {
         label: "Ausgangslage",
@@ -413,12 +422,11 @@ export const projects: Project[] = [
       },
     ],
     facts: [
-      { label: "Herstellkosten", value: "ca. 116 € pro Heliostat" },
       { label: "Pro Quadratmeter Spiegel", value: "ca. 58 €" },
     ],
     tools: ["Autodesk Inventor", "Excel", "Costing24", "Witness"],
     link: {
-      label: "Daraus entstand ein Konferenzbeitrag mit mir als Erstautor: SolarPACES 2024, Conference Proceedings (DOI 10.52825/solarpaces.v3i.2420)",
+      label: "SolarPACES 2024: Konferenzbeitrag (Erstautor)",
       href: "https://doi.org/10.52825/solarpaces.v3i.2420",
     },
     figure: "heliostat",
@@ -434,7 +442,10 @@ export const projects: Project[] = [
     org: "Hochschule Düsseldorf, mit der RWTH Aachen",
     period: "Januar bis Juni 2026",
     intro:
-      "Kabinenteile werden in der Luftfahrt immer öfter gedruckt, weil sich damit Gewicht und Werkzeugkosten sparen lassen. Ob sich das über das ganze Leben eines Bauteils auch ökologisch lohnt, ließ sich bisher nicht einheitlich bewerten. Dafür habe ich eine Bewertungsmetrik entwickelt und als Excel-Tool umgesetzt.",
+      "Wie lassen sich additiv und konventionell gefertigte Kabinenbauteile über ihren gesamten Lebenszyklus ökologisch vergleichen? Dafür sollte eine Bewertungsmetrik entwickelt und mit einem Industriepartner erprobt werden.",
+    contribution: "Ich habe ein Excel-Tool für Energieaufwand und Treibhauspotenzial entwickelt, weitere Umweltwirkungen begründet eingeordnet und die Metrik mit Diehl Aviation an einer Luftleitschaufel erprobt.",
+    outcome: "Im untersuchten Fall benötigt die hohl gedruckte Variante über zehn Jahre im A350 rund 68 % weniger Energie als die massiv gedruckte. Ein Vergleich mit einer konventionell gefertigten Variante war mangels Daten nicht möglich.",
+    detailsLabel: "Aufbau und Erprobung der Metrik im Detail",
     brief: [
       {
         label: "Ausgangslage",
@@ -488,21 +499,22 @@ export const projects: Project[] = [
     org: "Eigenes Projekt",
     period: "seit September 2026",
     intro:
-      "Das Projekt ist diese Seite selbst: entworfen und gebaut mit Hilfe von Agentic Coding in Claude Code, von den Inhalten über die Gestaltung bis zur Veröffentlichung auf GitHub Pages.",
+      "Eine persönliche Website, die meinen Werdegang, meine Projekte und Interessen zusammenführt.",
+    contribution: "Ich habe Inhalte und Gestaltung entwickelt und die Seite mit Hilfe von Agentic Coding in Claude Code umgesetzt, geprüft und überarbeitet.",
+    outcome: "Diese durchgehende Seite mit Projekten und interaktivem Hobbyregal, veröffentlicht auf GitHub Pages.",
     role: "Mein Vorgehen",
-    lead: "Ich arbeite in Runden: planen, bauen, prüfen, entscheiden.",
     tasks: [
       {
         text: "Inhalte aus echten Quellen",
-        sub: "Lebenslauf, LinkedIn-Export und die beiden Abschlussarbeiten; die Zahlen hat zuletzt ein eigener Prüf-Agent mit den Arbeiten abgeglichen",
+        sub: "Lebenslauf, LinkedIn und beide Abschlussarbeiten; Zahlen mit den Quellen abgeglichen",
       },
       {
         text: "Gestaltung über Entwürfe entschieden",
-        sub: "Mehrere Richtungen als Mockups verglichen und verworfen, bis zur jetzigen: Stahl und Sonnengelb, der Tag wandert beim Scrollen mit",
+        sub: "Mockups verglichen, Gestaltung ausgewählt und iterativ überarbeitet",
       },
       {
         text: "Bauen, testen, korrigieren",
-        sub: "Nach jedem größeren Schritt testet ein separater Agent auf allen Bildschirmgrößen und meldet nur Fehler, ein weiterer kritisiert die Gestaltung; dazu ein automatischer Browsertest",
+        sub: "Automatisierte Browsertests sowie separate Agenten für Fehlerprüfung und Designkritik",
       },
     ],
     facts: [],

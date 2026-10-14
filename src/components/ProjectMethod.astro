@@ -1,0 +1,121 @@
+---
+import type { Project } from "../data/cv";
+
+interface Props {
+  project: Project;
+}
+const { project: p } = Astro.props;
+// Native disclosure works with keyboard, touch and without JavaScript.
+// The short website project stays fully visible.
+const Wrapper = p.detailsLabel ? "details" : "div";
+---
+
+<Wrapper class="method">
+  {p.detailsLabel && <summary>{p.detailsLabel}</summary>}
+  <div class:list={["method-content", p.brief && "with-context"]}>
+    {p.brief && (
+      <dl class="context">
+        {p.brief.map((b) => (
+          <div>
+            <dt>{b.label}</dt>
+            <dd>{b.text}</dd>
+          </div>
+        ))}
+      </dl>
+    )}
+    <div class="approach">
+      <h4>{p.role}</h4>
+      {p.lead && <p class="lead">{p.lead}</p>}
+      <ul class="tasks">
+        {p.tasks.map((t) => (
+          <li>
+            {t.text}
+            {t.sub && <span class="sub">{t.sub}</span>}
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</Wrapper>
+
+<style>
+  .method {
+    margin-top: var(--sp-gap);
+    border-top: 1px solid var(--line);
+    container-type: inline-size;
+  }
+  summary {
+    padding: 1rem 0.25rem;
+    min-height: 44px;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5;
+    cursor: pointer;
+  }
+  summary:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  .method-content {
+    display: grid;
+    gap: var(--sp-gap);
+    padding: 1rem 0 0.5rem;
+  }
+  .context {
+    margin: 0;
+  }
+  .context > div + div {
+    margin-top: 1.25rem;
+  }
+  .context dt,
+  h4 {
+    font-family: var(--sans);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .context dd,
+  .lead {
+    margin: 0.35rem 0 0;
+    max-width: 65ch;
+    font-family: var(--serif);
+    font-size: 1.125rem;
+    line-height: 1.5;
+  }
+  .tasks {
+    list-style: disc;
+    padding-left: 1.2rem;
+    margin: 1rem 0 0;
+  }
+  .tasks li {
+    font-family: var(--serif);
+    font-size: 1.1875rem;
+    line-height: 1.4;
+    max-width: 65ch;
+  }
+  .tasks li + li {
+    margin-top: 1rem;
+  }
+  .sub {
+    display: block;
+    margin-top: 0.25rem;
+    font-family: var(--sans);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+  /* Use the available width as two readable columns, not one very long line. */
+  @container (min-width: 52rem) {
+    .with-context {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    }
+    .method:not(details) .tasks {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--sp-gap);
+    }
+    .method:not(details) .tasks li + li {
+      margin-top: 0;
+    }
+  }
+</style>
