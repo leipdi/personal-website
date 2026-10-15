@@ -1,0 +1,248 @@
+---
+import type { ProjectStep } from "../data/cv";
+import { url } from "../lib/url";
+
+interface Props {
+  steps: ProjectStep[];
+}
+const { steps } = Astro.props;
+
+// From design to finished part, scrolled through (owner picked mockup D, 2026-10-15; drafts/
+// projekte-d-animiert.html). Base, and so phones, no JS and short windows: each step is its
+// picture, then its text, top to bottom. Wide screens with JS (script below): the pictures move
+// into one frame pinned on the right (centred in the window, at most 30rem tall) while the steps
+// pass on the left; the step at the window's middle is ink and shows its picture, the others
+// step back to --ink-3 (as in Werdegang).
+// The DLR picture (CC BY-NC-ND 3.0) is only scaled, never cropped (object-fit: contain), credit kept.
+const src = (id: string) => url(`/img/projekte/${id}.webp`);
+// always a w-descriptor, so the browser sizes every picture by `sizes` (the pinned frame shows
+// each at width auto, which then means the frame's width, not the file's pixels)
+const srcset = (s: ProjectStep) =>
+  s.img.small
+    ? `${url(`/img/projekte/${s.img.id}-640.webp`)} 640w, ${src(s.img.id)} ${s.img.width}w`
+    : `${src(s.img.id)} ${s.img.width}w`;
+---
+
+<div class="steps-wrap" data-steps>
+  <ol class="steps">
+    {
+      steps.map((s) => (
+        <li class="step">
+          <figure class="shot" style={`--zw:${Math.round(s.img.width * 1.6)}px`}>
+            <span class="pic">
+              <img
+                src={src(s.img.id)}
+                srcset={srcset(s)}
+                sizes="(min-width: 56rem) 55vw, 100vw"
+                alt={s.img.alt}
+                width={s.img.width}
+                height={s.img.height}
+                loading="lazy"
+                decoding="async"
+              />
+            </span>
+            <figcaption>
+              {s.img.cap}
+              {s.img.dlr && (
+                <span class="credit">
+                  Foto: DLR,{" "}
+                  <a class="prose-link" href="https://creativecommons.org/licenses/by-nc-nd/3.0/" rel="license noopener">
+                    CC BY-NC-ND 3.0
+                  </a>
+                </span>
+              )}
+            </figcaption>
+          </figure>
+          <h4 class="stage">{s.stage}</h4>
+          <p class="txt">{s.text}</p>
+        </li>
+      ))
+    }
+  </ol>
+</div>
+
+<script>
+  import { onScrollFrame } from "../scripts/page";
+
+  // wide screens: move each step's figure into one pinned frame and show the figure of the step
+  // nearest the window's middle. Moving (not copying) keeps one image per step for screen
+  // readers; below 56rem the figures go back into their steps.
+  const wide = matchMedia("(min-width: 56rem)");
+  document.querySelectorAll<HTMLElement>("[data-steps]").forEach((wrap) => {
+    const steps = [...wrap.querySelectorAll<HTMLElement>(".step")];
+    const figs = steps.map((s) => s.querySelector<HTMLElement>("figure.shot")!);
+    const frame = document.createElement("div");
+    frame.className = "frame";
+    let cur = -1;
+    const show = (i: number) => {
+      if (i === cur) return;
+      cur = i;
+      steps.forEach((s, k) => s.classList.toggle("on", k === i));
+      figs.forEach((f, k) => f.classList.toggle("on", k === i));
+    };
+    const pick = () => {
+      if (!wrap.classList.contains("pinned")) return;
+      const mid = innerHeight / 2;
+      let best = 0;
+      let dist = Infinity;
+      steps.forEach((s, k) => {
+        // the text's centre (heading to paragraph), not the step box's
+        const a = s.querySelector(".stage")!.getBoundingClientRect();
+        const b = s.querySelector(".txt")!.getBoundingClientRect();
+        const d = Math.abs((a.top + b.bottom) / 2 - mid);
+        if (d < dist) {
+          dist = d;
+          best = k;
+        }
+      });
+      show(best);
+    };
+    const layout = () => {
+      if (wide.matches && !wrap.classList.contains("pinned")) {
+        figs.forEach((f) => frame.append(f));
+        wrap.append(frame);
+        wrap.classList.add("pinned");
+        cur = -1;
+        pick();
+      } else if (!wide.matches && wrap.classList.contains("pinned")) {
+        wrap.classList.remove("pinned");
+        figs.forEach((f, k) => steps[k].prepend(f));
+        frame.remove();
+        steps.forEach((s) => s.classList.remove("on"));
+        figs.forEach((f) => f.classList.remove("on"));
+      }
+    };
+    wide.addEventListener("change", layout);
+    layout();
+    onScrollFrame(pick);
+  });
+</script>
+
+<style>
+  .steps-wrap {
+    margin-top: var(--sp-gap);
+  }
+  .steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .step + .step {
+    margin-top: var(--sp-gap);
+  }
+  .shot {
+    margin: 0;
+    max-width: 44rem;
+  }
+  .pic {
+    display: block;
+  }
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--line);
+  }
+  figcaption {
+    margin-top: 0.4rem;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--ink-3);
+  }
+  .credit {
+    display: block;
+  }
+  .stage {
+    margin-top: 0.9rem;
+    font-family: var(--sans);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .txt {
+    margin-top: 0.25rem;
+    max-width: 34rem;
+    font-family: var(--serif);
+    font-size: 1.1875rem;
+    line-height: 1.5;
+  }
+
+  /* pinned (wide screens, set by the script): steps left, the frame right. Owner 2026-10-15:
+     smaller pictures, so the short step texts don't stand beside a window-tall picture with
+     empty space around them. The frame (--h: at most 30rem, never taller than the window below
+     the top bar) sits centred in that space; each step is exactly as tall as the frame, its text
+     centred, so a step's text is level with its picture's middle, and the frame leaves just as
+     the last text passes it: no band left empty at the end. */
+  .pinned {
+    --bar: var(--top-bar-h, calc(3.75rem + 1.5px));
+    --h: min(30rem, calc(100svh - var(--bar) - 3rem));
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    column-gap: var(--sp-gap);
+  }
+  .pinned .steps {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .pinned .step {
+    min-height: var(--h);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: var(--ink-3);
+    transition: color 0.3s;
+  }
+  .pinned .step + .step {
+    margin-top: 0;
+  }
+  .pinned .step.on {
+    color: var(--ink);
+  }
+  .pinned .stage {
+    margin-top: 0;
+  }
+  .pinned :global(.frame) {
+    grid-column: 2;
+    grid-row: 1;
+    position: sticky;
+    top: calc(var(--bar) + (100svh - var(--bar) - var(--h)) / 2);
+    height: var(--h);
+    align-self: start;
+  }
+  /* the pictures lie on top of each other and cross-fade */
+  .pinned .shot {
+    position: absolute;
+    inset: 0;
+    max-width: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.98);
+    /* hidden pictures leave focus and clicks alone (their credit link lay over the shown one);
+       visibility switches after the fade */
+    visibility: hidden;
+    transition:
+      opacity 0.5s,
+      transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1),
+      visibility 0s 0.5s;
+  }
+  .pinned .shot.on {
+    opacity: 1;
+    transform: none;
+    visibility: visible;
+    transition:
+      opacity 0.5s,
+      transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1),
+      visibility 0s;
+  }
+  /* the whole picture with its caption right under it: as wide as the column allows, as tall as
+     the frame minus the caption, at most 1.6x its own pixels (the thesis's small CAD and
+     prototype pictures); width/height auto keep the ratio, never cropped */
+  .pinned img {
+    width: auto;
+    height: auto;
+    max-width: min(100%, var(--zw));
+    max-height: calc(var(--h) - 3.5rem);
+  }
+</style>

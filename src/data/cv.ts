@@ -336,9 +336,29 @@ export type Project = {
   lead?: string;
   tasks: { text: string; sub?: string }[];
   facts: { label: string; value: string }[];
-  tools: string[]; // Klartext, keine Logos
+  tools: string[]; // Schlüssel aus src/data/tools.ts (Logo oder markierter Platzhalter)
   link?: { label: string; href: string }; // z. B. die Veröffentlichung
   figure?: "ringprojekt" | "heliostat" | "luftfahrt";
+  // vom Entwurf zum Teil (2026-10-15): beim Scrollen bleibt das Bild stehen, daneben die Schritte;
+  // Texte nur aus den Aufgaben und Bildunterschriften oben, Bilder in public/img/projekte/
+  steps?: ProjectStep[];
+  beside?: ProjectImage; // ein Bild neben Aufgabe und Beitrag (Bachelorarbeit: DLRs Foto aus Jülich)
+};
+
+export type ProjectStep = {
+  stage: string; // kurze Überschrift des Schritts
+  text: string;
+  img: ProjectImage;
+};
+
+export type ProjectImage = {
+  id: string; // Datei public/img/projekte/<id>.webp (dazu <id>-640.webp, wenn `small`)
+  small?: boolean;
+  width: number;
+  height: number;
+  alt: string;
+  cap: string;
+  dlr?: boolean; // DLR-Foto: CC BY-NC-ND 3.0, nur verkleinert, nie beschnitten, Nachweis dabei
 };
 
 export const projects: Project[] = [
@@ -375,6 +395,30 @@ export const projects: Project[] = [
     facts: [{ label: "Note", value: "1,2" }],
     tools: ["Infor (ERP)"],
     figure: "ringprojekt",
+    steps: [
+      {
+        stage: "Planen",
+        text: "Aus dem Entwurf habe ich die Fertigung geplant: Stückliste und Arbeitsgangfolge in Infor, Halterung und Niederhalter als Baum, darunter die Arbeitsgänge je Teil.",
+        img: { id: "prototyp", small: true, width: 1200, height: 938, alt: "3D-gedruckter Prototyp der Halterung in Blau", cap: "Prototyp aus dem 3D-Drucker" },
+      },
+      {
+        stage: "Fertigen",
+        text: "Je ein Arbeitsplan für Guss, Spanen, Rapid Prototyping und Messtechnik. Während der Fertigung habe ich die Zeiten erfasst und daraus die Maschinenkosten der Verfahren berechnet.",
+        img: { id: "rohguss", small: true, width: 1200, height: 938, alt: "Rohes Gussteil aus Aluminium mit rauer Oberfläche, noch unbearbeitet", cap: "Aluminium-Rohguss, noch unbearbeitet" },
+      },
+      {
+        stage: "Endbauteil",
+        text: "Im Team entstand die Messhalterung aus Aluminium mit dem 3D-gedruckten Niederhalter. Die Abschlusspräsentation habe ich für den erkrankten Teamleiter gehalten.",
+        img: {
+          id: "fertig",
+          small: true,
+          width: 1200,
+          height: 937,
+          alt: "Fertige Halterung: gefräste Aluminiumplatte mit Bohrungen und einer Aufnahme, daran der schwarze 3D-gedruckte Niederhalter angeschraubt",
+          cap: "Fertige Halterung: gefräst und gebohrt, der gedruckte Niederhalter angeschraubt",
+        },
+      },
+    ],
   },
   // Bachelorarbeit (2026-10-14): Fakten aus der Arbeit (Endfassung, abgegeben 18.06.2024) und den
   // Kolloquiumsfolien, die Zahl der Heliostaten aus der DLR-Bildunterschrift. Die Kostentreppe
@@ -430,6 +474,39 @@ export const projects: Project[] = [
       href: "https://doi.org/10.52825/solarpaces.v3i.2420",
     },
     figure: "heliostat",
+    beside: {
+      id: "juelich",
+      small: true,
+      width: 1200,
+      height: 675,
+      alt: "Blick aus dem Heliostatfeld: schräg gestellte Spiegel im Vordergrund, dahinter die beiden Solartürme, über ihnen die Sonne",
+      cap: "Die beiden Solartürme in Jülich, fotografiert aus dem Heliostatfeld.",
+      dlr: true,
+    },
+    steps: [
+      {
+        stage: "Vom Modell zur Fertigung",
+        text: "Vom neuen Entwurf gab es ein CAD-Modell, aber keine belastbaren Kosten. Daraus habe ich Baumstrukturen nach Montageschritten aufgebaut und die Fertigungsstücklisten abgeleitet.",
+        img: {
+          id: "heliostat-cad",
+          width: 335,
+          height: 391,
+          alt: "CAD-Modell des neuen Heliostaten: ein schwarzes Rohr als Säule, darauf ein Ausleger und ein schräg gestellter Spiegel mit Rahmen",
+          cap: "Der Entwurf im CAD: für ihn habe ich die Kosten berechnet",
+        },
+      },
+      {
+        stage: "Von der Einzelfertigung zur Großserie",
+        text: "Der frühere Prototyp war eine Einzelfertigung. Für die Großserie habe ich je Bauteil das wirtschaftlichste Verfahren gewählt, etwa Laserschneiden für die dünnwandigen Stahlteile, Walzrunden und HF-Schweißen für das Rohr der Pylone.",
+        img: {
+          id: "heliostat-prototyp",
+          width: 387,
+          height: 391,
+          alt: "Früherer Prototyp im Freien: eine Säule aus Aluminium auf einer Bodenplatte, darauf der schräg gestellte Spiegel",
+          cap: "Der frühere Prototyp, eine Einzelfertigung",
+        },
+      },
+    ],
   },
   // Masterarbeit (2026-10-14): Fakten aus der Endfassung (01.06.2026). Relevanztabelle daneben
   // (figures/ImpactScreen.astro) = Tabelle 6, Ergebnis darunter (figures/LifeCycle.astro) =

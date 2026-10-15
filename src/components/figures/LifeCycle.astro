@@ -4,6 +4,8 @@
 // Source: Masterarbeit, Tabellen 25 und 26 (MJ pro Stück). Published with the owner's clearance.
 // Plain bars on one shared scale (owner: "just a clear bar"): the point is that the use phase
 // is almost the whole bar, so the four other phases are shown together and named in the text.
+// Since 2026-10-15 the bars grow when the chart comes into view (Projekte's script sets .go,
+// html.js only), and the stretch the hollow variant does not need shows as a dashed box.
 const variants = [
   { id: "voll", name: "Massiv gedruckt", phases: { material: 4.08, produktion: 5.36, transport: 6.13, nutzung: 1566.28, entsorgung: 0.48 } },
   { id: "hohl", name: "Hohl gedruckt", phases: { material: 1.63, produktion: 2.16, transport: 1.97, nutzung: 503.45, entsorgung: 0.15 } },
@@ -21,19 +23,20 @@ const pct = (n: number) => `${((n / max) * 100).toFixed(2)}%`;
 const saving = 1 - rows[1].total / rows[0].total;
 ---
 
-<figure class="lc">
+<figure class="lc" data-build>
   <div class="panel">
   <p class="lc-head">
     Kumulierter Energieaufwand einer Luftleitschaufel über 10 Jahre im A350, in Megajoule pro Stück
   </p>
   <ul class="lc-rows">
     {
-      rows.map((r) => (
-        <li class="lc-row">
+      rows.map((r, k) => (
+        <li class="lc-row" style={`--i:${k}`}>
           <span class="lc-name">{r.name}</span>
           <span class="lc-track" aria-hidden="true">
             <span class="lc-use" style={`width:${pct(r.use)}`} />
             <span class="lc-rest" style={`width:${pct(r.rest)}`} />
+            {r.total < max && <span class="lc-saved">rund {fmt(saving * 100)}&nbsp;% weniger</span>}
           </span>
           <span class="lc-total">{fmt(r.total)}&nbsp;MJ</span>
           <span class="lc-read">
@@ -128,6 +131,47 @@ const saving = 1 - rows[1].total / rows[0].total;
     background: var(--steel);
     border-left: 2px solid var(--paper);
     border-radius: 0 3px 3px 0;
+  }
+
+  /* what the hollow variant saves: the rest of the massive one's length, dashed */
+  .lc-saved {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0.4rem;
+    border: 1.5px dashed var(--ink-3);
+    border-radius: 3px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .lc-track {
+    height: 1.25rem;
+  }
+
+  /* the build-up: flight first, then the rest, row after row; the saving fades in last */
+  .lc-use,
+  .lc-rest {
+    transform-origin: left;
+    transition: transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i, 0) * 0.35s);
+  }
+  .lc-rest {
+    transition-delay: calc(var(--i, 0) * 0.35s + 0.5s);
+  }
+  .lc-saved,
+  .lc-total {
+    transition: opacity 0.5s calc(var(--i, 0) * 0.35s + 0.8s);
+  }
+  :global(html.js) .lc:not(.go) .lc-use,
+  :global(html.js) .lc:not(.go) .lc-rest {
+    transform: scaleX(0);
+  }
+  :global(html.js) .lc:not(.go) .lc-saved,
+  :global(html.js) .lc:not(.go) .lc-total {
+    opacity: 0;
   }
 
   .lc-read {

@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Projekte B: Ruhig</title>
+<link rel="stylesheet" href="projekte-mock.css" />
+<style>
+  /* Direction B (Jasper Morrison, Formafantasma): quiet type, much air. A narrow facts column on
+     the left stays beside the project while it is read (sticky); on the right a narrow text
+     measure alternates with large pictures: Aufgabe, the process photos, my part, the result
+     photo, the result. The pictures are wider than the text. */
+  .proj {
+    padding: calc(var(--sp-block) * 1.5) 0;
+  }
+  .proj + .proj {
+    border-top: 1px solid var(--line);
+  }
+  .meta {
+    font-size: 0.875rem;
+    color: var(--ink-2);
+  }
+  .meta h3 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.375rem;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+  .meta .sub {
+    margin-top: 0.4rem;
+    font-family: var(--serif);
+    font-size: 1rem;
+    line-height: 1.35;
+    color: var(--ink-2);
+  }
+  .meta dl {
+    margin-top: 1.25rem;
+    display: grid;
+    gap: 0.6rem;
+  }
+  .meta dt {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .meta .where {
+    margin-top: 1rem;
+  }
+  .meta a {
+    display: inline-block;
+    margin-top: 0.9rem;
+  }
+  .flow > * + * {
+    margin-top: var(--sp-gap);
+  }
+  .txt {
+    max-width: 34rem;
+  }
+  .txt h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  .txt p {
+    margin-top: 0.3rem;
+    font-family: var(--serif);
+    font-size: 1.125rem;
+    line-height: 1.55;
+  }
+  .pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .pair img.r128 {
+    aspect-ratio: 1.28;
+    object-fit: cover;
+  }
+  .pair.heli {
+    grid-template-columns: 335fr 387fr;
+    width: 80%;
+  }
+  .big {
+    width: 88%;
+  }
+  .big.right {
+    margin-left: auto;
+  }
+  @media (min-width: 56rem) {
+    .proj {
+      display: grid;
+      grid-template-columns: 15rem minmax(0, 1fr);
+      gap: clamp(2.5rem, 5vw, 5rem);
+      align-items: start;
+    }
+    .meta {
+      position: sticky;
+      top: 2rem;
+    }
+  }
+  @media (max-width: 55.99rem) {
+    .meta {
+      margin-bottom: var(--sp-gap);
+    }
+    .big,
+    .pair.heli {
+      width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="mocknote"><b>Entwurf B: Ruhig</b> (nach Jasper Morrison, Formafantasma). Links eine schmale Spalte mit Titel und Fakten, die beim Lesen stehen bleibt. Rechts wechseln sich kurze Textabsätze in schmalem Satz mit großen Bildern ab, in der Reihenfolge der Geschichte.</p>
+  <h2 class="sec-title">Projekte</h2>
+
+  <article class="proj">
+    <aside class="meta">
+      <h3>Ringprojekt</h3>
+      <p class="sub">Eine Messhalterung für einen Turbolader konstruieren und fertigen</p>
+      <p class="where">Hochschule Düsseldorf<br />Wintersemester 2022/23</p>
+      <dl><div><dt>Note</dt><dd>1,2</dd></div><div><dt>Software</dt><dd>Infor (ERP)</dd></div></dl>
+    </aside>
+    <div class="flow">
+      <div class="txt"><h4>Aufgabe</h4><p>Im 5. Semester haben wir zu siebt eine Messhalterung für einen Turbolader entwickelt und selbst gefertigt, vom Entwurf am Rechner bis zur Messung.</p></div>
+      <div class="pair">
+        <figure><img class="r128" src="../public/img/projekte/prototyp.webp" alt="" /><figcaption>Prototyp aus dem 3D-Drucker</figcaption></figure>
+        <figure><img class="r128" src="../public/img/projekte/rohguss.webp" alt="" /><figcaption>Aluminium-Rohguss, noch unbearbeitet</figcaption></figure>
+      </div>
+      <div class="txt"><h4>Mein Beitrag</h4><p>Als Verantwortlicher für Produktionsplanung und -steuerung habe ich Stückliste und Arbeitspläne in Infor aufgebaut, Fertigungszeiten erfasst und die Abschlusspräsentation übernommen.</p></div>
+      <figure class="big right"><img src="../public/img/projekte/fertig.webp" alt="" /><figcaption>Fertige Halterung: gefräst und gebohrt, der gedruckte Niederhalter angeschraubt</figcaption></figure>
+      <div class="txt"><h4>Ergebnis</h4><p>Im Team entstand die fertige Messhalterung aus Aluminium mit einem 3D-gedruckten Niederhalter.</p></div>
+      <p class="details">Team und Fertigungsplanung im Detail</p>
+    </div>
+  </article>
+
+  <article class="proj">
+    <aside class="meta">
+      <h3>Bachelorarbeit</h3>
+      <p class="sub">Herstellkostenoptimierung von Heliostaten künftiger Solarturm-Anlagen</p>
+      <p class="where">DLR, Institut für Solarforschung, Jülich<br />März bis Juni 2024</p>
+      <dl><div><dt>Pro Quadratmeter Spiegel</dt><dd>ca. 58 €</dd></div><div><dt>Software</dt><dd>Autodesk Inventor, Excel, Costing24, Witness</dd></div></dl>
+      <a href="#">SolarPACES 2024: Konferenzbeitrag (Erstautor)</a>
+    </aside>
+    <div class="flow">
+      <div class="txt"><h4>Aufgabe</h4><p>Für einen neuen Heliostaten des DLR sollte die wirtschaftlichste Fertigung in Großserie bestimmt werden. Heliostaten sind nachgeführte Spiegel, die Sonnenlicht auf einen Solarturm lenken.</p></div>
+      <figure class="big"><img src="../public/img/projekte/juelich.webp" alt="" /><figcaption>Die beiden Solartürme in Jülich, fotografiert aus dem Heliostatfeld. Foto: DLR, <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC BY-NC-ND 3.0</a></figcaption></figure>
+      <div class="txt"><h4>Mein Beitrag</h4><p>Ich habe aus dem CAD-Modell die Fertigung abgeleitet, Verfahren im technologischen Variantenvergleich ausgewählt und Material, Zukaufteile und Bearbeitungszeiten in Excel kalkuliert.</p></div>
+      <div class="pair heli">
+        <figure><img src="../public/img/projekte/heliostat-cad.webp" alt="" /><figcaption>Der Entwurf im CAD: für ihn habe ich die Kosten berechnet</figcaption></figure>
+        <figure><img src="../public/img/projekte/heliostat-prototyp.webp" alt="" /><figcaption>Der frühere Prototyp, eine Einzelfertigung</figcaption></figure>
+      </div>
+      <div class="txt"><h4>Ergebnis</h4><p>Die Kalkulation ergibt rund 116 € Herstellkosten pro Heliostat für die angenommene Großserie, ohne Rüstkosten. Aus der Arbeit entstand ein SolarPACES-Konferenzbeitrag mit mir als Erstautor.</p></div>
+      <p class="details">Variantenvergleich und Kalkulation im Detail</p>
+    </div>
+  </article>
+
+  <article class="proj">
+    <aside class="meta">
+      <h3>Masterarbeit</h3>
+      <p class="sub">Ökologische Einflussfaktoren für einen flexiblen Einsatz der additiven Fertigung in der Luftfahrt</p>
+      <p class="where">Hochschule Düsseldorf, mit der RWTH Aachen<br />Januar bis Juni 2026</p>
+      <dl><div><dt>Note</dt><dd>1,2</dd></div><div><dt>Software</dt><dd>Excel</dd></div></dl>
+    </aside>
+    <div class="flow">
+      <div class="txt"><h4>Aufgabe</h4><p>Wie lassen sich additiv und konventionell gefertigte Kabinenbauteile über ihren gesamten Lebenszyklus ökologisch vergleichen? Dafür sollte eine Bewertungsmetrik entwickelt und mit einem Industriepartner erprobt werden.</p></div>
+      <div class="txt"><h4>Mein Beitrag</h4><p>Ich habe ein Excel-Tool für Energieaufwand und Treibhauspotenzial entwickelt, weitere Umweltwirkungen begründet eingeordnet und die Metrik mit Diehl Aviation an einer Luftleitschaufel erprobt.</p></div>
+      <figure>
+        <div class="is">
+          <p class="q">Welche Umweltwirkungen zählen bei Kabinenbauteilen?</p>
+          <div class="levels">
+            <div class="lvl"><b><span class="marks"><i class="on"></i><i class="on"></i><i class="on"></i></span>Sehr relevant</b><ul><li>Klimawandel</li><li>Abiotische Ressourcenverknappung</li></ul></div>
+            <div class="lvl"><b><span class="marks"><i class="on"></i><i class="on"></i><i></i></span>Relevant</b><ul><li>Humantoxizität, karzinogen und nicht karzinogen</li><li>Ozonabbau</li><li>Ozonbildung</li><li>Eutrophierung</li><li>Feinstaub</li></ul></div>
+            <div class="lvl"><b><span class="marks"><i class="on"></i><i></i><i></i></span>Geringe Relevanz</b><ul><li>Versauerung</li><li>Ökotoxizität in Süßwasser und Boden</li><li>Wasserverbrauch</li></ul></div>
+          </div>
+          <p class="out">Entfallen ganz: ionisierende Strahlung und Landnutzung.</p>
+        </div>
+        <figcaption>Meine Relevanztabelle der Wirkungskategorien.</figcaption>
+      </figure>
+      <div class="txt"><h4>Ergebnis</h4><p>Im untersuchten Fall benötigt die hohl gedruckte Variante über zehn Jahre im A350 rund 68 % weniger Energie als die massiv gedruckte. Ein Vergleich mit einer konventionell gefertigten Variante war mangels Daten nicht möglich.</p></div>
+      <p class="details">Aufbau und Erprobung der Metrik im Detail</p>
+    </div>
+  </article>
+</div>
+</body>
+</html>

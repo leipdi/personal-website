@@ -165,6 +165,8 @@ body {
        layout change (padding, heights) into a tiny transition, and a script measuring right
        after a change read the old value (the Werdegang text twitched at each lane switch) */
     transition-duration: 0s !important;
+    /* and no delays: staggered build-ups (the Projekte charts) would still step one by one */
+    transition-delay: 0s !important;
     animation-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }

@@ -4,7 +4,7 @@
 // conventionally made cabin parts. In the thesis a traffic light (green, yellow, red); here the
 // level is a row of three ink marks, because colour on this site means light (sun) or a Werdegang
 // category. Plain lists (role="list": Safari drops list semantics without bullets), no JS. On
-// wide screens it sits under the project text with the levels side by side (style block).
+// wide screens the levels stand side by side (style block).
 const levels = [
   { marks: 3, name: "Sehr relevant", items: ["Klimawandel", "Abiotische Ressourcenverknappung"] },
   {
@@ -129,26 +129,16 @@ const levels = [
     line-height: 1.4;
     color: var(--ink-3);
   }
-  /* wide screens (Projekte, 2026-10-15): one row under the project text, the three levels on
-     the project's three columns (subgrid down to the list), heading, note and caption across */
+  /* wide screens (Projekte, 2026-10-15): the three levels side by side; heading, note and
+     caption across */
   @media (min-width: 56rem) {
-    .is,
-    .panel,
-    dl {
-      grid-column: 1 / -1;
-      display: grid;
-      grid-template-columns: subgrid;
-    }
     .is {
       max-width: none;
     }
-    .head,
-    .out,
-    figcaption {
-      grid-column: 1 / -1;
-    }
-    .lvl {
-      padding-right: 1rem;
+    dl {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      column-gap: 1.5rem;
     }
     figcaption {
       max-width: 52rem;

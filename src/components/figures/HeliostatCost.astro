@@ -10,7 +10,9 @@
 // stages; the critic found the slivers unreadable, so the stages are a sub-line now.
 // HTML, not SVG: text stays at its real size on phones; table roles give screen readers a table.
 // Ink and steel only (sun means light, the category colours mean Werdegang). Each value is printed
-// at its bar's end, so no hover layer is needed. No JS.
+// at its bar's end, so no hover layer is needed. Since 2026-10-15 it builds up when it comes into
+// view (Projekte's script sets .go; html.js only, so without JS it stands complete): group after
+// group, then the total, which counts up meanwhile. Reduced motion: complete at once.
 
 // sum = the group's stage subtotals added up (MK + FK); manufacturing is the rest after material
 type Group = { name: string; stages: string; mk: number; sum: number };
@@ -41,7 +43,7 @@ const mk = groups.reduce((a, g) => a + g.mk, 0); // 92,34 €
 const share = Math.round((mk / TOTAL) * 100);
 ---
 
-<figure class="hc">
+<figure class="hc" data-build>
   <div class="panel">
     <div class="tbl" role="table" aria-label="Herstellkosten des Heliostaten nach Fertigungsstufen, Beträge in Euro">
       <div role="rowgroup" class="head">
@@ -52,14 +54,14 @@ const share = Math.round((mk / TOTAL) * 100);
       </div>
       <div role="rowgroup">
         {
-          rows.map((g) => (
-            <div role="row" class="row">
+          rows.map((g, k) => (
+            <div role="row" class="row" style={`--i:${k}`}>
               <span role="rowheader" class="name">
                 {g.name}
                 <span class="stages">{g.stages}</span>
               </span>
               <span role="cell" class="track">
-                <span class="bar" style={`left:${pct(g.from)};width:${pct(g.sum)}`} aria-hidden="true">
+                <span class="bar" style={`left:${pct(g.from)};width:${pct(g.sum)}`} aria-hidden="true" data-count-bar data-from={g.from.toFixed(2)} data-sum={g.sum.toFixed(2)}>
                   <i class="mk" style={`width:${((g.mk / g.sum) * 100).toFixed(2)}%`} />
                   <i class="fk" />
                 </span>
@@ -72,14 +74,14 @@ const share = Math.round((mk / TOTAL) * 100);
         }
       </div>
       <div role="rowgroup" class="end">
-        <div role="row" class="row">
+        <div role="row" class="row" style={`--i:${rows.length}`}>
           <span role="rowheader" class="name">Heliostat</span>
           <span role="cell" class="track">
             <span class="bar" style={`left:0;width:${pct(TOTAL)}`} aria-hidden="true">
               <i class="mk" style={`width:${((mk / TOTAL) * 100).toFixed(2)}%`} />
               <i class="fk" />
             </span>
-            <span class="val" style={`left:${pct(TOTAL)}`}>{eur(TOTAL)} €</span>
+            <span class="val" style={`left:${pct(TOTAL)}`} data-count={TOTAL}>{eur(TOTAL)} €</span>
           </span>
         </div>
       </div>
@@ -246,6 +248,21 @@ const share = Math.round((mk / TOTAL) * 100);
   .note {
     display: block;
     margin-top: 0.3rem;
+  }
+
+  /* the build-up: bars grow from their left end one group after another (--i), values follow */
+  .bar {
+    transform-origin: left;
+    transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i, 0) * 0.45s);
+  }
+  .val {
+    transition: opacity 0.4s calc(var(--i, 0) * 0.45s + 0.6s);
+  }
+  :global(html.js) .hc:not(.go) .bar {
+    transform: scaleX(0);
+  }
+  :global(html.js) .hc:not(.go) .row:not(.end .row) .val {
+    opacity: 0;
   }
 
   /* narrow column: the name above its bar */
