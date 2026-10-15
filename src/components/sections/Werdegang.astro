@@ -1,5 +1,4 @@
 ---
-import ImagePlaceholder from "../ImagePlaceholder.astro";
 import Heliostat from "../figures/Heliostat.astro";
 import { career } from "../../data/cv";
 import { toFrac, todayFrac } from "../../lib/dates";
@@ -225,7 +224,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
           // a thesis' submission date is one more fact (the chart's flag shows every milestone)
           const ms = r.milestone && msDate(r) && /^Abgabe/.test(r.milestone.label) ? [{ label: "Abgabe", value: msDate(r)! }] : [];
           const facts = [...(dur ? [{ label: "Dauer", value: dur }] : []), ...(r.facts ?? []), ...ms];
-          const side = facts.length > 0 || (r.visual && r.visual !== "heliostat");
+          const side = facts.length > 0;
           return (
             <li id={r.id} class="st" data-st={r.id} data-cat={r.cat}>
               <p class="meta">
@@ -270,9 +269,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
                       ))}
                     </dl>
                   )}
-                  {r.visual && r.visual !== "heliostat" && (
-                    <ImagePlaceholder label={r.visual.image} note={r.visual.note} ratio="4 / 3" />
-                  )}
                 </div>
               )}
             </li>
@@ -287,7 +283,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
 <script>
   import { MONTHS_SHORT as months } from "../../lib/dates";
   import { packLane } from "../../lib/ganttPack";
-  import { onScrollFrame, requestFrame, savedY, saveY, settled } from "../../scripts/page";
+  import { hashId, onScrollFrame, requestFrame, savedY, saveY, settled } from "../../scripts/page";
   // Playhead: each station gets its own stretch of scrolling (sequential, for reading); the
   // playhead moves in real time between the stations' start dates (chronological, for the
   // eye). The station crossing the reading line (a third of the way down the space left
@@ -487,7 +483,10 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     pack();
     return compact;
   };
+  // the playhead tag's width, measured when its text changes (and again after a layout)
+  let tagW = 0;
   const layout = () => {
+    tagW = 0;
     if (phone.matches) fullH = measureNamed();
     else {
       namedGap = 0;
@@ -550,6 +549,13 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   let laneGap = 0;
   // the chart's height with every lane shown (measured at rest)
   let fullH = planWrap.offsetHeight;
+  // (compared with what was written last: the browser reads style.left back rounded)
+  const lefts = new Map<HTMLElement, string>();
+  const setLeft = (el: HTMLElement, v: string) => {
+    if (lefts.get(el) === v) return;
+    lefts.set(el, v);
+    el.style.left = v;
+  };
   const update = () => {
     // where the page is too short to keep the chart pinned over the last station (phones, and
     // tablets/small laptops at the very end), the last station pushes the chart off: it fades
@@ -614,18 +620,25 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     // line unclamped, the tag clamped so it always stays fully inside the track
     const w = grid.clientWidth;
     const x = frac(t) * w;
-    head.style.left = `${x}px`;
+    // (every write below happens only when the value changed: this runs on every scroll frame
+    // of the whole page, and a write followed by the next read forces a layout)
+    setLeft(head, `${x}px`);
+    let text: string;
     if (cur.length === 1 && early[cur[0]]) {
       // the end month of a station that ends at t (an end counts up to the end of its month)
       const e = Math.round(ends[cur[0]] * 12) - 1;
-      tag.textContent = `bis ${months[((e % 12) + 12) % 12]} ${Math.floor(e / 12)}`;
+      text = `bis ${months[((e % 12) + 12) % 12]} ${Math.floor(e / 12)}`;
     } else {
       const m = Math.min(Math.floor((t - Math.floor(t)) * 12 + 1e-6), 11);
-      tag.textContent = `${months[m]} ${Math.floor(t)}`;
+      text = `${months[m]} ${Math.floor(t)}`;
     }
-    const tw = tag.offsetWidth;
+    if (text !== tag.textContent || !tagW) {
+      tag.textContent = text;
+      tagW = tag.offsetWidth;
+    }
+    const tw = tagW;
     const tx = Math.min(Math.max(x, tw / 2), w - tw / 2);
-    tag.style.left = `${tx}px`;
+    setLeft(tag, `${tx}px`);
     // "heute" steps aside while the tag is within ~60px of it
     const g = grid.getBoundingClientRect();
     const hb = todayLbl.getBoundingClientRect();
@@ -638,11 +651,15 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     // pinned chart, so a row inside it would count as hidden). Each row's scroll area is moved
     // into the middle of the free space below the chart, wherever the row is right now.
     const mid = (spTop + innerHeight - spBottom) / 2;
-    for (const r of rows) {
-      const b = r.getBoundingClientRect();
-      r.style.scrollMarginTop = `${b.top - (mid - b.height / 2)}px`;
-      r.style.scrollMarginBottom = `${mid + b.height / 2 - b.bottom}px`;
-    }
+    // (all reads first, then the writes)
+    const boxes = rows.map((r) => r.getBoundingClientRect());
+    rows.forEach((r, j) => {
+      const b = boxes[j];
+      const mt = `${(b.top - (mid - b.height / 2)).toFixed(1)}px`;
+      const mb = `${(mid + b.height / 2 - b.bottom).toFixed(1)}px`;
+      if (r.style.scrollMarginTop !== mt) r.style.scrollMarginTop = mt;
+      if (r.style.scrollMarginBottom !== mb) r.style.scrollMarginBottom = mb;
+    });
 
     // The chart shows only the lane(s) of what is being read (owner 2026-10-02); at rest
     // (before the chart pins) the whole plan. The chart sits in the flow above the stations,
@@ -746,7 +763,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     if (j >= 0) pin(j, "nav");
     else unpin();
   };
-  const fromHash = () => pinById(decodeURIComponent(location.hash.slice(1)));
+  const fromHash = () => pinById(hashId());
   for (const r of rows) r.addEventListener("click", () => pinById(r.dataset.row!));
   // Back/Forward: the browser would restore a scroll position saved before layout, the pin
   // and the list's bottom space moved things; instead the station is scrolled into place
@@ -763,7 +780,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     { passive: true },
   );
   const toStation = (e?: PopStateEvent) => {
-    const el = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    const el = document.getElementById(hashId());
     if (el && sts.includes(el)) el.scrollIntoView({ block: "start" });
     else if (e && savedY(e.state) !== null) scrollTo(0, savedY(e.state)!);
     fromHash();
@@ -1508,10 +1525,6 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     .side {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       column-gap: 1.5rem;
-    }
-    .side > :global(.img-ph) {
-      grid-column: 2;
-      grid-row: 1 / span 2;
     }
   }
 

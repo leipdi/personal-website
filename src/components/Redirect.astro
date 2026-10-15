@@ -22,7 +22,7 @@ const home = url("/");
     <title>Weiterleitung</title>
     <script is:inline define:vars={{ to, map, strict, home }}>
       const h = location.hash.slice(1);
-      location.replace(home + "#" + (map[h] || (strict ? to : h || to)));
+      location.replace(home + "#" + ((Object.hasOwn(map, h) && map[h]) || (strict ? to : h || to)));
     </script>
   </head>
   <body>

@@ -1,5 +1,5 @@
 // The Hobbys shelf: a real-time three.js scene of six compartments (owner 2026-10-10, mockup
-// drafts/hobbys-regal-3d-v4.html; history in AGENTS.md). Loaded lazily by Hobbys.astro when the
+// hobbys-regal-3d-v4.html in git history; history in docs/decisions.md). Loaded lazily by Hobbys.astro when the
 // section comes near the screen; initShelf(root) builds into root's [data-stage] and drives the
 // list beside it ([data-list] .row). Without WebGL it adds .no-3d to root and returns.
 import * as THREE from "three";
@@ -251,7 +251,10 @@ export function initShelf(root: HTMLElement) {
   function sync() {
     const lit = litIds();
     for (const it of items) it.on = lit.includes(it.id) || intro.has(it.id);
-    rows.forEach((r) => r.classList.toggle("is-on", lit.includes(r.dataset.id ?? "")));
+    rows.forEach((r) => {
+      r.classList.toggle("is-on", lit.includes(r.dataset.id ?? ""));
+      r.setAttribute("aria-pressed", String(focused === r.dataset.id));
+    });
     listEl.classList.toggle("has-on", lit.length > 0);
     stage.classList.toggle("is-hover", !!hovered && !focused);
     stage.classList.toggle("is-focus", !!focused);
@@ -300,8 +303,13 @@ export function initShelf(root: HTMLElement) {
   };
   root.querySelector("[data-prev]")?.addEventListener("click", () => step(-1));
   root.querySelector("[data-next]")?.addEventListener("click", () => step(1));
+  // (measured at the key press: the observer's flag can lag behind a fast scroll)
+  const onScreen = () => {
+    const r = stage.getBoundingClientRect();
+    return r.bottom > 0 && r.top < innerHeight;
+  };
   addEventListener("keydown", (e) => {
-    if (focused && (e.key === "ArrowLeft" || e.key === "ArrowRight") && !(e.target as HTMLElement | null)?.closest?.("[role=radiogroup], input, textarea")) {
+    if (focused && onScreen() && (e.key === "ArrowLeft" || e.key === "ArrowRight") && !(e.target as HTMLElement | null)?.closest?.("[role=radiogroup], input, textarea")) {
       e.preventDefault();
       step(e.key === "ArrowLeft" ? -1 : 1);
       return;
@@ -478,8 +486,8 @@ export function initShelf(root: HTMLElement) {
   renderer.compileAsync(scene, camera).catch(() => {}).then(go);
   setTimeout(go, 3000);
 
-  // test hooks (qa and testers)
-  window.__shelf = {
+  // test hooks (qa and testers, who open the page with ?force3d)
+  if (location.search.includes("force3d")) window.__shelf = {
     items, sync, renderer, camera, focus: focusOn,
     hover: (id: string | null) => { hovered = id; sync(); },
     pose: (id: string, p: number) => { const it = items.find((i) => i.id === id)!; it.on = true; it.glow = 1; it.lamp.intensity = 1.3; lampL.position.copy(it.lamp.position); lampL.intensity = 1.3; it.bulbMat.emissiveIntensity = 3; it.coneMat.opacity = 0.03; it.poolMat.opacity = 0.32; it.api.update(p, p * it.dur, 0.016, 1); renderer.shadowMap.needsUpdate = true; renderer.render(scene, camera); },

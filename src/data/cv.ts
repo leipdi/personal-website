@@ -4,10 +4,9 @@
 // Zertifikate, Kontaktdaten) stammen aus CV/LinkedIn. Alle Fließtexte und Zuordnungen sind
 // dagegen aus KI-Entwürfen entstanden (seit 2026-10-09 von Daniel übernommen, auf der Seite
 // nicht mehr markiert):
-//   profile.claim, career[].story, projectDrafts[].title/context/approach/result,
-//   topSkills (komplett: Auswahl, Titel, Belegzeilen, Zuordnung von Stationen und Software),
-//   competencies[].skill (Zuordnung CV-Methode -> Kernkompetenz), notes.
-// Seit 2026-09-26 stützen sich die Texte zu Bachelor- und Masterarbeit (career-Stories, projectDrafts)
+//   profile.claim, career[].story, projects (Texte),
+//   topSkills (komplett: Auswahl, Titel, Belegzeilen, Zuordnung der Software).
+// Seit 2026-09-26 stützen sich die Texte zu Bachelor- und Masterarbeit (career-Stories, projects)
 // zusätzlich auf die beiden Abschlussarbeiten ("Input Data/", nicht im Repo). Daniel hat die
 // Veröffentlichung trotz Sperrvermerk freigegeben. Zahlen daraus sind echt, die Formulierung KI.
 // profile.claim: *Wort* wird kursiv gesetzt (Betonung, index.astro).
@@ -41,8 +40,6 @@ export type CareerEntry = {
   place: string;
   kind: "ausbildung" | "beruf";
   story: string; // KI-PLATZHALTER: kurzer Einstieg
-  // Slug eines Eintrags in `projectDrafts` (alte Projekttexte, noch nicht wieder auf der Seite).
-  project?: string;
   // Meilenstein im Projektplan (Werdegang, Fahne am Balken): Abschluss oder Abgabe. at: "2024",
   // "Jun 2024" oder ein Tagesdatum "18.06.2024". Nur Fakten aus CV oder Abschlussarbeit.
   // tag = kurze Fahnenbeschriftung im Projektplan ("Abgabe BA")
@@ -50,8 +47,7 @@ export type CareerEntry = {
   // Werdegang-Station ausführlich (nur Hauptstationen):
   tasks?: string[]; // KI-PLATZHALTER: was er dort gemacht hat, aus CV/Abschlussarbeit umformuliert
   facts?: { label: string; value: string }[]; // Fakten aus CV/LinkedIn/Abschlussarbeit
-  tools?: string[]; // Schlüssel aus src/data/tools.ts, nur was CV/Arbeit belegen
-  visual?: "heliostat" | { image: string; note?: string }; // Bild rechts neben der Station
+  visual?: "heliostat"; // die Heliostat-Skizze in der Station
   // kurze Zeilenbeschriftung im Projektplan, wenn der Titel zu lang ist
   short?: string;
 };
@@ -64,7 +60,6 @@ export const career: CareerEntry[] = [
     id: "abitur",
     milestone: { at: "2020", label: "Abitur, Note 2,0", tag: "Note 2,0" },
     tasks: ["Allgemeine Hochschulreife mit Note 2,0"],
-    facts: [{ label: "Note", value: "2,0" }],
     short: "Abitur",
     title: "Allgemeine Hochschulreife",
     org: "Konrad-Adenauer-Gymnasium",
@@ -92,19 +87,19 @@ export const career: CareerEntry[] = [
     place: "Düsseldorf",
     kind: "ausbildung",
     story:
-      "Der Einstieg ins Wirtschaftsingenieurwesen: Grundstudium zwischen Technik und Betriebswirtschaft, parallel erste Stationen in der Praxis, abgeschlossen mit der Bachelorarbeit am DLR.",
+      "Der Einstieg ins Wirtschaftsingenieurwesen.",
   },
   {
     from: "Okt 2021",
     to: "Jul 2022",
     id: "tutor",
-    tasks: ["Mathematik-Tutorien für Erstsemester gehalten", "Der erste Job neben dem Studium"],
+    tasks: ["Mathematik-Tutorien für Erstsemester gehalten"],
     title: "Mathematik-Tutor",
     org: "Hochschule Düsseldorf",
     place: "Düsseldorf",
     kind: "beruf",
     story:
-      "Der erste Job neben dem Studium: Mathematik-Tutorien für Erstsemester.",
+      "Der erste Job neben dem Studium.",
   },
   {
     from: "Okt 2022",
@@ -116,7 +111,6 @@ export const career: CareerEntry[] = [
       "In Produktions- und Logistikfragen beraten",
     ],
     facts: [{ label: "Bereich", value: "Projektmanagement" }],
-    tools: ["SAP"],
     short: "Praktikant Projektmanagement",
     title: "Praktikant Projektmanagement",
     org: "IGH Infotec AG",
@@ -132,18 +126,16 @@ export const career: CareerEntry[] = [
     tasks: [
       "Mitarbeitercontrolling und Monatsabschlüsse in Excel und Pivot-Tabellen",
       "Timebutler als neues Zeiterfassungssystem eingeführt. Die Kolleg:innen auf das neue System geschult",
-      "Operative Aufgaben im Tagesgeschäft. Rechnungen überprüft und eingescannt, offene Forderungen nachgehalten, etc.",
+      "Operative Aufgaben im Tagesgeschäft. Rechnungen überprüft und eingescannt, offene Forderungen nachgehalten.",
     ],
     facts: [{ label: "Bereich", value: "Finanzen & Controlling" }],
-    tools: ["Excel", "Timebutler"],
     short: "Werkstudent Finanzen & Controlling",
     title: "Werkstudent Finanzen & Controlling",
     org: "IGH Infotec AG",
     place: "Langenfeld",
     kind: "beruf",
-    project: "zeiterfassung",
     story:
-      "Interner Wechsel zu einer anderen Abteilung. Neues Entdecken und frischer Wind.",
+      "Interner Wechsel in eine andere Abteilung.",
   },
   {
     from: "Mär 2024",
@@ -160,7 +152,6 @@ export const career: CareerEntry[] = [
       { label: "Pro Spiegelfläche", value: "58 €/m²" },
       { label: "Veröffentlicht", value: "SolarPACES Conference" },
     ],
-    tools: ["Autodesk Inventor", "Excel"],
     visual: "heliostat",
     short: "Bachelorarbeit am DLR",
     milestone: { at: "18.06.2024", label: "Abgabe der Bachelorarbeit", tag: "Abgabe BA" },
@@ -168,7 +159,6 @@ export const career: CareerEntry[] = [
     org: "DLR, Deutsches Zentrum für Luft- und Raumfahrt",
     place: "Jülich",
     kind: "beruf",
-    project: "heliostat",
     story:
       "Ein Heliostat ist ein nachgeführter Spiegel, der Sonnenlicht auf den Receiver eines Solarturms lenkt. Ausgangslage: eine neue Konstruktion eines Heliostaten. Die Frage: Was kostet der neue Heliostat des DLR in Serie und was sind die Produktionsschritte?",
   },
@@ -226,14 +216,12 @@ export const career: CareerEntry[] = [
       { label: "Anteil Nutzung", value: "ca. 99 % der Energie" },
       { label: "Hohle Variante", value: "rund 68 % weniger" },
     ],
-    tools: ["Excel"],
     short: "Masterarbeit, HSD und RWTH",
     milestone: { at: "01.06.2026", label: "Abgabe der Masterarbeit", tag: "Abgabe MA" },
     title: "Masterarbeit: Ökobilanz additiver Fertigung in der Luftfahrt",
     org: "Hochschule Düsseldorf, mit der RWTH Aachen",
     place: "Remote",
     kind: "beruf",
-    project: "luftfahrt",
     story:
       "Lohnt sich ein 3D-gedrucktes Kabinenteil ökologisch, über das ganze Leben des Bauteils gerechnet? Dafür eine Bewertungsmetrik nach ISO 14044 entwickelt.",
   },
@@ -248,72 +236,27 @@ export const career: CareerEntry[] = [
       "Kunden die Lösung vorgestellt",
     ],
     facts: [{ label: "Bereich", value: "BI Consulting" }],
-    tools: ["Power BI", "Jedox", "Copilot in Power BI"],
     title: "Praktikum BI Consulting",
     org: "ATVISIO Consult GmbH",
     place: "Düsseldorf",
     kind: "beruf",
-    project: "bi-consulting",
     story:
-      "Weitere Berufserfahrung sammeln und weitere Kenntnisse sammeln. Der Wille Power BI zu erlernen führte dazu, ein Praktikum im BI Consulting zu starten.",
+      "Mehr Berufserfahrung sammeln und Power BI lernen: Deshalb folgte ein Praktikum im BI Consulting.",
   },
   {
     from: "Okt 2026",
     to: "heute",
     id: "praktikum-digital-transformation",
     tasks: [
-      "Einführen eines geeigneten KI-Systems + Schulung",
-      "weitere Punkte offen",
+      "Einführung eines geeigneten KI-Systems mit Schulung der Mitarbeitenden",
     ],
     facts: [{ label: "Bereich", value: "Digital Transformation" }],
-    tools: ["Odoo", "ChatGPT", "Claude"],
     title: "Praktikum Digital Transformation",
     org: "KOMAcons GmbH",
     place: "Langenfeld",
     kind: "beruf",
-    project: "",
     story:
       "Die Prozesse eines kleinen Unternehmens über das ERP-System Odoo digitalisieren, dazu ein passendes KI-System einführen und klären, wo es sinnvoll hilft.",
-  },
-];
-
-export type ProjectDraft = {
-  slug: string;
-  title: string; // KI-PLATZHALTER
-  org: string;
-  period: string;
-  context: string; // KI-PLATZHALTER
-  approach: string; // KI-PLATZHALTER
-  result: string; // KI-PLATZHALTER
-  link?: { label: string; href: string };
-  // Welche Abbildung das Projekt begleitet (Komponenten in src/components/figures/).
-  figure?: "am-model" | "heliostat";
-};
-
-// Die alten Projekttexte (vor 2026-10-13), auf der Seite nicht verwendet: sie werden einzeln
-// überarbeitet und wandern dann nach `projects`.
-export const projectDrafts: ProjectDraft[] = [
-  {
-    slug: "bi-consulting",
-    title: "Berichte in Power BI und Jedox",
-    org: "Praktikum bei ATVISIO Consult GmbH",
-    period: "2026 – heute",
-    context:
-      "Die Daten eines Kunden liegen meist in mehreren Systemen. Bevor daraus ein Bericht werden kann, müssen sie über ETL-Strecken zusammengeführt und in ein Datenmodell gebracht werden.",
-    approach:
-      "ETL-Strecken und Berichte für Kunden und intern in Power BI und Jedox aufgebaut; zusätzlich eine Schulung zu Microsoft Copilot in Power BI konzipiert, um Kolleg:innen und Kunden den Einstieg zu erleichtern.",
-    result: "Laufende Berichte im Kundeneinsatz und eine wiederverwendbare Copilot-Schulung für das Team.",
-  },
-  {
-    slug: "zeiterfassung",
-    title: "Ein neues Zeiterfassungssystem einführen",
-    org: "Werkstudent bei IGH Infotec AG",
-    period: "2023 – 2024",
-    context:
-      "Ein wachsendes Team brauchte ein digitales Zeiterfassungssystem statt manueller Prozesse, inklusive der Frage, wie man Kolleg:innen zuverlässig auf ein neues Werkzeug umstellt.",
-    approach:
-      "Timebutler als neues Zeiterfassungssystem eingerichtet und Kolleg:innen darin geschult, parallel Mitarbeitercontrolling und Monatsabschlüsse in Excel/Pivot weitergeführt.",
-    result: "Timebutler lief danach im Alltag, und die Monatsabschlüsse liefen während der Umstellung normal weiter.",
   },
 ];
 
@@ -408,7 +351,7 @@ export const projects: Project[] = [
       },
       {
         stage: "Endbauteil",
-        text: "Im Team entstand die Messhalterung aus Aluminium mit dem 3D-gedruckten Niederhalter. Die Abschlusspräsentation habe ich für den erkrankten Teamleiter gehalten.",
+        text: "Die Abschlusspräsentation habe ich für den erkrankten Teamleiter gehalten.",
         img: {
           id: "fertig",
           small: true,
@@ -578,7 +521,7 @@ export const projects: Project[] = [
     intro:
       "Eine persönliche Website, die meinen Werdegang, meine Projekte und Interessen zusammenführt.",
     contribution: "Ich habe Inhalte und Gestaltung entwickelt und die Seite mit Hilfe von Agentic Coding in Claude Code umgesetzt, geprüft und überarbeitet.",
-    outcome: "Diese durchgehende Seite mit Projekten und interaktivem Hobbyregal, veröffentlicht auf GitHub Pages.",
+    outcome: "Entstanden ist diese durchgehende Seite mit Projekten und interaktivem Hobbyregal, veröffentlicht auf GitHub Pages.",
     role: "Mein Vorgehen",
     tasks: [
       {
@@ -627,16 +570,6 @@ export const ratedSkills: RatedSkill[] = [
   { name: "Englisch", level: 4, levelLabel: "C1", group: "Sprachen" },
 ];
 
-// Methoden/Fachgebiete aus dem CV ohne eigene Skalen-Bewertung. `skill` ordnet sie einer
-// Kernkompetenz aus `topSkills` zu. Derzeit auf der Seite nicht verwendet.
-// KI-PLATZHALTER: die Zuordnung Methode -> Kernkompetenz (skill) ist abgeleitet, nicht aus dem CV.
-export const competencies: { name: string; skill: TopSkillId }[] = [
-  { name: "Herstellkostenrechnung", skill: "kosten" },
-  { name: "Stahlkonstruktionen", skill: "kosten" },
-  { name: "BI Consulting", skill: "data" },
-  { name: "Controlling und Finanzen", skill: "controlling" },
-];
-
 // Ökobilanz hat seit 2026-09-25 keine eigene Box mehr, Python kein Software-Logo mehr
 // (beides Vorgabe Daniel), daher stehen sie hier.
 export const otherCompetencies = ["Ökobilanz (LCA) nach ISO 14040", "Python", "Forschungsprojektmanagement", "Marketing"];
@@ -648,19 +581,11 @@ export const certifications = [
   { id: "z-python", name: "Python Course", authority: "Kaggle", date: "2026" },
 ];
 
-// KI-PLATZHALTER: Formulierung von KI, Fakten aus LinkedIn. Derzeit auf der Seite nicht verwendet
-// ("Neben dem Job" ist in Hobbys aufgegangen).
-export const notes = [
-  "Spielt beim VfB 06 Langenfeld und pfeift als Schiedsrichter im Kreis Remscheid/Solingen, auf beiden Seiten der Linie zu Hause.",
-  "Baut in der Freizeit mit 3D-Druck und automatisiert eigene Projekte mit Claude (Cowork, Code).",
-];
-
-// KI-PLATZHALTER (komplett): die Kernkompetenzen-Blätter (index.astro).
+// KI-PLATZHALTER (komplett): die Kernkompetenzen-Blätter (Kernkompetenzen.astro).
 // Ein erster KI-Vorschlag, den Daniel selbst überarbeitet: welche Kompetenzen, ihre Titel,
-// die Belegzeilen (proof) und die Zuordnung von Stationen (learned) und Software (tools)
+// die Belegzeilen (proof) und die Zuordnung der Software (tools)
 // sind abgeleitet. Die Fakten in den Belegzeilen stammen nur aus den Stationen oben.
-// Software steht nur dort, wo eine Station oder ein Zertifikat sie belegt; wo das offen ist, steht eine Frage
-// an Daniel (toolsQuestion) statt einer geratenen Angabe.
+// Software steht nur dort, wo eine Station oder ein Zertifikat sie belegt.
 export type TopSkillId = "kosten" | "data" | "prozesse" | "controlling";
 
 export type TopSkill = {
@@ -670,9 +595,7 @@ export type TopSkill = {
   // ergänzt später eigene Angaben). Unterpunkte aus den Stationen (career[].tasks/facts).
   proof: { text: string; sub?: string[] }[];
   tools: string[]; // Schlüssel aus src/data/tools.ts (Logo oder Logo-Platzhalter)
-  toolsQuestion?: string;
-  learned: { label: string; href: string }[];
-  // Das Bild der Karte steht in `arts` in src/pages/index.astro, nach id ausgewählt.
+  // Das Bild der Karte steht in `arts` in Kernkompetenzen.astro, nach id ausgewählt.
 };
 
 // Reihenfolge und Auswahl der Boxen: Vorgabe von Daniel (2026-09-25). Belegzeilen und
@@ -695,15 +618,11 @@ export const topSkills: TopSkill[] = [
         text: "Ringprojekt im Studium: eine Messhalterung für einen Turbolader als Gruppe konstruiert und hergestellt, meine Aufgabe PPS",
         sub: ["Planung und Steuerung der Laborbesuche",
           "Herstellkosten anhand von Materialdaten und Maschinendaten",
-          "Vorstellen der Ergebnisse an ein Plenum"],
+          "Vorstellen der Ergebnisse vor einem Plenum"],
       },
     ],
     // Software laut Daniel (2026-09-25): CAD in Inventor, Kalkulation per Hand in Excel
     tools: ["Autodesk Inventor", "Excel"],
-    learned: [
-      { label: "Bachelorarbeit am DLR", href: "#bachelorarbeit" },
-      { label: "Ringprojekt (B.Eng.)", href: "#ringprojekt" },
-    ],
   },
   {
     id: "data",
@@ -718,19 +637,15 @@ export const topSkills: TopSkill[] = [
         ],
       },
       {
-        text: "KI Enthusiast",
+        text: "KI-Enthusiast",
         sub: [
-          "KOMAcons GmbH: Integration eines geeigneten KI-Tools + Schulung der MA",
-          "„Vibe Coding“ Beispiele: Portfolio Website",
+          "KOMAcons GmbH: Integration eines geeigneten KI-Tools mit Schulung der Mitarbeitenden",
+          "Agentic Coding, zum Beispiel diese Portfolio-Website",
         ],
       },
     ],
     // Python und Jedox auf Wunsch von Daniel (2026-09-25) nicht als Software-Logo
     tools: ["Power BI", "MSSQL", "Copilot in Power BI", "Claude"],
-    learned: [
-      { label: "Praktikum BI Consulting (ATVISIO)", href: "#praktikum-bi" },
-      { label: "SQL Grundkurs (LinkedIn Learning)", href: "#z-sql" },
-    ],
   },
   {
     id: "prozesse",
@@ -749,17 +664,11 @@ export const topSkills: TopSkill[] = [
       },
       {
         text: "Ringprojekt (siehe auch Bauteilkostenkalkulation)",
-        sub: ["Planung und Steuerung der Laborbesuche", "Vorstellen der Ergebnisse an ein Plenum"],
+        sub: ["Planung und Steuerung der Laborbesuche", "Vorstellen der Ergebnisse vor einem Plenum"],
       },
       { text: "Lean Six Sigma Yellow Belt (2025)" },
     ],
     tools: ["Timebutler", "SAP"],
-    learned: [
-      { label: "Timebutler-Einführung (IGH Infotec)", href: "#werkstudent-controlling" },
-      { label: "Praktikum Projektmanagement (IGH Infotec)", href: "#praktikum-pm" },
-      { label: "Ringprojekt (B.Eng.)", href: "#ringprojekt" },
-      { label: "Lean Six Sigma Yellow Belt", href: "#z-lean-six-sigma" },
-    ],
   },
   {
     id: "controlling",
@@ -775,8 +684,5 @@ export const topSkills: TopSkill[] = [
       },
     ],
     tools: ["Excel"],
-    learned: [
-      { label: "Werkstudent Finanzen & Controlling (IGH Infotec)", href: "#werkstudent-controlling" },
-    ],
   },
 ];

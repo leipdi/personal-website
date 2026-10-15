@@ -23,7 +23,7 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
-# raw personal data exports — not for the repo, only public/cv/ is meant to be published
+# raw personal data exports: never in the repo (the site publishes no CV file at all)
 /Lebenslauf_Daniel_Lenski.pdf
 /Basic_LinkedInDataExport_*/
 /Basic_LinkedInDataExport_*.zip*
@@ -40,3 +40,6 @@ pnpm-debug.log*
 .vscode/*
 !.vscode/extensions.json
 !.vscode/launch.json
+
+# agent worktrees (local only)
+.claude/worktrees/

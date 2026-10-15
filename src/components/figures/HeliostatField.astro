@@ -425,10 +425,11 @@ const { tower: T, receiver: R, ground } = FIELD;
     // was left (if that is outside the range, it travels back in rather than jumping)
     let lastT = 0;
     let visible = true;
-    // (the loop sleeps while the hero is off screen and wakes when it comes back)
+    // (the loop sleeps while the hero is off screen and wakes when it comes back; with reduced
+    // motion it never runs, the pointer moves the sun by itself)
     let looping = false;
     const wake = () => {
-      if (looping) return;
+      if (looping || reduce.matches) return;
       looping = true;
       requestAnimationFrame(drift);
     };

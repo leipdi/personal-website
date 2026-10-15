@@ -208,7 +208,8 @@ async function checkSize(browser, { w, h }) {
   // projects land just under the top bar, and the project list (rail or pill) marks them
   for (const id of ids.projects) {
     const r = await land(id);
-    if (r.titleTop < r.bar - 1 || (r.titleTop > r.bar + 60 && !r.atEnd)) fails.push(`#${id}: title lands at ${r.titleTop} (bar ${r.bar})`);
+    // (bar + 90: the year/place lines above the title wrap to two on narrow phones)
+    if (r.titleTop < r.bar - 1 || (r.titleTop > r.bar + 90 && !r.atEnd)) fails.push(`#${id}: title lands at ${r.titleTop} (bar ${r.bar})`);
     const cur = await page.evaluate(() => document.querySelector("[data-pnav-link][aria-current]")?.dataset.pnavLink ?? "");
     if (!r.atEnd && cur !== id) fails.push(`#${id}: the project list marks "${cur}"`);
   }

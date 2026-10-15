@@ -61,7 +61,7 @@ const hourHand = hand((6 + 5 / 60) / 12, 8.5);
 const minuteHand = hand(5 / 60, 13);
 ---
 
-<!-- Kontakt (owner 2026-10-11, mockup D in drafts/: "a mix of B and C", the letter on a laptop
+<!-- Kontakt (owner 2026-10-11, mockup D, in git history: "a mix of B and C", the letter on a laptop
      screen): the evening desk ends the page's day. Ink line drawing; the only colour is light,
      the desk lamp and through the window the sun setting behind the heliostat field of the hero.
      The visitor picks what it is about, the start of the e-mail writes itself on the laptop and
@@ -239,7 +239,7 @@ const minuteHand = hand(5 / 60, 13);
               <p class="letter"><span data-body>{startBody}</span><span class="caret" aria-hidden="true"></span></p>
               <div class="actions">
                 <a class="send" href={mailto(startSubject, startBody)} data-send>E-Mail schreiben</a>
-                <button class="copy" type="button" data-copy hidden>Adresse kopieren</button>
+                <button class="copy" type="button" data-copy aria-live="polite" hidden>Adresse kopieren</button>
               </div>
             </div>
           </div>
@@ -337,6 +337,7 @@ const minuteHand = hand(5 / 60, 13);
       r.addEventListener("change", () => write(r.dataset.subject ?? "", r.dataset.body ?? ""));
 
     copy.hidden = false;
+    let copyTimer = 0;
     copy.addEventListener("click", async () => {
       try {
         await navigator.clipboard.writeText(address);
@@ -344,7 +345,8 @@ const minuteHand = hand(5 / 60, 13);
       } catch {
         copy.textContent = address;
       }
-      setTimeout(() => (copy.textContent = "Adresse kopieren"), 1800);
+      clearTimeout(copyTimer);
+      copyTimer = window.setTimeout(() => (copy.textContent = "Adresse kopieren"), 1800);
     });
 
     lamp.disabled = false;

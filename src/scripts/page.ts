@@ -41,9 +41,18 @@ export const savedY = (state: unknown = history.state): number | null => {
 };
 export const saveY = (y: number) => history.replaceState({ ...(history.state ?? {}), [KEY]: y }, "");
 
+/** The URL's hash without "#", decoded (a malformed "%" stays as it is instead of throwing). */
+export const hashId = () => {
+  const h = location.hash.slice(1);
+  try {
+    return decodeURIComponent(h);
+  } catch {
+    return h;
+  }
+};
+
 /** The element the URL's hash names, if any. */
-export const hashTarget = () =>
-  location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+export const hashTarget = () => (location.hash ? document.getElementById(hashId()) : null);
 
 /** Resolves once the web fonts and the whole page (images included) have loaded. */
 export const settled = (): Promise<unknown> =>

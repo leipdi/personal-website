@@ -2,6 +2,8 @@
 
 The long record behind the rules in [AGENTS.md](../AGENTS.md): what the owner picked, what was tried and rejected, and why. Read the part for the section you touch before changing it, so a redesign doesn't circle back. Entries are dated; where an older note and a newer one disagree, the newer one holds (some long entries say so inline). Binding rules live in AGENTS.md.
 
+**Removed files (2026-10-15):** the mockups cited below (`drafts/*.html`, `drafts/regal-img/`), `inspo/`, the generated hobby pictures in `assets-src/hobbys/`, the cut-out scripts (`scripts/cutout.mjs`, `scripts/ground-to-alpha.cjs`) and the unused components (`AmModel`, `Placeholder`, `ImagePlaceholder`) were deleted in the final cleanup. They are in git history before that date (`git show 3436df4:<path>`).
+
 ## Design history
 
 Design history, so a redesign doesn't circle back:

@@ -46,7 +46,7 @@
   /* print grain: grey fractal noise around mid-grey, 40 % alpha, laid on in soft light */
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 .4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --spectrum-dusk: linear-gradient(90deg, #9a86e6, #e4572e 60%, #f2a900);
-  /* Placeholder marker for AI-drafted content (components/Placeholder, ImagePlaceholder).
+  /* Placeholder marker (the logo placeholder for software without a free logo).
      Not part of the palette: it should look like scaffolding. 7:1 on --bg. */
   --ph: #a3175f;
 

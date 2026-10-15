@@ -11,7 +11,7 @@ import ProjectSteps from "../ProjectSteps.astro";
 import { url } from "../../lib/url";
 
 // Projekte, rebuilt one project at a time in chronological order (owner 2026-10-13). Since
-// 2026-10-15 mockup D (drafts/projekte-d-animiert.html): the short name large with the full title
+// 2026-10-15 mockup D (projekte-d-animiert.html, in git history): the short name large with the full title
 // under it, year and place in a margin column; Aufgabe, Mein Beitrag and Ergebnis as headings
 // hanging in that column, each with a line icon; the Ergebnis with its chart right after them
 // (owner: the strongest part early), then from design to finished part scrolled through
@@ -299,6 +299,7 @@ const icons = {
 
   if (arts.length) {
     let cur = "";
+    const shown: string[] = [];
     const mark = () => {
       const barBottom = top?.getBoundingClientRect().bottom ?? 0;
       const edge = barBottom + 3 * parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -317,7 +318,12 @@ const icons = {
         pill.classList.toggle("on", showPill);
         if (!showPill && details) details.open = false;
       }
-      for (const a of links) a.style.setProperty("--p", (share.get(a.dataset.pnavLink!) ?? 0).toFixed(3));
+      // (written only when it changed: every write restyles the link, and far from Projekte
+      // the shares stand still)
+      links.forEach((a, i) => {
+        const p = (share.get(a.dataset.pnavLink!) ?? 0).toFixed(3);
+        if (p !== shown[i]) a.style.setProperty("--p", (shown[i] = p));
+      });
       if (id === cur) return;
       cur = id;
       for (const a of links) {
@@ -764,10 +770,13 @@ const icons = {
       padding-top: 0.35rem;
     }
     /* a picture beside Aufgabe and Mein Beitrag (Bachelorarbeit: the DLR photo, uncropped): the
-       rows give up the right part of the content column */
+       rows give up the right part of the content column; the text side stops at the label column
+       plus a reading measure, so on wide displays the picture stays next to the text (at 2560
+       it stood alone at the far right) */
     .has-beside {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 20rem);
+      grid-template-columns: minmax(0, calc(var(--col-meta) + var(--sp-gap) + var(--measure))) minmax(0, 20rem);
+      justify-content: start;
       column-gap: var(--sp-gap);
       align-items: start;
     }
