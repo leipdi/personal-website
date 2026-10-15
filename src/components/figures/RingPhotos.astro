@@ -25,7 +25,7 @@ const srcset = (id: string) => `${url(`/img/projekte/${id}-640.webp`)} 640w, ${s
         <img
           src={src(s.id)}
           srcset={srcset(s.id)}
-          sizes={k === shots.length - 1 ? "(min-width: 56rem) min(700px, 40vw), 100vw" : "(min-width: 56rem) min(345px, 20vw), 50vw"}
+          sizes={k === shots.length - 1 ? "(min-width: 56rem) 30vw, 100vw" : "(min-width: 56rem) 30vw, 50vw"}
           alt={s.alt}
           width="1200"
           height={s.id === "fertig" ? 937 : 938}
@@ -40,8 +40,7 @@ const srcset = (id: string) => `${url(`/img/projekte/${id}-640.webp`)} 640w, ${s
 
 <style>
   /* prototype | casting side by side, the finished holder large below: read in order */
-  /* capped, so on large displays the photos don't outgrow the text beside them (about 684px
-     at 2560, where the root font is larger; `sizes` above assumes that cap) */
+  /* capped on narrower screens, where the group sits under the text on its own */
   .rp {
     max-width: 36rem;
     display: grid;
@@ -61,6 +60,19 @@ const srcset = (id: string) => `${url(`/img/projekte/${id}-640.webp`)} 640w, ${s
     aspect-ratio: 1.28;
     object-fit: cover;
     border: 1px solid var(--line);
+  }
+  /* wide screens: one row under the project text, in order, on the project's three columns
+     (a subgrid of Projekte's .photos, so the text and facts above share the photo edges;
+     Projekte.astro says why) */
+  @media (min-width: 56rem) {
+    .rp {
+      max-width: none;
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+    }
+    .big {
+      grid-column: auto;
+    }
   }
   figcaption {
     margin-top: 0.4rem;
