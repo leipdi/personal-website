@@ -83,7 +83,12 @@ export default {
     // the laptop with a terminal
     const [tc, ttex] = canvasTex2(320, 200);
     const cmd = 'claude "Report"';
+    // (redrawn, and uploaded to the GPU, only when the text or the cursor changed)
+    let shown = "";
     const term = (n: number, done: boolean, blink: boolean) => {
+      const key = `${n} ${done} ${blink}`;
+      if (key === shown) return;
+      shown = key;
       tc.fillStyle = "#0d1117"; tc.fillRect(0, 0, 320, 200);
       tc.font = "bold 30px monospace"; tc.textAlign = "left";
       tc.fillStyle = "#9fb0c3"; tc.fillText("$", 18, 52);

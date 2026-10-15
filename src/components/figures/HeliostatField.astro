@@ -425,7 +425,17 @@ const { tower: T, receiver: R, ground } = FIELD;
     // was left (if that is outside the range, it travels back in rather than jumping)
     let lastT = 0;
     let visible = true;
-    new IntersectionObserver(([en]) => (visible = en.isIntersecting)).observe(wrap);
+    // (the loop sleeps while the hero is off screen and wakes when it comes back)
+    let looping = false;
+    const wake = () => {
+      if (looping) return;
+      looping = true;
+      requestAnimationFrame(drift);
+    };
+    new IntersectionObserver(([en]) => {
+      visible = en.isIntersecting;
+      if (visible) wake();
+    }).observe(wrap);
     let dir = 1;
     // the day arc: highest in the middle of the drift range, lower at both ends (213); its peak
     // (measure()) climbs into extra sky where there is some, and stays under the words
@@ -489,10 +499,15 @@ const { tower: T, receiver: R, ground } = FIELD;
           place(x, cur.y + (arcY(x) - cur.y) * Math.min(1, dt * 0.004));
         }
       }
+      if (!visible) {
+        looping = false;
+        lastT = 0;
+        return;
+      }
       lastT = t;
       requestAnimationFrame(drift);
     };
-    requestAnimationFrame(drift);
+    wake();
   }
 </script>
 

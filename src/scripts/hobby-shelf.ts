@@ -80,7 +80,11 @@ export function initShelf(root: HTMLElement) {
   // GPU `dpr` (the ratio while animating) steps down by itself (see the loop); whenever nothing
   // moves, the frame is drawn at full sharpness again.
   const maxDpr = Math.min(Math.max(devicePixelRatio, 1) * (devicePixelRatio < 1.5 ? 1.5 : 1), 2);
+  // (what this tab stepped down to, so a reload on a weak GPU doesn't stutter again first; only
+  // for the tab session: one slow visit (battery saver, shaders compiling) must not stick)
+  const DPR_KEY = `shelfDpr:${maxDpr}`;
   let dpr = maxDpr;
+  try { const s = Number(sessionStorage.getItem(DPR_KEY)); if (s > 0 && s < maxDpr) dpr = s; } catch {}
   renderer.setPixelRatio(maxDpr);
   renderer.shadowMap.enabled = true;
   // the shadow map was half of every frame (all objects drawn twice): it is redrawn only when
@@ -213,6 +217,8 @@ export function initShelf(root: HTMLElement) {
   const camPos = new THREE.Vector3(0, 0.6, 8), camLook = new THREE.Vector3();
   const goalPos = new THREE.Vector3(), goalLook = new THREE.Vector3();
   let baseZ = 8, layoutKey = "";
+  // the stage's size, read once per resize (reading it in the loop forced a layout every frame)
+  let sw = 1, sh = 1;
   const fit = (halfW: number, halfH: number) => {
     const tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
     return Math.max(halfH / tan, halfW / (tan * camera.aspect));
@@ -228,7 +234,7 @@ export function initShelf(root: HTMLElement) {
   }
   function resize() {
     setLayout(stage.clientWidth < 560 ? "tall" : "wide");
-    const w = stage.clientWidth, h = stage.clientHeight;
+    const w = (sw = stage.clientWidth || 1), h = (sh = stage.clientHeight || 1);
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
@@ -339,7 +345,7 @@ export function initShelf(root: HTMLElement) {
   const v = new THREE.Vector3();
   const yaw = Math.tan(THREE.MathUtils.degToRad(8));
   const slow: number[] = [];
-  let strikes = 0, readyAt = 0;
+  let strikes = 0, readyAt = 0, busyAt = -Infinity;
   function frame(now: number) {
     raf = 0;
     const dt = Math.min((now - last) / 1000, 0.05);
@@ -390,12 +396,12 @@ export function initShelf(root: HTMLElement) {
       } else if (!reduce) it.api.idle?.(clock, dt);
       const tag = tags.get(it.id)!;
       const showTag = (it.id === hovered && !focused) || it.id === focused;
-      tag.classList.toggle("is-on", showTag);
+      if (tag.classList.contains("is-on") !== showTag) tag.classList.toggle("is-on", showTag);
       if (showTag) {
         v.set(it.g.position.x, it.g.position.y + 0.03, D / 2).project(camera);
         // zoomed in, the name sits in the control bar at the bottom, between ‹ and ›
-        if (focused) tag.style.transform = `translate(${stage.clientWidth / 2}px, ${stage.clientHeight - 32}px) translate(-50%, -50%)`;
-        else tag.style.transform = `translate(${(v.x * 0.5 + 0.5) * stage.clientWidth}px, ${Math.min((-v.y * 0.5 + 0.5) * stage.clientHeight, stage.clientHeight - 20)}px) translate(-50%, -60%)`;
+        if (focused) tag.style.transform = `translate(${sw / 2}px, ${sh - 32}px) translate(-50%, -50%)`;
+        else tag.style.transform = `translate(${((v.x * 0.5 + 0.5) * sw).toFixed(1)}px, ${Math.min((-v.y * 0.5 + 0.5) * sh, sh - 20).toFixed(1)}px) translate(-50%, -60%)`;
       }
     }
     if (shadowDirty || (items.some((i) => i.running) && now - shadowAt > 33)) {
@@ -407,32 +413,46 @@ export function initShelf(root: HTMLElement) {
     for (const it of items) if (it.lamp.intensity > lit.lamp.intensity) lit = it;
     lampL.position.copy(lit.lamp.position);
     lampL.intensity = lit.lamp.intensity;
-    const ratio = busy ? dpr : maxDpr;
+    // (each change of ratio reallocates the canvas, a hitch of its own: back to full sharpness
+    // only once the motion has rested a second, not between every hover and the idle tick)
+    if (busy) busyAt = now;
+    const ratio = busy || now - busyAt < 1000 ? dpr : maxDpr;
     if (renderer.getPixelRatio() !== ratio) renderer.setPixelRatio(ratio);
     renderer.render(scene, camera);
     if (!ready) { ready = true; readyAt = now; stage.classList.add("is-ready"); }
-    // weaker GPUs: while frames run back to back (animating), average their time over 60
-    // frames, from 3 s after the first frame (the first frames are slow everywhere). Two slow
-    // windows in a row (under ~30 fps) step the animating resolution down: to 1.25x, then 1x;
-    // only under ~20 fps on to 0.8x. Never back up while animating (it would flicker); still
-    // frames are always drawn at full sharpness (above).
-    if (busy && dt > 0 && now - readyAt > 3000) {
+    // weaker GPUs: while frames run back to back (animating), take the median frame time of
+    // 30 frames, from 1.5 s after the first frame (the first frames are slow everywhere; the
+    // median ignores a single hitch). Two slow windows in a row (under ~45 fps, i.e. visibly
+    // not smooth) step the animating resolution down: 1.5x, 1.25x, then 1x; only under ~25 fps
+    // on to 0.8x. Never back up while animating (it would flicker); still frames are always
+    // drawn at full sharpness (above). The step is remembered for the tab session.
+    if (busy && dt > 0 && now - readyAt > 1500) {
       slow.push(dt);
-      if (slow.length >= 60) {
-        const avg = slow.reduce((a, b) => a + b, 0) / slow.length;
+      if (slow.length >= 30) {
+        const med = slow.sort((a, b) => a - b)[15];
         slow.length = 0;
-        const next = dpr > 1.25 ? 1.25 : dpr > 1 ? 1 : 0.8;
-        const slowNow = avg > 1 / 30 && (next >= 1 || avg > 1 / 20) && next < dpr;
+        const next = dpr > 1.5 ? 1.5 : dpr > 1.25 ? 1.25 : dpr > 1 ? 1 : 0.8;
+        const slowNow = med > 1 / 45 && (next >= 1 || med > 1 / 25) && next < dpr;
         strikes = slowNow ? strikes + 1 : 0;
         if (strikes >= 2) {
           strikes = 0;
           dpr = next;
+          try { sessionStorage.setItem(DPR_KEY, String(dpr)); } catch {}
         }
       }
     } else if (!busy) slow.length = 0;
     if (!visible) return;
     if (busy) raf = requestAnimationFrame(frame);
-    else if (!reduce) idleTimer = setTimeout(() => { idleTimer = 0; raf = requestAnimationFrame(frame); }, 90);
+    else if (!reduce) idleTimer = setTimeout(idleTick, 90);
+  }
+  // the idle life waits while the page scrolls: a full frame of the shelf then only competes
+  // with the scroll for the GPU, and nobody watches the disco ball turn mid-scroll
+  let scrollAt = 0;
+  addEventListener("scroll", () => { scrollAt = performance.now(); }, { passive: true });
+  function idleTick() {
+    idleTimer = 0;
+    if (performance.now() - scrollAt < 200) { idleTimer = setTimeout(idleTick, 120); return; }
+    raf = requestAnimationFrame(frame);
   }
 
   // first time on screen: the shelf wakes up, lamp by lamp, each object plays once

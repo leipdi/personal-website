@@ -12,7 +12,7 @@
   /* v4 "Stahl + Sonnengelb" (owner's pick, 2026-09-26): cool steel paper, steel-navy ink,
      one sun yellow. Fixed light theme, deliberately no dark-mode override.
      Since 2026-10-09 the page colour is a day (owner's pick from colour mockups "A + C"): with
-     JS, Layout.astro sets --bg while scrolling, from dawn at the hero to dusk at Kontakt, and
+     JS, scripts/day.ts sets --bg while scrolling (on the elements that show it, not here), from dawn at the hero to dusk at Kontakt, and
      soft light spots with grain lie behind the content (.light). This value is the no-JS page. */
   --bg: #f4f6f8; /* page */
   --paper: #ffffff; /* raised surfaces: skill boxes, figure panels */

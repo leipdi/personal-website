@@ -12,7 +12,12 @@ export default {
   build(g, outer, _sc, kit) {
     const { canvasTex, canvasTex2, microTex, phys, plastic, gloss, metal, rubber, rbox, box, cyl, at, bump, noShadow, blob, keysMesh } = kit;
     const [ctx, tex] = canvasTex2(320, 180);
+    // (the screen is a 640x360 upload: redrawn at most 30 times a second)
+    let drawn = -1;
     const draw = (time: number) => {
+      const f = Math.floor(time * 30);
+      if (f === drawn) return;
+      drawn = f;
       ctx.fillStyle = "#0e2240"; ctx.fillRect(0, 0, 320, 180);
       ctx.fillStyle = "rgba(230,237,245,.35)";
       for (let y = 8; y < 180; y += 16) ctx.fillRect(158, y, 4, 8);

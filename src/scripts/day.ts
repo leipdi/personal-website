@@ -1,5 +1,5 @@
-// The day behind the page (data/day.ts): the page colour (--bg, so the top bar, the pinned chart
-// and every label backing follow it) blends from one section's colour to the next across a
+// The day behind the page (data/day.ts): the page colour (--bg, set on the top bar, the pinned
+// chart, Werdegang's label backings and the page behind; see holders below) blends from one section's colour to the next across a
 // window height around their border; two soft light spots (.light in global.css) take the
 // colours of that hour and drift slowly with the scroll (not with reduced motion).
 import { DAY, STRENGTH } from "../data/day";
@@ -12,10 +12,25 @@ const lerp = (a: number[], b: number[], t: number) => a.map((v, i) => v + (b[i] 
 const rgb = (c: number[]) => `rgb(${c.map(Math.round).join(" ")})`;
 const root = document.documentElement;
 let lastBg = "";
+// Who shows the colour: the page behind (.light, and the html for overscroll), the frosted bars
+// and Werdegang (label backings, the pinned chart). --bg is set on these alone, not on the
+// root: a custom property on the root restyles every element of the page (about 20 ms a frame
+// on the owner's laptop, the stutter while scrolling). Werdegang only while it is near the
+// screen (its own few hundred elements); decided here from its measured box, not by an observer
+// (that arrived a frame late: a jump into Werdegang showed its chart in the old colour).
+const werdegang = document.getElementById("werdegang");
+const holders = [...document.querySelectorAll<HTMLElement>(".light, .frost")].filter((el) => !werdegang?.contains(el));
+const setBg = (el: HTMLElement) => el.style.setProperty("--bg", lastBg);
+let wgTop = 0, wgBottom = 0, wgBg = "";
+// what each spot last got: only changed values are written (a new gradient repaints the whole
+// spot; within a section only its position moves, which the compositor does alone)
+const lastSpot = spots.map(() => ({ bg: "", op: "", tf: "" }));
 let tops: number[] = [];
 let pageH = 0;
 const measureTops = () => {
   tops = els.map((el) => (el ? el.getBoundingClientRect().top + scrollY : Infinity));
+  const r = werdegang?.getBoundingClientRect();
+  if (r) [wgTop, wgBottom] = [r.top + scrollY, r.bottom + scrollY];
 };
 const measure = () => {
   measureTops();
@@ -45,8 +60,14 @@ const paint = () => {
   const q = DAY[i];
   const bg = rgb(lerp(hex(p.bg), hex(q.bg), s));
   if (bg !== lastBg) {
-    root.style.setProperty("--bg", bg);
     lastBg = bg;
+    root.style.backgroundColor = bg;
+    holders.forEach(setBg);
+  }
+  // (Werdegang within half a window of the screen)
+  if (werdegang && wgBg !== bg && scrollY + innerHeight * 1.5 > wgTop && scrollY - innerHeight / 2 < wgBottom) {
+    wgBg = bg;
+    setBg(werdegang);
   }
   const k = (p.k + (q.k - p.k) * s) * STRENGTH;
   // the drift: within a section the spots travel a little with the scroll
@@ -66,9 +87,15 @@ const paint = () => {
     // (the spot's size, 80vmax, without reading layout)
     const w = 0.8 * Math.max(innerWidth, innerHeight);
     // (eased stops: a plain two-stop falloff showed rings on the wide, pale spots)
-    el.style.background = `radial-gradient(closest-side, ${at(1)}, ${at(0.82)} 22%, ${at(0.5)} 48%, ${at(0.2)} 72%, ${at(0)})`;
-    el.style.opacity = k.toFixed(3);
-    el.style.transform = `translate(${((innerWidth * (pos[0] + dx)) / 100 - w / 2).toFixed(0)}px, ${((innerHeight * (pos[1] + dy)) / 100 - w / 2).toFixed(0)}px)`;
+    const was = lastSpot[n];
+    if (cv !== was.bg) {
+      was.bg = cv;
+      el.style.background = `radial-gradient(closest-side, ${at(1)}, ${at(0.82)} 22%, ${at(0.5)} 48%, ${at(0.2)} 72%, ${at(0)})`;
+    }
+    const op = k.toFixed(3);
+    if (op !== was.op) el.style.opacity = was.op = op;
+    const tf = `translate(${((innerWidth * (pos[0] + dx)) / 100 - w / 2).toFixed(0)}px, ${((innerHeight * (pos[1] + dy)) / 100 - w / 2).toFixed(0)}px)`;
+    if (tf !== was.tf) el.style.transform = was.tf = tf;
   });
 };
 onScrollFrame(paint);
