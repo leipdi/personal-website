@@ -39,7 +39,7 @@ const rows = groups.map((g) => {
   run += g.sum;
   return r;
 });
-const mk = groups.reduce((a, g) => a + g.mk, 0); // 92,34 €
+const mk = groups.reduce((a, g) => a + g.mk, 0); // 92,34 €
 const share = Math.round((mk / TOTAL) * 100);
 ---
 
@@ -102,7 +102,7 @@ const share = Math.round((mk / TOTAL) * 100);
       <span class="key"><i class="fk" />Fertigung: Maschinen und Lohn</span>
     </span>
     <span class="note">
-      Beides mit 10 % Gemeinkosten. Ohne Rüstkosten (8,75 €), die bei Großserie kaum ins Gewicht fallen.
+      Beides mit 10 % Gemeinkosten. Ohne Rüstkosten (8,75 €), die bei Großserie kaum ins Gewicht fallen.
     </span>
   </figcaption>
 </figure>
@@ -250,13 +250,14 @@ const share = Math.round((mk / TOTAL) * 100);
     margin-top: 0.3rem;
   }
 
-  /* the build-up: bars grow from their left end one group after another (--i), values follow */
+  /* the build-up: bars grow from their left end one group after another (--i), values follow;
+     all done in under a second (2026-10-16: at 2.7 s a fast scroll passed a half-counted total) */
   .bar {
     transform-origin: left;
-    transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i, 0) * 0.45s);
+    transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i, 0) * 0.1s);
   }
   .val {
-    transition: opacity 0.4s calc(var(--i, 0) * 0.45s + 0.6s);
+    transition: opacity 0.25s calc(var(--i, 0) * 0.1s + 0.3s);
   }
   :global(html.js) .hc:not(.go) .bar {
     transform: scaleX(0);

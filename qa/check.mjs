@@ -202,7 +202,7 @@ async function checkSize(browser, { w, h }) {
   };
   for (const id of ids.sections) {
     const r = await land(id);
-    if (r.top < r.bar - 1 || (r.top > r.bar + 40 && !r.atEnd)) fails.push(`#${id} lands at ${r.top} (bar ${r.bar})`);
+    if (r.top < r.bar - 2 || (r.top > r.bar + 40 && !r.atEnd)) fails.push(`#${id} lands at ${r.top} (bar ${r.bar})`);
   }
   if (!ids.projects.length) fails.push("Projekte: no project on the page");
   // projects land just under the top bar, and the project list (rail or pill) marks them

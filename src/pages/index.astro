@@ -29,6 +29,12 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
         </div>
         <p class="hero-role">{profile.role}<br />{profile.location}</p>
         <p class="hero-claim">„{claimParts.map((part, i) => (i % 2 ? <em>{part}</em> : part))}“</p>
+        <!-- a way on from the first screen (2026-10-16: the hero filled the window with no hint
+             of what follows and no contact) -->
+        <p class="hero-links">
+          <a href="#projekte">Zu den Projekten</a>
+          <a href="#kontakt">Kontakt aufnehmen</a>
+        </p>
       </div>
     </HeliostatField>
   </section>
@@ -98,6 +104,25 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
     max-width: 24em;
     text-wrap: pretty;
   }
+  .hero-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.5rem;
+    margin-top: 1.1rem;
+    font-size: clamp(0.9375rem, 0.88rem + 0.25vw, 1.0625rem);
+    font-weight: 600;
+  }
+
+  .hero-links a {
+    color: var(--ink);
+    text-decoration: underline 1.5px;
+    text-underline-offset: 0.25em;
+  }
+
+  .hero-links a:hover {
+    text-decoration-thickness: 3px;
+  }
+
   /* The italic is a text= subset whose ascent/descent differ from the full
      font; a zero line box keeps the marked words from growing their line. */
   .hero-claim em {
@@ -179,6 +204,13 @@ const claimParts = profile.claim.split(/\*(.+?)\*/);
       /* the first line's cap height on the name's (0.04 fs above the h1's box; 0.42em: this
          line's own half-leading and space above the caps) */
       margin-top: calc(-0.04 * var(--fs) - 0.42em);
+    }
+    /* under the claim, in its column: a row of its own, so the claim keeps its baseline on the
+       name's */
+    .hero-links {
+      grid-column: 2;
+      grid-row: 3;
+      margin-top: 0.75rem;
     }
     .hero-claim {
       grid-column: 2;

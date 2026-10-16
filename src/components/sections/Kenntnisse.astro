@@ -1,5 +1,5 @@
 ---
-import { ratedSkills, otherCompetencies, certifications } from "../../data/cv";
+import { ratedSkills, levelWords, otherCompetencies, certifications } from "../../data/cv";
 
 // Kenntnisse as pillars (owner 2026-10-03, "more creative, vertical or horizontal pillars"):
 // every rated skill is a pillar of five blocks standing on a shared ground line, as many
@@ -31,15 +31,18 @@ const order = (g: (typeof groups)[number], i: number) => (g.id === "lang" ? grou
             <ul class="pillars" style={g.id !== groups[0].id ? `--cols:${groups[0].skills.length}` : undefined}>
               {g.skills.map((s, i) => (
                 <li class="pillar" style={`--lv:${s.level};--p:${order(g, i)}`}>
-                  <span class="lvl">{s.levelLabel.replace("Grundkenntnisse", "Grund\u00adkenntnisse")}</span>
+                  <span class="lvl">{levelWords[s.level].replace("Grundkenntnisse", "Grund\u00adkenntnisse")}</span>
                   <span class="blocks" aria-hidden="true">
                     {Array.from({ length: SLOTS }, (_, i) => (
                       <i class:list={[i < s.level && "on"]} style={`--i:${i}`} />
                     ))}
                   </span>
-                  <span class="nm">{s.name}</span>
+                  <span class="nm">
+                    {s.name}
+                    {s.note && <span class="nm-note">{s.note}</span>}
+                  </span>
                   <span class="sr-only">
-                    : {s.levelLabel}, {s.level} von {SLOTS}
+                    : {levelWords[s.level]}, {s.level} von {SLOTS}
                   </span>
                 </li>
               ))}
@@ -170,6 +173,15 @@ const order = (g: (typeof groups)[number], i: number) => (g.id === "lang" ? grou
     line-height: 1.25;
   }
 
+  /* the CV's own wording for a language (Muttersprache, C1), under its name */
+  .nm-note {
+    display: block;
+    font-family: var(--sans);
+    font-weight: 400;
+    font-size: 0.8125rem;
+    color: var(--ink-2);
+  }
+
   .lvl {
     grid-area: lvl;
     font-size: 0.875rem;
@@ -188,22 +200,23 @@ const order = (g: (typeof groups)[number], i: number) => (g.id === "lang" ? grou
     border: 1.5px dashed var(--line);
     border-radius: 2px;
     /* the scaffold appears with its pillar */
-    transition: opacity 0.3s calc(var(--p) * 140ms);
+    transition: opacity 0.2s calc(var(--p) * 40ms);
   }
 
   .blocks i.on {
     border: 0;
     background: var(--c);
-    /* one block after the other, pillar by pillar, landing with a slight bounce */
-    --d: calc(var(--p) * 140ms + 200ms + var(--i) * 110ms);
+    /* one block after the other, pillar by pillar, landing with a slight bounce; the whole
+       group stands within about a second (2026-10-16: 2.3 s left columns empty on a fast scroll) */
+    --d: calc(var(--p) * 40ms + 100ms + var(--i) * 40ms);
     transition:
-      transform 0.55s cubic-bezier(0.3, 1.45, 0.5, 1) var(--d),
-      opacity 0.2s var(--d);
+      transform 0.35s cubic-bezier(0.3, 1.45, 0.5, 1) var(--d),
+      opacity 0.15s var(--d);
   }
 
   /* the level word once its pillar stands */
   .lvl {
-    transition: opacity 0.35s calc(var(--p) * 140ms + 200ms + var(--lv) * 110ms + 250ms);
+    transition: opacity 0.2s calc(var(--p) * 40ms + 100ms + var(--lv) * 40ms + 150ms);
   }
 
   .is-waiting .blocks i,

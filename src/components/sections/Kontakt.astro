@@ -375,6 +375,11 @@ const minuteHand = hand(5 / 60, 13);
     }
   }
 
+  /* the e-mail sizes itself by this column (cqi) */
+  .intro {
+    container-type: inline-size;
+  }
+
   .lede {
     font-family: var(--serif);
     font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
@@ -389,7 +394,9 @@ const minuteHand = hand(5 / 60, 13);
     font-family: var(--sans);
     font-weight: 800;
     letter-spacing: -0.04em;
-    font-size: clamp(1.75rem, 1.1rem + 1.7vw, 2.75rem);
+    /* at most the column's width on one line (about 12.6em; 7.7cqi of .intro), so a laptop
+       column doesn't break it at the @ (2026-10-16: two lines at 1366-1600) */
+    font-size: clamp(1.75rem, min(1.1rem + 1.7vw, 7.7cqi), 2.75rem);
     line-height: 1.05;
     color: var(--ink);
     text-decoration: none;

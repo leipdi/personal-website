@@ -152,18 +152,19 @@ const saving = 1 - rows[1].total / rows[0].total;
     height: 1.25rem;
   }
 
-  /* the build-up: flight first, then the rest, row after row; the saving fades in last */
+  /* the build-up: flight first, then the rest, row after row; the saving fades in last, all
+     within a second (2026-10-16) */
   .lc-use,
   .lc-rest {
     transform-origin: left;
-    transition: transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i, 0) * 0.35s);
+    transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i, 0) * 0.1s);
   }
   .lc-rest {
-    transition-delay: calc(var(--i, 0) * 0.35s + 0.5s);
+    transition-delay: calc(var(--i, 0) * 0.1s + 0.25s);
   }
   .lc-saved,
   .lc-total {
-    transition: opacity 0.5s calc(var(--i, 0) * 0.35s + 0.8s);
+    transition: opacity 0.3s calc(var(--i, 0) * 0.1s + 0.45s);
   }
   :global(html.js) .lc:not(.go) .lc-use,
   :global(html.js) .lc:not(.go) .lc-rest {

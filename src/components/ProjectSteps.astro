@@ -184,8 +184,13 @@ const srcset = (s: ProjectStep) =>
     grid-column: 1;
     grid-row: 1;
   }
+  /* (2026-10-16: a step as tall as the frame left most of each screen blank around a three-line
+     text, a reviewer found; now a step is about half the frame, and only the first and last
+     get the rest as padding, so the first text still stands level with the picture's middle
+     when the frame pins and the last one when it leaves) */
   .pinned .step {
-    min-height: var(--h);
+    --s: calc(var(--h) * 0.55);
+    min-height: var(--s);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -194,6 +199,18 @@ const srcset = (s: ProjectStep) =>
   }
   .pinned .step + .step {
     margin-top: 0;
+  }
+  /* (border-box: the padding comes on top of the step's own height) */
+  .pinned .step:first-child {
+    min-height: calc((var(--h) + var(--s)) / 2);
+    padding-top: calc((var(--h) - var(--s)) / 2);
+  }
+  .pinned .step:last-child {
+    min-height: calc((var(--h) + var(--s)) / 2);
+    padding-bottom: calc((var(--h) - var(--s)) / 2);
+  }
+  .pinned .step:only-child {
+    min-height: var(--h);
   }
   .pinned .step.on {
     color: var(--ink);

@@ -369,6 +369,10 @@ const { tower: T, receiver: R, ground } = FIELD;
       if (hi - lo < 80) {
         lo = Math.max(visL, FIELD.first - 150, costR) + MARGIN;
         hi = right;
+        // ... and then under the words, at most as low as the arc's ends (a low sun): the drift
+        // at full height crossed the claim on short laptop windows (2026-10-16, 1280x600 and
+        // 1366x657, once the hero links made the text block taller)
+        if (wide.matches) peakY = Math.max(peakY, Math.min(textBottomU + 90, 213));
       }
       if (hi < lo) hi = lo;
     };

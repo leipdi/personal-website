@@ -92,12 +92,8 @@ const icons: Record<TopSkillId, string> = {
                   {s.proof.map((p) => (
                     <li>
                       <span class="proof-main text">{p.text}</span>
-                      {p.sub && (
-                        <ul class="proof-sub">
-                          {p.sub.map((line) => (
-                            <li>{line}</li>
-                          ))}
-                        </ul>
+                      {p.at && (
+                        <a class="proof-at" href={p.at.href}>{p.at.label}</a>
                       )}
                     </li>
                   ))}
@@ -301,8 +297,9 @@ const icons: Record<TopSkillId, string> = {
         // scale and lean about the title strip's top-left corner, so the strip stays put
         const scale = 1 - 0.03 * d - 0.01 * Math.max(depth - 1, 0);
         s.style.transform = `scale(${scale.toFixed(4)}) rotate(${(LEAN[i % LEAN.length] * d).toFixed(3)}deg)`;
-        // the body is gone by 55 % of the cover, before the incoming edge slices much of it
-        const fade = Math.min(Math.max((d - 0.1) / 0.45, 0), 1);
+        // the body stays readable while the next sheet slides over it and fades only in the last
+        // stretch (2026-10-16: fading from 10 % of the cover left ~170px of blank paper in view)
+        const fade = Math.min(Math.max((d - 0.82) / 0.18, 0), 1);
         fades[i].forEach((f) => (f.style.opacity = (1 - fade).toFixed(3)));
       });
     };
@@ -496,28 +493,21 @@ const icons: Record<TopSkillId, string> = {
     text-wrap: pretty;
   }
 
-  .proof-sub {
-    display: grid;
-    gap: calc(0.3rem * var(--t, 1));
-    margin-top: calc(0.45rem * var(--t, 1));
-    /* (a step smaller since 2026-10-09, owner: "sub points a little bit smaller") */
+  /* where the claim is shown in full further down (a project, a station, a certificate): the
+     sheet states it, the proof is told once, there (2026-10-16) */
+  .proof-at {
+    display: inline-block;
+    margin-top: calc(0.3rem * var(--t, 1));
     font-size: calc(0.875rem * var(--t, 1));
     line-height: 1.45;
     color: var(--ink-2);
+    text-decoration: underline 1px;
+    text-underline-offset: 0.2em;
   }
 
-  .proof-sub li {
-    position: relative;
-    text-wrap: pretty;
-  }
-
-  .proof-sub li::before {
-    content: "";
-    position: absolute;
-    left: -1.1rem;
-    top: 0.72em;
-    width: 0.55rem;
-    border-top: 1.5px solid var(--steel);
+  .proof-at:hover {
+    color: var(--ink);
+    text-decoration-thickness: 2px;
   }
 
   /* software and where it comes from, under the points (in the tightest pile: under the picture) */
@@ -714,9 +704,8 @@ const icons: Record<TopSkillId, string> = {
     gap: calc(0.7rem * var(--t, 1));
   }
 
-  .is-pile[data-fit] .proof-sub {
-    gap: calc(0.15rem * var(--t, 1));
-    margin-top: calc(0.3rem * var(--t, 1));
+  .is-pile[data-fit] .proof-at {
+    margin-top: calc(0.15rem * var(--t, 1));
   }
 
   .is-pile[data-fit] .sheet-meta {
@@ -745,7 +734,7 @@ const icons: Record<TopSkillId, string> = {
     line-height: 1.35;
   }
 
-  .is-pile[data-fit="tight"] .proof-sub {
+  .is-pile[data-fit="tight"] .proof-at {
     font-size: calc(0.8125rem * var(--t, 1));
     line-height: 1.4;
   }

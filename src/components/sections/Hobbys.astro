@@ -8,12 +8,12 @@
 // nerd; from LinkedIn: 3D printing, own projects automated with Claude. The copy started as an
 // AI draft (accepted by the owner 2026-10-09).
 const hobbies = [
-  { id: "fussball", side: "out", title: "Fußball", text: "Ich spiele selbst." },
-  { id: "trainer", side: "out", title: "Trainer", text: "Und ich stehe als Trainer an der Seitenlinie." },
-  { id: "basketball", side: "out", title: "Basketball", text: "Neben Fußball der Sport, den ich am liebsten verfolge." },
-  { id: "ausgehen", side: "out", title: "Ausgehen", text: "Freunde treffen, raus in die Stadt, gern auch spontan." },
-  { id: "gaming", side: "in", title: "Gaming", text: "Abwechslung zum Alltag." },
-  { id: "nerd", side: "in", title: "Ein bisschen Nerd", text: "Drucke Teile mit dem 3D-Drucker und automatisiere eigene Projekte mit Claude." },
+  { id: "fussball", title: "Fußball", text: "Ich spiele selbst." },
+  { id: "trainer", title: "Trainer", text: "Und ich stehe als Trainer an der Seitenlinie." },
+  { id: "basketball", title: "Basketball", text: "Neben Fußball der Sport, den ich am liebsten verfolge." },
+  { id: "ausgehen", title: "Ausgehen", text: "Freunde treffen, raus in die Stadt, gern auch spontan." },
+  { id: "gaming", title: "Gaming", text: "Abwechslung zum Alltag." },
+  { id: "nerd", title: "Ein bisschen Nerd", text: "Drucke Teile mit dem 3D-Drucker und automatisiere eigene Projekte mit Claude." },
 ];
 ---
 
@@ -24,13 +24,6 @@ const hobbies = [
     </div>
 
     <div class="room">
-      <!-- the switch stands with the list it filters (on wide screens right above it; a critic
-           found it floating far above the list in the section head at 2560) -->
-      <div class="switch" role="radiogroup" aria-label="Welche Seite zeigen" data-switch>
-        <button type="button" role="radio" aria-checked="false" data-mode="out">Draußen</button>
-        <button type="button" role="radio" aria-checked="true" data-mode="all">Beides</button>
-        <button type="button" role="radio" aria-checked="false" data-mode="in">Drinnen</button>
-      </div>
       <div class="stage" data-stage>
         <p class="loading">Regal wird aufgebaut …</p>
         <button type="button" class="back" data-back>Zurück zum Regal</button>
@@ -41,11 +34,12 @@ const hobbies = [
           <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
         </button>
       </div>
-      <ul class="list" data-list data-mode="all">
+      <!-- (the Draußen | Beides | Drinnen switch was removed 2026-10-16: a filter for six items) -->
+      <ul class="list" data-list>
         {
           hobbies.map((h) => (
             <li>
-              <button type="button" class="row" data-id={h.id} data-side={h.side}>
+              <button type="button" class="row" data-id={h.id}>
                 <span class="t">{h.title}</span>
                 <span class="d">{h.text}</span>
               </button>
@@ -59,38 +53,7 @@ const hobbies = [
 
 <script>
   const root = document.querySelector<HTMLElement>("[data-hobbys]");
-  const sw = root?.querySelector<HTMLElement>("[data-switch]");
-  const list = root?.querySelector<HTMLElement>("[data-list]");
-  if (root && sw && list) {
-    // the switch: a radiogroup (only the checked button in the Tab order; arrows, Home/End
-    // move the choice); the shelf lights that side, the list marks it
-    const btns = [...sw.querySelectorAll<HTMLButtonElement>("[data-mode]")];
-    const set = (mode: string) => {
-      list.dataset.mode = mode;
-      for (const b of btns) {
-        const on = b.dataset.mode === mode;
-        b.setAttribute("aria-checked", String(on));
-        b.tabIndex = on ? 0 : -1;
-      }
-      root.dispatchEvent(new CustomEvent("hobby-mode", { detail: mode }));
-    };
-    btns.forEach((b, i) => {
-      b.tabIndex = b.getAttribute("aria-checked") === "true" ? 0 : -1;
-      b.addEventListener("click", () => set(b.dataset.mode!));
-      b.addEventListener("keydown", (e) => {
-        const k = e.key;
-        let n = -1;
-        if (k === "ArrowRight" || k === "ArrowDown") n = (i + 1) % btns.length;
-        else if (k === "ArrowLeft" || k === "ArrowUp") n = (i - 1 + btns.length) % btns.length;
-        else if (k === "Home") n = 0;
-        else if (k === "End") n = btns.length - 1;
-        if (n < 0) return;
-        e.preventDefault();
-        btns[n].focus();
-        set(btns[n].dataset.mode!);
-      });
-    });
-
+  if (root) {
     // the 3D shelf: three.js is fetched when the section comes near the screen, but the scene
     // (about a second of main-thread work) is only built once the stage is on screen, so it
     // never stalls the scroll through the sections above
@@ -109,11 +72,7 @@ const hobbies = [
       if (!entries.some((e) => e.isIntersecting)) return;
       seen.disconnect();
       (mod ??= import("../../scripts/hobby-shelf"))
-        .then((m) => {
-          m.initShelf(root);
-          const mode = list.dataset.mode;
-          if (mode && mode !== "all") root.dispatchEvent(new CustomEvent("hobby-mode", { detail: mode }));
-        })
+        .then((m) => m.initShelf(root))
         .catch(() => root.classList.add("no-3d"));
     });
     near.observe(root);
@@ -136,33 +95,6 @@ const hobbies = [
     margin-bottom: var(--sp-gap);
   }
 
-  /* Draußen | Beides | Drinnen */
-  .switch {
-    display: inline-flex;
-    padding: 4px;
-    border: 1.5px solid var(--ink);
-    border-radius: 999px;
-    background: var(--paper);
-  }
-
-  .switch button {
-    padding: 0.45rem 1rem;
-    border: 0;
-    border-radius: 999px;
-    background: transparent;
-    font: inherit;
-    font-size: 0.9375rem;
-    font-weight: 600;
-    color: var(--ink-2);
-    cursor: pointer;
-  }
-
-  .switch button[aria-checked="true"] {
-    background: var(--ink);
-    color: var(--paper);
-  }
-
-  .switch button:focus-visible,
   .row:focus-visible,
   .back:focus-visible {
     outline: 2px solid var(--ink);
@@ -179,15 +111,10 @@ const hobbies = [
   /* the list stands at the shelf's middle, not hugging its top (a critic found the shelf
      floating beside a short list on wide screens, 2026-10-10); from 100rem the shelf takes
      three quarters of the column */
-  .switch {
-    justify-self: start;
-  }
-
   @media (min-width: 64rem) {
     .room {
       grid-template-columns: 8fr 4fr;
-      /* switch and list as one group at the shelf's middle */
-      grid-template-rows: 1fr auto auto 1fr;
+      grid-template-rows: 1fr auto 1fr;
       row-gap: 0;
     }
     .stage {
@@ -195,14 +122,9 @@ const hobbies = [
       grid-row: 1 / -1;
       align-self: center;
     }
-    .switch {
-      grid-column: 2;
-      grid-row: 2;
-      margin-bottom: 1.25rem;
-    }
     .list {
       grid-column: 2;
-      grid-row: 3;
+      grid-row: 2;
     }
   }
 
@@ -232,13 +154,27 @@ const hobbies = [
   :global(html:not(.js)) .room {
     grid-template-columns: none;
     grid-template-rows: none;
-    /* (the switch right above its list, as beside the shelf) */
     row-gap: 1.25rem;
   }
   .no-3d .room > *,
   :global(html:not(.js)) .room > * {
     grid-column: auto;
     grid-row: auto;
+  }
+  /* the list alone: in columns, so six short rows don't leave the right half of the page empty */
+  @media (min-width: 48rem) {
+    .no-3d .list,
+    :global(html:not(.js)) .list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--sp-gap);
+      row-gap: 0.75rem;
+    }
+  }
+  @media (min-width: 64rem) {
+    .no-3d .list,
+    :global(html:not(.js)) .list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 
   /* soft edges, so a zoomed-in view fades out instead of ending on a hard line */
@@ -440,22 +376,13 @@ const hobbies = [
 
   /* the rows not in play step back in colour only (--ink-3 keeps 4.5:1 on every day colour) */
   .list:global(.has-on) .row:not(:global(.is-on)) .t,
-  .list:global(.has-on) .row:not(:global(.is-on)) .d,
-  .no-3d .list[data-mode="out"] .row[data-side="in"] :is(.t, .d),
-  .no-3d .list[data-mode="in"] .row[data-side="out"] :is(.t, .d) {
+  .list:global(.has-on) .row:not(:global(.is-on)) .d {
     color: var(--ink-3);
     font-weight: 400;
   }
 
-  .list:global(.has-on) .row:not(:global(.is-on)) .t,
-  .no-3d .list[data-mode="out"] .row[data-side="in"] .t,
-  .no-3d .list[data-mode="in"] .row[data-side="out"] .t {
+  .list:global(.has-on) .row:not(:global(.is-on)) .t {
     font-weight: 500;
-  }
-
-  /* without JS the switch could do nothing */
-  :global(html:not(.js)) .switch {
-    display: none;
   }
 
   /* phones: the shelf takes the full width (every pixel counts), the list sits close under it

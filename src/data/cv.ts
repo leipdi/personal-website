@@ -39,7 +39,7 @@ export type CareerEntry = {
   org: string;
   place: string;
   kind: "ausbildung" | "beruf";
-  story: string; // KI-PLATZHALTER: kurzer Einstieg
+  story?: string; // KI-PLATZHALTER: kurzer Einstieg (nur wo er mehr sagt als Titel und Aufgaben)
   // Meilenstein im Projektplan (Werdegang, Fahne am Balken): Abschluss oder Abgabe. at: "2024",
   // "Jun 2024" oder ein Tagesdatum "18.06.2024". Nur Fakten aus CV oder Abschlussarbeit.
   // tag = kurze Fahnenbeschriftung im Projektplan ("Abgabe BA")
@@ -48,6 +48,8 @@ export type CareerEntry = {
   tasks?: string[]; // KI-PLATZHALTER: was er dort gemacht hat, aus CV/Abschlussarbeit umformuliert
   facts?: { label: string; value: string }[]; // Fakten aus CV/LinkedIn/Abschlussarbeit
   visual?: "heliostat"; // die Heliostat-Skizze in der Station
+  // Abschlussarbeiten (2026-10-16): Details stehen nur im Projekt (projects[].id), die Station verlinkt dorthin
+  project?: string;
   // kurze Zeilenbeschriftung im Projektplan, wenn der Titel zu lang ist
   short?: string;
 };
@@ -59,14 +61,12 @@ export const career: CareerEntry[] = [
     to: "2020",
     id: "abitur",
     milestone: { at: "2020", label: "Abitur, Note 2,0", tag: "Note 2,0" },
-    tasks: ["Allgemeine Hochschulreife mit Note 2,0"],
+    facts: [{ label: "Note", value: "2,0" }],
     short: "Abitur",
     title: "Allgemeine Hochschulreife",
     org: "Konrad-Adenauer-Gymnasium",
     place: "Langenfeld",
     kind: "ausbildung",
-    story:
-      "Die Schulzeit in Langenfeld.",
   },
   {
     from: "2020",
@@ -86,8 +86,6 @@ export const career: CareerEntry[] = [
     org: "Hochschule Düsseldorf",
     place: "Düsseldorf",
     kind: "ausbildung",
-    story:
-      "Der Einstieg ins Wirtschaftsingenieurwesen.",
   },
   {
     from: "Okt 2021",
@@ -98,8 +96,6 @@ export const career: CareerEntry[] = [
     org: "Hochschule Düsseldorf",
     place: "Düsseldorf",
     kind: "beruf",
-    story:
-      "Der erste Job neben dem Studium.",
   },
   {
     from: "Okt 2022",
@@ -110,7 +106,6 @@ export const career: CareerEntry[] = [
       "SAP-Tabellen in Kundensystemen gepflegt",
       "In Produktions- und Logistikfragen beraten",
     ],
-    facts: [{ label: "Bereich", value: "Projektmanagement" }],
     short: "Praktikant Projektmanagement",
     title: "Praktikant Projektmanagement",
     org: "IGH Infotec AG",
@@ -128,30 +123,17 @@ export const career: CareerEntry[] = [
       "Timebutler als neues Zeiterfassungssystem eingeführt. Die Kolleg:innen auf das neue System geschult",
       "Operative Aufgaben im Tagesgeschäft. Rechnungen überprüft und eingescannt, offene Forderungen nachgehalten.",
     ],
-    facts: [{ label: "Bereich", value: "Finanzen & Controlling" }],
-    short: "Werkstudent Finanzen & Controlling",
+    short: "Werkstudent Controlling",
     title: "Werkstudent Finanzen & Controlling",
     org: "IGH Infotec AG",
     place: "Langenfeld",
     kind: "beruf",
-    story:
-      "Interner Wechsel in eine andere Abteilung.",
   },
   {
     from: "Mär 2024",
     to: "Jun 2024",
     id: "bachelorarbeit",
-    tasks: [
-      "Kalkulationssoftware verglichen; Costing24 ließ sich nur teilweise nutzen",
-      "Aus den CAD-Daten Fertigungsstücklisten und Baumstrukturen abgeleitet",
-      "Für jedes Bauteil ein Verfahren gewählt, etwa Laserschneiden für dünne Bleche oder Spritzguss für Kunststoffteile",
-      "Bearbeitungszeiten, Maschinenstundensätze und Materialkosten berechnet",
-    ],
-    facts: [
-      { label: "Herstellkosten", value: "ca. 116 € pro Heliostat" },
-      { label: "Pro Spiegelfläche", value: "58 €/m²" },
-      { label: "Veröffentlicht", value: "SolarPACES Conference" },
-    ],
+    project: "heliostat",
     visual: "heliostat",
     short: "Bachelorarbeit am DLR",
     milestone: { at: "18.06.2024", label: "Abgabe der Bachelorarbeit", tag: "Abgabe BA" },
@@ -183,7 +165,7 @@ export const career: CareerEntry[] = [
     place: "Düsseldorf",
     kind: "ausbildung",
     story:
-      "Die Vertiefung nach dem Bachelor, parallel zu Job, Praktikum und Masterarbeit, abgeschlossen mit 1,5.",
+      "Die Vertiefung nach dem Bachelor, parallel zu Job, Praktikum und Masterarbeit.",
   },
   {
     from: "Sep 2024",
@@ -193,29 +175,19 @@ export const career: CareerEntry[] = [
       "Mitteilungen für den Fachbereich verfasst",
       "Büromaterial und Veranstaltungen organisiert",
     ],
-    short: "Wissenschaftliche Hilfskraft",
+    short: "Hilfskraft",
     title: "Wissenschaftliche Hilfskraft",
     org: "Hochschule Düsseldorf, FB Maschinenbau & Verfahrenstechnik",
     place: "Düsseldorf",
     kind: "beruf",
-    story:
-      "Das Dekanat im Tagesgeschäft unterstützt: Mitteilungen für den Fachbereich, Büromaterial, Veranstaltungen.",
   },
   {
     from: "Jan 2026",
     // Abgabe laut Titelblatt der Arbeit: 01.06.2026 (der CV sagte noch "heute")
     to: "Jun 2026",
     id: "masterarbeit",
-    tasks: [
-      "Anforderungskatalog aus ISO 14044, REACH und den ICAO-Vorgaben",
-      "Excel-Tool für kumulierten Energieaufwand und Treibhauspotenzial über fünf Lebensphasen",
-      "Praxischeck mit Diehl Aviation an einer FDM-gedruckten Luftleitschaufel aus Ultem 9085",
-    ],
-    facts: [
-      { label: "Note", value: "1,2" },
-      { label: "Anteil Nutzung", value: "ca. 99 % der Energie" },
-      { label: "Hohle Variante", value: "rund 68 % weniger" },
-    ],
+    facts: [{ label: "Note", value: "1,2" }],
+    project: "luftfahrt",
     short: "Masterarbeit, HSD und RWTH",
     milestone: { at: "01.06.2026", label: "Abgabe der Masterarbeit", tag: "Abgabe MA" },
     title: "Masterarbeit: Ökobilanz additiver Fertigung in der Luftfahrt",
@@ -235,7 +207,7 @@ export const career: CareerEntry[] = [
       "Eine Schulung zu Copilot in Power BI konzipiert",
       "Kunden die Lösung vorgestellt",
     ],
-    facts: [{ label: "Bereich", value: "BI Consulting" }],
+    short: "BI Consulting", // (2026-10-16: kurze Namen halten die Praxis-Bahn auf zwei Zeilen)
     title: "Praktikum BI Consulting",
     org: "ATVISIO Consult GmbH",
     place: "Düsseldorf",
@@ -250,7 +222,7 @@ export const career: CareerEntry[] = [
     tasks: [
       "Einführung eines geeigneten KI-Systems mit Schulung der Mitarbeitenden",
     ],
-    facts: [{ label: "Bereich", value: "Digital Transformation" }],
+    short: "Digital Transformation",
     title: "Praktikum Digital Transformation",
     org: "KOMAcons GmbH",
     place: "Langenfeld",
@@ -376,12 +348,12 @@ export const projects: Project[] = [
     intro:
       "Für einen neuen Heliostaten des DLR sollte die wirtschaftlichste Fertigung in Großserie bestimmt werden. Heliostaten sind nachgeführte Spiegel, die Sonnenlicht auf einen Solarturm lenken.",
     contribution: "Ich habe aus dem CAD-Modell die Fertigung abgeleitet, Verfahren im technologischen Variantenvergleich ausgewählt und Material, Zukaufteile und Bearbeitungszeiten in Excel kalkuliert.",
-    outcome: "Die Kalkulation ergibt rund 116 € Herstellkosten pro Heliostat für die angenommene Großserie, ohne Rüstkosten. Aus der Arbeit entstand ein SolarPACES-Konferenzbeitrag mit mir als Erstautor.",
+    outcome: "Die Kalkulation ergibt rund 116 € Herstellkosten pro Heliostat für die angenommene Großserie, ohne Rüstkosten. Aus der Arbeit entstand ein SolarPACES-Konferenzbeitrag mit mir als Erstautor.",
     detailsLabel: "Variantenvergleich und Kalkulation im Detail",
     brief: [
       {
         label: "Ausgangslage",
-        text: "Heliostaten machen 40 bis 50 % der Kosten eines Solarturmkraftwerks aus. Vom neuen Entwurf gab es ein CAD-Modell, aber keine belastbaren Kosten. Ein früherer Prototyp nach einer älteren Zeichnung war eine Einzelfertigung, seine Kosten kaum dokumentiert.",
+        text: "Heliostaten machen 40 bis 50 % der Kosten eines Solarturmkraftwerks aus. Vom neuen Entwurf gab es ein CAD-Modell, aber keine belastbaren Kosten. Ein früherer Prototyp nach einer älteren Zeichnung war eine Einzelfertigung, seine Kosten kaum dokumentiert.",
       },
       {
         label: "Aufgabe",
@@ -409,7 +381,7 @@ export const projects: Project[] = [
       },
     ],
     facts: [
-      { label: "Pro Quadratmeter Spiegel", value: "ca. 58 €" },
+      { label: "Pro Quadratmeter Spiegel", value: "ca. 58 €" },
     ],
     tools: ["Autodesk Inventor", "Excel", "Costing24", "Witness"],
     link: {
@@ -464,7 +436,7 @@ export const projects: Project[] = [
     intro:
       "Wie lassen sich additiv und konventionell gefertigte Kabinenbauteile über ihren gesamten Lebenszyklus ökologisch vergleichen? Dafür sollte eine Bewertungsmetrik entwickelt und mit einem Industriepartner erprobt werden.",
     contribution: "Ich habe ein Excel-Tool für Energieaufwand und Treibhauspotenzial entwickelt, weitere Umweltwirkungen begründet eingeordnet und die Metrik mit Diehl Aviation an einer Luftleitschaufel erprobt.",
-    outcome: "Im untersuchten Fall benötigt die hohl gedruckte Variante über zehn Jahre im A350 rund 68 % weniger Energie als die massiv gedruckte. Ein Vergleich mit einer konventionell gefertigten Variante war mangels Daten nicht möglich.",
+    outcome: "Im untersuchten Fall benötigt die hohl gedruckte Variante über zehn Jahre im A350 rund 68 % weniger Energie als die massiv gedruckte. Ein Vergleich mit einer konventionell gefertigten Variante war mangels Daten nicht möglich.",
     detailsLabel: "Aufbau und Erprobung der Metrik im Detail",
     brief: [
       {
@@ -546,28 +518,40 @@ export const projects: Project[] = [
 export type RatedSkill = {
   name: string;
   level: 1 | 2 | 3 | 4 | 5;
-  levelLabel: string;
+  note?: string; // Sprachen: die Angabe aus dem CV (Muttersprache, C1) neben dem Namen
   group: "Software & BI" | "KI" | "Sprachen";
 };
 
 // Nur Skills mit expliziter Selbsteinschätzung im Original-CV, keine geschätzten Werte.
+// Eine Skala für alle Gruppen (2026-10-16, Besitzer): das Wort hängt nur an der Stufe, so lesen
+// Software, KI und Sprachen gleich (vorher standen "solide" und "gut" neben "Grundkenntnisse",
+// die Sprachen nur mit "C1" und "Muttersprache").
+export const levelWords: Record<RatedSkill["level"], string> = {
+  1: "Einstieg",
+  2: "Grundkenntnisse",
+  3: "solide",
+  4: "gut",
+  5: "sehr gut",
+};
+
 export const ratedSkills: RatedSkill[] = [
-  { name: "Excel / Word / PowerPoint", level: 5, levelLabel: "sehr gut", group: "Software & BI" },
-  { name: "Power BI", level: 4, levelLabel: "gut", group: "Software & BI" },
-  { name: "MSSQL", level: 2, levelLabel: "Grundkenntnisse", group: "Software & BI" },
-  { name: "Jedox", level: 2, levelLabel: "Grundkenntnisse", group: "Software & BI" },
-  { name: "Autodesk Fusion", level: 2, levelLabel: "Grundkenntnisse", group: "Software & BI" },
-  { name: "Autodesk Inventor", level: 2, levelLabel: "Grundkenntnisse", group: "Software & BI" },
+  // (geschützte Leerzeichen vor dem Schrägstrich: nie ein "/" allein auf einer Zeile)
+  { name: "Excel / Word / PowerPoint", level: 5, group: "Software & BI" },
+  { name: "Power BI", level: 4, group: "Software & BI" },
+  { name: "MSSQL", level: 2, group: "Software & BI" },
+  { name: "Jedox", level: 2, group: "Software & BI" },
+  { name: "Autodesk Fusion", level: 2, group: "Software & BI" },
+  { name: "Autodesk Inventor", level: 2, group: "Software & BI" },
   // Infor: Stufe vom Besitzer selbst (2026-10-13); SAP gemeinsam bestätigt am 2026-10-14.
-  { name: "SAP / Infor", level: 2, levelLabel: "Grundkenntnisse", group: "Software & BI" },
+  { name: "SAP / Infor", level: 2, group: "Software & BI" },
   // KI-Kenntnisse: Auswahl und Stufen von Daniel abgestimmt (2026-10-09), nicht aus dem CV.
-  { name: "Agentic Coding", level: 4, levelLabel: "gut", group: "KI" },
-  { name: "Prompt & Context Engineering", level: 4, levelLabel: "gut", group: "KI" },
-  { name: "Multi-Agent-Workflows", level: 3, levelLabel: "solide", group: "KI" },
-  { name: "MCP & Connectors", level: 3, levelLabel: "solide", group: "KI" },
-  { name: "Skills & Plugins", level: 3, levelLabel: "solide", group: "KI" },
-  { name: "Deutsch", level: 5, levelLabel: "Muttersprache", group: "Sprachen" },
-  { name: "Englisch", level: 4, levelLabel: "C1", group: "Sprachen" },
+  { name: "Agentic Coding", level: 4, group: "KI" },
+  { name: "Prompt & Context Engineering", level: 4, group: "KI" },
+  { name: "Multi-Agent-Workflows", level: 3, group: "KI" },
+  { name: "MCP & Connectors", level: 3, group: "KI" },
+  { name: "Skills & Plugins", level: 3, group: "KI" },
+  { name: "Deutsch", level: 5, note: "Muttersprache", group: "Sprachen" },
+  { name: "Englisch", level: 4, note: "C1", group: "Sprachen" },
 ];
 
 // Ökobilanz hat seit 2026-09-25 keine eigene Box mehr, Python kein Software-Logo mehr
@@ -591,9 +575,10 @@ export type TopSkillId = "kosten" | "data" | "prozesse" | "controlling";
 export type TopSkill = {
   id: TopSkillId;
   title: string;
-  // Hauptpunkte mit Unterpunkten (Daniel 2026-10-08: große Punkte, kleinere darunter; er
-  // ergänzt später eigene Angaben). Unterpunkte aus den Stationen (career[].tasks/facts).
-  proof: { text: string; sub?: string[] }[];
+  // Seit 2026-10-16 (Review: "everything is said three times") nur kurze Aussagen, jede mit
+  // einem Link auf ihren Beleg weiter unten (Projekt, Station oder Zertifikat); die Details
+  // stehen dort, nicht hier.
+  proof: { text: string; at?: { label: string; href: string } }[];
   tools: string[]; // Schlüssel aus src/data/tools.ts (Logo oder Logo-Platzhalter)
   // Das Bild der Karte steht in `arts` in Kernkompetenzen.astro, nach id ausgewählt.
 };
@@ -607,18 +592,12 @@ export const topSkills: TopSkill[] = [
     title: "Bauteilkostenkalkulation",
     proof: [
       {
-        text: "Bachelorarbeit beim DLR: Herstellkostenanalyse eines Heliostaten",
-        sub: [
-          "Aus den CAD-Daten Fertigungsstücklisten und Baumstrukturen abgeleitet",
-          "Je Bauteil ein Verfahren gewählt, Bearbeitungszeiten, Maschinenstundensätze und Materialkosten berechnet",
-          "Ergebnis: ca. 116 € Herstellkosten pro Heliostat, 58 €/m² Spiegelfläche",
-        ],
+        text: "Herstellkosten von unten kalkuliert: aus CAD-Daten, Fertigungsverfahren, Maschinenstundensätzen und Materialpreisen",
+        at: { label: "Bachelorarbeit am DLR", href: "#heliostat" },
       },
       {
-        text: "Ringprojekt im Studium: eine Messhalterung für einen Turbolader als Gruppe konstruiert und hergestellt, meine Aufgabe PPS",
-        sub: ["Planung und Steuerung der Laborbesuche",
-          "Herstellkosten anhand von Materialdaten und Maschinendaten",
-          "Vorstellen der Ergebnisse vor einem Plenum"],
+        text: "Fertigung geplant und Zeiten erfasst, daraus die Maschinenkosten berechnet",
+        at: { label: "Ringprojekt", href: "#ringprojekt" },
       },
     ],
     // Software laut Daniel (2026-09-25): CAD in Inventor, Kalkulation per Hand in Excel
@@ -629,19 +608,16 @@ export const topSkills: TopSkill[] = [
     title: "Data & AI",
     proof: [
       {
-        text: "Praktikum bei Atvisio",
-        sub: [
-          "ETL-Strecken für Kunden und intern aufgebaut",
-          "Kunden die Lösung vorgestellt",
-          "Webinar sowie Schulung zu Copilot in Power BI konzipiert",
-        ],
+        text: "ETL-Strecken und Berichte in Power BI gebaut, eine Schulung zu Copilot in Power BI konzipiert",
+        at: { label: "Praktikum BI Consulting", href: "#praktikum-bi" },
       },
       {
-        text: "KI-Enthusiast",
-        sub: [
-          "KOMAcons GmbH: Integration eines geeigneten KI-Tools mit Schulung der Mitarbeitenden",
-          "Agentic Coding, zum Beispiel diese Portfolio-Website",
-        ],
+        text: "Ein KI-System im Unternehmen einführen und die Mitarbeitenden schulen",
+        at: { label: "Praktikum Digital Transformation", href: "#praktikum-digital-transformation" },
+      },
+      {
+        text: "Diese Website mit Agentic Coding gebaut",
+        at: { label: "Portfolio-Website", href: "#website" },
       },
     ],
     // Python und Jedox auf Wunsch von Daniel (2026-09-25) nicht als Software-Logo
@@ -652,21 +628,17 @@ export const topSkills: TopSkill[] = [
     title: "Prozesse und Projekte",
     proof: [
       {
-        text: "Werkstudent Finanzen & Controlling bei IGH Infotec",
-        sub: ["Timebutler als neue Zeiterfassung eingeführt, die Kolleg:innen geschult"],
+        text: "Eine neue Zeiterfassung eingeführt und die Kolleg:innen darauf geschult",
+        at: { label: "Werkstudent Finanzen & Controlling", href: "#werkstudent-controlling" },
       },
       {
-        text: "Praktikum Projektmanagement bei IGH Infotec",
-        sub: [
-          "Kundentermine vor- und nachbereitet, SAP-Tabellen beim Kunden gepflegt",
-          "In Produktions- und Logistikfragen beraten",
-        ],
+        text: "Kundentermine vor- und nachbereitet, in Produktions- und Logistikfragen beraten",
+        at: { label: "Praktikum Projektmanagement", href: "#praktikum-pm" },
       },
       {
-        text: "Ringprojekt (siehe auch Bauteilkostenkalkulation)",
-        sub: ["Planung und Steuerung der Laborbesuche", "Vorstellen der Ergebnisse vor einem Plenum"],
+        text: "Grundlagen der Prozessverbesserung nach Lean Six Sigma",
+        at: { label: "Yellow Belt, 2025", href: "#z-lean-six-sigma" },
       },
-      { text: "Lean Six Sigma Yellow Belt (2025)" },
     ],
     tools: ["Timebutler", "SAP"],
   },
@@ -675,12 +647,11 @@ export const topSkills: TopSkill[] = [
     title: "Controlling",
     proof: [
       {
-        text: "Werkstudent Finanzen & Controlling bei IGH Infotec, Feb 2023 bis Feb 2024",
-        sub: [
-          "Ein Jahr Mitarbeitercontrolling und Monatsabschlüsse mit Excel und Pivot-Tabellen",
-          "Operative Aufgaben im Tagesgeschäft: Rechnungen überprüft und eingescannt",
-          "Offene Forderungen nachgehalten",
-        ],
+        text: "Ein Jahr Mitarbeitercontrolling und Monatsabschlüsse mit Excel und Pivot-Tabellen",
+        at: { label: "Werkstudent Finanzen & Controlling", href: "#werkstudent-controlling" },
+      },
+      {
+        text: "Rechnungen geprüft und offene Forderungen nachgehalten",
       },
     ],
     tools: ["Excel"],

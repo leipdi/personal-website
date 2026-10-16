@@ -244,10 +244,10 @@ export function initShelf(root: HTMLElement) {
   }
 
   // ---------- state ----------
-  let hovered: string | null = null, focused: string | null = null, pinned: string[] = [];
+  let hovered: string | null = null, focused: string | null = null;
   const intro = new Set<string>();
   const par = { x: 0, y: 0, tx: 0, ty: 0 };
-  const litIds = () => (focused ? [focused] : hovered ? [hovered] : pinned);
+  const litIds = () => (focused ? [focused] : hovered ? [hovered] : []);
   function sync() {
     const lit = litIds();
     for (const it of items) it.on = lit.includes(it.id) || intro.has(it.id);
@@ -331,14 +331,6 @@ export function initShelf(root: HTMLElement) {
       if (focused && (top < 0 || top > innerHeight * 0.6)) stage.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
     });
   }
-  // the Draußen | Beides | Drinnen switch (its radiogroup lives in Hobbys.astro) lights a whole side
-  root.addEventListener("hobby-mode", (e) => {
-    focused = null;
-    const mode = (e as CustomEvent<"all" | Compartment["side"]>).detail;
-    pinned = mode === "all" ? [] : items.filter((i) => i.side === mode).map((i) => i.id);
-    sync();
-  });
-
   // ---------- the loop: full speed while something moves, a slow tick for the idle life ----------
   let raf = 0, idleTimer: ReturnType<typeof setTimeout> | 0 = 0, last = performance.now(), clock = 0, visible = false, ready = false;
   let compiled = false;

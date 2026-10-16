@@ -175,6 +175,15 @@ body {
 /* one page: the sections after Kernkompetenzen open with the structure rule */
 .sec {
   border-top: 1.5px solid var(--ink);
+  /* a jump to the section puts its rule behind the top bar's own (the root scroll padding is
+     about 1rem taller than the bar, which left two parallel rules ~20px apart, 2026-10-16) */
+  scroll-margin-top: -1rem;
+}
+
+@media (min-width: 64rem) {
+  .sec {
+    scroll-margin-top: -1.25rem;
+  }
 }
 
 /* The day behind the page (Layout.astro): the day colour, two soft light spots that drift with

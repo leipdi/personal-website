@@ -114,14 +114,6 @@ const lanes = cats.map((c) => {
   return { ...c, items, nLines: packed.nLines, nFlag: packed.nFlag };
 });
 
-// how long a job or thesis ran (months, counted inclusively), or since when it runs
-const duration = (r: Row) => {
-  if (r.kind === "ausbildung") return null;
-  if (r.to === "heute") return `seit ${r.from}`;
-  const m = Math.round((r.end - r.start) * 12);
-  return m >= 1 ? `${m} ${m === 1 ? "Monat" : "Monate"}` : null;
-};
-
 const restCap = "Alle Stationen bis heute";
 const capOf = (r: Row) => `${name(r)}, ${r.from} bis ${r.to}`;
 // the milestone's date as the CV/thesis gives it: a day ("18.06.2024") or a year ("2024")
@@ -220,10 +212,10 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     <ol class="wrap stations" data-stations>
       {
         rows.map((r) => {
-          const dur = duration(r);
-          // a thesis' submission date is one more fact (the chart's flag shows every milestone)
+          // a thesis' submission date is one more fact (the chart's flag shows every milestone);
+          // no computed "Dauer" any more (2026-10-16: it only repeated the dates in the meta line)
           const ms = r.milestone && msDate(r) && /^Abgabe/.test(r.milestone.label) ? [{ label: "Abgabe", value: msDate(r)! }] : [];
-          const facts = [...(dur ? [{ label: "Dauer", value: dur }] : []), ...(r.facts ?? []), ...ms];
+          const facts = [...(r.facts ?? []), ...ms];
           const side = facts.length > 0;
           return (
             <li id={r.id} class="st" data-st={r.id} data-cat={r.cat}>
@@ -242,7 +234,7 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
 
               <div class="main">
                 <h3 class="title">{r.title}</h3>
-                  <p class="text story">{r.story}</p>
+                  {r.story && <p class="text story">{r.story}</p>}
                   {r.tasks && (
                     <ul class="text tasks">
                       {r.tasks.map((t) => (
@@ -250,6 +242,11 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
                       ))}
                     </ul>
                   )}
+                {r.project && (
+                  <p class="to-project">
+                    <a href={`#${r.project}`}>Die Arbeit im Detail unter Projekte</a>
+                  </p>
+                )}
                 {r.visual === "heliostat" && (
                   <div class="visual">
                       <Heliostat />
@@ -947,11 +944,12 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
     .plan-wrap {
       --lbl: var(--col-meta);
       --bar: 8px;
-      --lz: 1.25rem;
-      --gap: 0.4rem;
+      /* (tightened 2026-10-16: the pinned chart took a quarter of a laptop window) */
+      --lz: 1.05rem;
+      --gap: 0.3rem;
       --drop: 0.85rem;
-      --fx: 0.8rem;
-      padding: 0.5rem 0 0.625rem;
+      --fx: 0.75rem;
+      padding: 0.375rem 0 0.5rem;
     }
   }
 
@@ -1106,8 +1104,11 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
   }
 
   /* the script keeps the text in place itself when the chart changes height (margin above
-     the stations); the browser's own scroll anchoring would correct it a second time */
-  :global(html) {
+     the stations); the browser's own scroll anchoring would correct it a second time. (On
+     body too: with html alone Chrome still anchored, and a jump from above Werdegang to a
+     project landed 90px low on phones, 2026-10-16) */
+  :global(html),
+  :global(body) {
     overflow-anchor: none;
   }
 
@@ -1241,6 +1242,19 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
       overflow: hidden;
       text-overflow: ellipsis;
       transition: color 0.25s;
+      /* the backing reaches 3px around the words, so the playhead and the "heute" line stop
+         clear of the letters instead of seeming to run through them (2026-10-16); not below
+         on the current or pointed-at station, whose ring and outline sit there */
+      box-shadow: 0 0 0 3px var(--bg);
+    }
+    .seg.is-cur .seg-lbl,
+    .seg.is-peek .seg-lbl {
+      box-shadow:
+        0 -3px 0 var(--bg),
+        3px -3px 0 var(--bg),
+        -3px -3px 0 var(--bg),
+        3px 0 0 var(--bg),
+        -3px 0 0 var(--bg);
     }
     .seg-right .seg-lbl {
       left: auto;
@@ -1503,6 +1517,22 @@ const msDate = (r: Row) => r.milestone?.at ?? null;
 
   .tasks li::marker {
     color: var(--ink-2);
+  }
+
+  /* a thesis station points to its case study in Projekte instead of retelling it */
+  .to-project {
+    margin-top: 0.9rem;
+    font-size: 1.0625rem;
+  }
+
+  .to-project a {
+    color: var(--ink);
+    text-decoration: underline 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .to-project a:hover {
+    text-decoration-thickness: 2px;
   }
 
   .visual {
