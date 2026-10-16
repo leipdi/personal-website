@@ -511,7 +511,7 @@ export const projects: Project[] = [
     ],
     facts: [],
     tools: ["Claude Code", "Astro", "Tailwind CSS", "three.js", "Playwright", "GitHub Pages"],
-    link: { label: "Quellcode auf GitHub", href: "https://github.com/leipdi/personal-website" },
+    link: { label: "Quellcode auf GitHub", href: "https://github.com/leipdi/portfolio-website" },
   },
 ];
 
